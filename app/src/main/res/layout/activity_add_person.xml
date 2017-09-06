@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/body_bg">
+
+    <LinearLayout
+        android:layout_width="600dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/zt_box_bg"
+        android:layout_gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:paddingBottom="15dp"
+        android:layout_margin="10dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center_horizontal"
+            android:textAlignment="center"
+            android:layout_marginTop="5dp"
+            android:padding="5dp"
+            android:text="增加人员"
+            android:textColor="@color/white"
+            android:textSize="12pt" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <RelativeLayout
+                android:layout_width="300dp"
+                android:layout_height="180dp">
+
+                <ImageView
+                    android:id="@+id/iv_camera"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/xj_icon"
+                    android:layout_centerInParent="true"/>
+
+                <ImageView
+                    android:id="@+id/iv_camera_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/xj_bg"/>
+
+                <TextView
+                    android:id="@+id/tv_fingerprint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="点击拍摄照片"
+                    android:textSize="14pt"
+                    android:layout_centerInParent="true" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:layout_width="200dp"
+                android:layout_height="180dp"
+                android:orientation="vertical"
+                android:layout_marginLeft="20dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp">
+
+                    <ImageView
+                        android:id="@+id/iv_finger"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/zw_icon"
+                        android:layout_centerInParent="true"/>
+
+                    <ImageView
+                        android:id="@+id/iv_finger_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/xj_bg"
+                        android:layout_alignParentTop="true"
+                       />
+
+
+
+
+                </RelativeLayout>
+
+                <EditText
+                    android:id="@+id/et_finger"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/iv_finger_view"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/zwh_bg"
+                    android:enabled="false"
+                    android:text="指纹号"
+                    android:textSize="18sp"
+                    android:textColor="#808080"
+                    android:paddingLeft="15dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/et_person_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/zwh_bg"
+            android:hint="人员姓名"
+            android:paddingLeft="15dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:layout_marginTop="10dp"/>
+
+        <EditText
+            android:id="@+id/et_id_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/zwh_bg"
+            android:hint="身份证号"
+            android:paddingLeft="15dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:layout_marginTop="10dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <Button
+                        android:id="@+id/btn_commit"
+                android:layout_width="match_parent"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/tj_bg"
+                android:layout_marginRight="5dp"
+                android:text="提  交"
+                android:textColor="@color/white"
+                android:textSize="24sp" />
+
+            <Button
+                android:id="@+id/btn_cancel"
+                android:layout_width="match_parent"
+                android:layout_weight="1"
+                android:layout_marginLeft="5dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/tj_bg"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="15dp"
+                android:text="取  消"
+                android:textColor="@color/white"
+                android:textSize="24sp" />
+
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</LinearLayout>
