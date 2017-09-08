@@ -204,7 +204,7 @@ public class FingerPrintImpl implements IFingerPrint {
 
                 if (w_nRet != DevComm.ERR_SUCCESS) {
                     if (w_nRet == DevComm.ERR_DUPLICATION_ID)
-                        m_strPost = String.format("指纹模板已存在，ID为%d, 点我重试", w_nDupID[0]);
+                        m_strPost = String.format("指纹模板已存在，点我重试", w_nDupID[0]);
                     else
                         m_strPost = GetErrorMsg(w_nRet);
                 } else

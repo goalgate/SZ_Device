@@ -8,11 +8,15 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.BarUtils;
 
+import com.blankj.utilcode.util.SPUtils;
+import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.jakewharton.rxbinding2.view.RxView;
 import com.sz_device.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
@@ -38,6 +42,10 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
 
     Uri photoUri = null;
 
+    int fp_id;
+
+    SPUtils user;
+
     String TAG = "AddPersonActivity";
 
     FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
@@ -45,12 +53,23 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     @BindView(R.id.iv_finger)
     ImageView img_finger;
 
-
     @BindView(R.id.iv_camera_view)
     ImageView img_camera;
 
+    @BindView(R.id.et_finger)
+    TextView tv_finger;
 
-    @OnClick(R.id.iv_camera_view) void capture(){
+    @BindView(R.id.btn_commit)
+    Button btn_commit;
+
+    @BindView(R.id.et_person_name)
+    TextView tv_person_name;
+
+    @BindView(R.id.et_id_card)
+    TextView tv_id_card;
+
+    @OnClick(R.id.iv_camera_view)
+    void capture() {
         ToastUtils.showLong("正在打开照相机，请稍等");
         Intent photoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         photoUri = FileUtils.getOutputMediaFileUri(FileUtils.MEDIA_TYPE_IMAGE);
@@ -59,16 +78,27 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
         photoIntent.putExtra("camerasensortype", 1); // 调用前置摄像头
         photoIntent.putExtra("autofocus", true); // 自动对焦
         this.startActivityForResult(photoIntent, 100);
-    }
-
-    @OnClick(R.id.btn_commit) void commit(){
-        ActivityUtils.startActivity(getPackageName(),getPackageName()+".IndexActivity");
 
     }
 
-    @OnClick(R.id.btn_cancel) void cancel(){
-        ActivityUtils.startActivity(getPackageName(),getPackageName()+".IndexActivity");
+    @OnClick(R.id.btn_commit)
+    void commit() {
+        if (StringUtils.isEmpty(tv_person_name.getText().toString()) || (StringUtils.isEmpty(tv_id_card.getText().toString()))
+              /*  || photoUri == null */) {
+            ToastUtils.showLong("信息不全，无法上传数据");
+        } else {
+            user = SPUtils.getInstance(String.valueOf(fp_id));
+            user.put("name",tv_person_name.getText().toString());
+            user.put("id",tv_id_card.getText().toString());
+            finish();
+        }
+    }
 
+    @OnClick(R.id.btn_cancel)
+    void cancel() {
+        //ActivityUtils.startActivity(getPackageName(),getPackageName()+".IndexActivity");
+        fpp.fpCancel(true);
+        finish();
     }
 
     @Override
@@ -78,18 +108,22 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
         setContentView(R.layout.activity_add_person);
         ButterKnife.bind(this);
         AppActivitys.getInstance().addActivity(this);
+        btn_commit.setClickable(false);
+
         RxView.clicks(img_finger).throttleFirst(3, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Object>() {
-                               @Override
-                               public void accept(@NonNull Object o) throws Exception {
-                                   img_finger.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.zw_icon));
-                                   fpp.fpCancel(true);
-                                   fpp.fpEnroll("1");
-                               }
-                });
-        //网络获取id
+                    @Override
+                    public void accept(@NonNull Object o) throws Exception {
+                        if (!btn_commit.isClickable()) {
+                            fp_id = fpp.fpGetEmptyID();
+                            img_finger.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.zw_icon));
+                            fpp.fpCancel(true);
+                            fpp.fpEnroll(String.valueOf(fp_id));
+                        }
 
+                    }
+                });
     }
 
     @Override
@@ -120,6 +154,12 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
 
     @Override
     public void onText(String msg) {
+        if (!msg.equals("Canceled")) {
+            tv_finger.setText(msg);
+        }
+        if (msg.endsWith("录入成功")) {
+            btn_commit.setClickable(true);
+        }
 
     }
 
@@ -131,22 +171,15 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-    }
-
-
-    @Override
     protected void onPause() {
         super.onPause();
         fpp.fpCancel(true);
-        Log.e(TAG,"onPause");
+        Log.e(TAG, "onPause");
     }
+
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        AppActivitys.getInstance().exit();
+
     }
 }
 

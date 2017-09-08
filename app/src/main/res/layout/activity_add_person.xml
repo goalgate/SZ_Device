@@ -102,8 +102,8 @@
                     android:layout_marginTop="20dp"
                     android:background="@drawable/zwh_bg"
                     android:enabled="false"
-                    android:text="指纹号"
-                    android:textSize="18sp"
+                    android:text="点击指纹图片登记指纹"
+                    android:textSize="14sp"
                     android:textColor="#808080"
                     android:paddingLeft="15dp"
                     android:paddingTop="10dp"
@@ -141,7 +141,7 @@
             android:orientation="horizontal">
 
             <Button
-                        android:id="@+id/btn_commit"
+                android:id="@+id/btn_commit"
                 android:layout_width="match_parent"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"

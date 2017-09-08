@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.blankj.utilcode.util.ActivityUtils;
+import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.sz_device.EventBus.LegalEvent;
 import com.sz_device.EventBus.TemHumEvent;
@@ -151,12 +152,12 @@ public class IndexActivity extends Activity implements IFingerPrintView, AddPers
 
     @Override
     public void onText(String msg) {
-        if(successCount<2){
+        if (successCount < 2) {
             if (msg.substring(0, 3).equals("TAG")) {
                 if (successCount == 0) {
-                    last_men = msg.substring(3, 4);
+                    last_men = SPUtils.getInstance(msg.substring(3, 4)).getString("name");
                     successCount++;
-                    tv_info.setText("管理员" + msg.substring(3, 4) + "，请继续输入管理员信息" + successCount);
+                    tv_info.setText("管理员" + last_men + "打卡，请继续输入管理员信息");
                     Observable.timer(60, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Observer<Long>() {
@@ -168,7 +169,7 @@ public class IndexActivity extends Activity implements IFingerPrintView, AddPers
                                 @Override
                                 public void onNext(Long aLong) {
                                     successCount = 0;
-                                    tv_info.setText("可继续检测指纹");
+
                                 }
 
                                 @Override
@@ -183,8 +184,8 @@ public class IndexActivity extends Activity implements IFingerPrintView, AddPers
                             });
 
                 } else if (successCount == 1) {
-                    if (!last_men.equals(msg.substring(3, 4))) {
-                        tv_info.setText("管理员" + msg.substring(3, 4) + "双人管理成功" + successCount);
+                    if (!last_men.equals(SPUtils.getInstance(msg.substring(3, 4)).getString("name"))) {
+                        tv_info.setText("管理员" + SPUtils.getInstance(msg.substring(3, 4)).getString("name") + "打卡，双人管理成功");
                         EventBus.getDefault().post(new LegalEvent(true));
                         successCount++;
                         last_men = null;
@@ -199,11 +200,11 @@ public class IndexActivity extends Activity implements IFingerPrintView, AddPers
             }
         }
 
-}
+    }
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        AppActivitys.getInstance().exit();
+
     }
+
 }
