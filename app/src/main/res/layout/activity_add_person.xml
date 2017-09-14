@@ -54,13 +54,6 @@
                     android:layout_height="match_parent"
                     android:background="@drawable/xj_bg"/>
 
-                <TextView
-                    android:id="@+id/tv_fingerprint"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="点击拍摄照片"
-                    android:textSize="14pt"
-                    android:layout_centerInParent="true" />
 
             </RelativeLayout>
 

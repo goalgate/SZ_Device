@@ -56,13 +56,13 @@ public class AddPersonWindow extends PopupWindow implements View.OnClickListener
 
     private void lighton() {
         WindowManager.LayoutParams lp = mActivity.getWindow().getAttributes();
-        mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         lp.alpha = 1.0f;
         mActivity.getWindow().setAttributes(lp);
     }
 
     private void lightoff() {
         WindowManager.LayoutParams lp = mActivity.getWindow().getAttributes();
+
         lp.alpha = 0.3f;
         mActivity.getWindow().setAttributes(lp);
     }

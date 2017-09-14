@@ -107,6 +107,7 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
                         temperature = (int) by[5];
                         humidity = (int) by[3];
                         temHumTime = Calendar.getInstance();
+                        mhandler.sendMessage(getMsg(0x123));
                         mhandler.sendMessage(getMsg(0x234));
                     }else if(by[3]==(byte)0x96&&by[6]==0x1F&&by[7]==0x44&&by[8]==(byte)0xAD) {
                         //mhandler.sendMessage(getMsg(0x123));
