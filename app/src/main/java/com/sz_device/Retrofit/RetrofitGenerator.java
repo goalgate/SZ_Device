@@ -1,5 +1,6 @@
 package com.sz_device.Retrofit;
 
+import com.sz_device.Retrofit.InterfaceApi.AlarmCeaseApi;
 import com.sz_device.Retrofit.InterfaceApi.AlarmRecordApi;
 import com.sz_device.Retrofit.InterfaceApi.CheckOnlineApi;
 import com.sz_device.Retrofit.InterfaceApi.CheckRecordApi;
@@ -10,6 +11,8 @@ import com.sz_device.Retrofit.InterfaceApi.QueryPersonInfoApi;
 import com.sz_device.Retrofit.InterfaceApi.RegisterPersonApi;
 import com.sz_device.Retrofit.InterfaceApi.StateRecordApi;
 import com.sz_device.Retrofit.InterfaceApi.TestNetApi;
+import com.sz_device.Retrofit.Request.ResquestModule.AlarmCeaseModule;
+
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
@@ -59,6 +62,8 @@ public class RetrofitGenerator {
     private static CheckRecordApi checkRecordApi;
 
     private static AlarmRecordApi alarmRecordApi;
+
+    private static AlarmCeaseApi alarmCeaseApi;
 
     private static <S> S createService(Class<S> serviceClass) {
         okHttpClient.interceptors().add(new Interceptor() {
@@ -184,6 +189,13 @@ public class RetrofitGenerator {
             alarmRecordApi = createService(AlarmRecordApi.class);
         }
         return alarmRecordApi;
+    }
+
+    public static AlarmCeaseApi getAlarmCeaseApi() {
+        if (alarmCeaseApi == null) {
+            alarmCeaseApi = createService(AlarmCeaseApi.class);
+        }
+        return alarmCeaseApi;
     }
 
 }

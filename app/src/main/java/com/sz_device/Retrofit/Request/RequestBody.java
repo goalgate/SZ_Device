@@ -4,6 +4,7 @@ package com.sz_device.Retrofit.Request;
 
 
 import com.sz_device.Fun_Switching.mvp.presenter.SwitchPresenter;
+import com.sz_device.Retrofit.Request.ResquestModule.AlarmCeaseModule;
 import com.sz_device.Retrofit.Request.ResquestModule.AlarmRecordModule;
 import com.sz_device.Retrofit.Request.ResquestModule.CheckOnlineModule;
 import com.sz_device.Retrofit.Request.ResquestModule.CheckRecordModule;
@@ -56,6 +57,9 @@ public class RequestBody {
     @Element(name = "inf:alarmRecord", required = false)
     public AlarmRecordModule alarmRecordModule;
 
+    @Element(name = "inf:alarmCease", required = false)
+    public AlarmCeaseModule alarmCeaseModule;
+
     public RequestBody(IRequestModule module) {
         if (module.getClass().getName().equals(TestNetModule.class.getName())) {
             testNetModule = (TestNetModule) module;
@@ -77,6 +81,8 @@ public class RequestBody {
             checkRecordModule = (CheckRecordModule) module;
         }else if (module.getClass().getName().equals(AlarmRecordModule.class.getName())) {
             alarmRecordModule = (AlarmRecordModule) module;
+        }else if (module.getClass().getName().equals(AlarmCeaseModule.class.getName())) {
+            alarmCeaseModule = (AlarmCeaseModule) module;
         }
     }
 }

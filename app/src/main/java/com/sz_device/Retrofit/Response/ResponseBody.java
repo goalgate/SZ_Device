@@ -41,4 +41,6 @@ public class ResponseBody {
     @Element(name = "alarmRecordResponse", required = false)
     public ResponseModel alarmRecordResponse;
 
+    @Element(name = "alarmCeaseResponse", required = false)
+    public ResponseModel alarmCeaseResponse;
 }

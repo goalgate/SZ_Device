@@ -19,6 +19,8 @@ import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.jakewharton.rxbinding2.view.RxView;
+import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.sz_device.EventBus.LegalEvent;
 import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
@@ -58,12 +60,14 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -136,7 +140,6 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_index);
         ButterKnife.bind(this);
-        AppActivitys.getInstance().addActivity(this);
         EventBus.getDefault().register(this);
         openService();
 
@@ -166,6 +169,22 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
                         }
                     }
                 });
+        RxTextView.textChanges(tv_info)
+                .debounce(10, TimeUnit.SECONDS)
+                .switchMap(new Function<CharSequence, ObservableSource<String>>() {
+                    @Override
+                    public ObservableSource<String> apply(@NonNull CharSequence charSequence) throws Exception {
+                        return Observable.just("等待用户操作");
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(@NonNull String s) throws Exception {
+                        tv_info.setText(s);
+                    }
+                });
+
 
     }
 

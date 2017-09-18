@@ -17,6 +17,7 @@ import com.sz_device.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Fun_Switching.mvp.presenter.SwitchPresenter;
 import com.sz_device.Fun_Switching.mvp.view.ISwitchView;
 import com.sz_device.Retrofit.Request.RequestEnvelope;
+import com.sz_device.Retrofit.Request.ResquestModule.AlarmCeaseModule;
 import com.sz_device.Retrofit.Request.ResquestModule.AlarmRecordModule;
 import com.sz_device.Retrofit.Request.ResquestModule.CloseDoorRecordModule;
 import com.sz_device.Retrofit.Request.ResquestModule.StateRecordModule;
@@ -70,6 +71,8 @@ public class SwitchService extends Service implements ISwitchView {
     Disposable unlock_noOpen;
 
     boolean first_open = true;
+
+    boolean alarming = false;
 
     @Override
     public void onCreate() {
@@ -167,6 +170,7 @@ public class SwitchService extends Service implements ISwitchView {
                 if (value.equals("AAAAAA000000000000") && legal == false) {
                     sp.OutD9(true);
                     alarmRecord();
+                    alarming = true;
                 }
             }
 
@@ -180,8 +184,9 @@ public class SwitchService extends Service implements ISwitchView {
                     if (Last_Value.equals("AAAAAA000000000000")) {
                         if (legal == false) {
                             sp.OutD9(true);
-                            if(network_state){
+                            if(first_open && network_state){
                                 alarmRecord();
+                                alarming = true;
                             }
                             if(first_open && network_state){
                                 EventBus.getDefault().post(new OpenDoorEvent(false));
@@ -232,6 +237,11 @@ public class SwitchService extends Service implements ISwitchView {
                 }
                 if (legal == true) {
                     sp.OutD9(false);
+                    if(network_state&&alarming){
+                        AlarmCease();
+                        alarming = false;
+                    }
+
                 }
                 if (legal == true && value.equals("AAAAAA000000000001")) {
                     Observable.timer(120, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
@@ -258,9 +268,20 @@ public class SwitchService extends Service implements ISwitchView {
                 }
             }
         }
-
     }
 
+    private void AlarmCease(){
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("datetime",TimeUtils.getNowString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        RetrofitGenerator.getAlarmCeaseApi().alarmCease(RequestEnvelope.GetRequestEnvelope(
+                new AlarmCeaseModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())
+        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe();
+    }
 
     private void CloseDoorRecord(String time) {
         JSONObject jsonObject = new JSONObject();

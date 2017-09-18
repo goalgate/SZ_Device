@@ -125,14 +125,13 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                 ToastUtils.showLong("无法连接服务器，请稍后重试");
                 fpp.fpRemoveTmpl(registerUser.getFingerprintId());
             }
-            finish();
+            ActivityUtils.startActivity(getPackageName(),getPackageName()+".IndexActivity");
         }
     }
 
     @OnClick(R.id.btn_cancel)
     void cancel() {
-        fpp.fpCancel(true);
-        finish();
+        ActivityUtils.startActivity(getPackageName(),getPackageName()+".IndexActivity");
     }
 
     @Override
@@ -141,7 +140,6 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
         BarUtils.hideStatusBar(this);
         setContentView(R.layout.activity_add_person);
         ButterKnife.bind(this);
-        AppActivitys.getInstance().addActivity(this);
         EventBus.getDefault().register(this);
         btn_commit.setClickable(false);
         RxView.clicks(img_finger).throttleFirst(3, TimeUnit.SECONDS)
@@ -268,6 +266,8 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     protected void onPause() {
         super.onPause();
         fpp.fpCancel(true);
+        fpp.FingerPrintPresenterSetView(null);
+        this.finish();
         Log.e(TAG, "onPause");
     }
 
