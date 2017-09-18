@@ -29,12 +29,16 @@ import com.sz_device.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Fun_FingerPrint.mvp.view.IFingerPrintView;
 import com.sz_device.Retrofit.Request.RequestEnvelope;
 import com.sz_device.Retrofit.Request.ResquestModule.CheckOnlineModule;
+import com.sz_device.Retrofit.Request.ResquestModule.CheckRecordModule;
+import com.sz_device.Retrofit.Request.ResquestModule.OpenDoorRecordModule;
 import com.sz_device.Retrofit.Request.ResquestModule.QueryPersonInfoModule;
 import com.sz_device.Retrofit.Request.ResquestModule.TestNetModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Service.SwitchService;
 import com.sz_device.Tools.AppActivitys;
+import com.sz_device.Tools.FileUtils;
+import com.sz_device.Tools.User;
 import com.sz_device.UI.AddPersonWindow;
 
 
@@ -55,6 +59,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
@@ -80,13 +85,20 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
     Intent intent;
 
+    User checkUser ;
+
+    User cg_User1 = new User();
+
+    User cg_User2 = new User();
+
+    int option;
+
     FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
 
     PhotoPresenter pp = PhotoPresenter.getInstance();
 
-    int successCount = 0;
-
-    String last_men;
+    int fingerprintCount = 0;
+    int photoCount = 0;
 
     private AddPersonWindow popUpWindow;
 
@@ -178,7 +190,12 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetOpenDoorEvent(OpenDoorEvent event) {
-        OpenDoorRecord(event.getLegal());
+        if(network_state){
+            OpenDoorRecord(event.getLegal());
+        }
+        cg_User1 = new User();
+        cg_User2 = new User();
+
     }
 
     @Override
@@ -189,7 +206,8 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
         fpp.fpIdentify();
         pp.initCamera();
         pp.setHolderAndDisplay(surfaceView.getHolder(),true);
-        successCount = 0;
+        fingerprintCount = 0;
+        photoCount = 0;
         Log.e(TAG,"onResume0");
     }
 
@@ -226,6 +244,18 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
     @Override
     public void onGetPhoto(Bitmap bmp) {
+        if(option == 1){
+            photoCount++;
+            if(photoCount == 1){
+                cg_User1.setPhoto(FileUtils.bitmapToBase64(bmp));
+            }else if(photoCount == 2){
+                cg_User2.setPhoto(FileUtils.bitmapToBase64(bmp));
+            }
+        }else if(option == 2){
+            if(network_state){
+                CheckRecord(bmp);
+            }
+        }
         Matrix matrix = new Matrix();
         matrix.postScale(0.5f,0.5f);
         bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(),bmp.getHeight(),matrix,true);
@@ -247,15 +277,18 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
     @Override
     public void onText(String msg) {
-        if (successCount < 2) {
+        if (fingerprintCount < 2) {
             if (msg.substring(0, 3).equals("TAG")) {
-                QueryPersonInfo(msg.substring(3, 4));
-                if(SPUtils.getInstance(msg.substring(3, 4)).getString("type").equals(String.valueOf(1))){
-                    pp.capture();
-                    if (successCount == 0) {
-                        last_men = SPUtils.getInstance(msg.substring(3, 4)).getString("name");
-                        successCount++;
-                        tv_info.setText("管理员" + last_men + "打卡，请继续输入管理员信息");
+                QueryPersonInfo(msg.substring(3, msg.length()));
+                if(SPUtils.getInstance(msg.substring(3, msg.length())).getString("type").equals(String.valueOf(1))){
+                    option = 1;
+
+                    if (fingerprintCount == 0) {
+                        pp.capture();
+                        fingerprintCount++;
+                        cg_User1.setName(SPUtils.getInstance(msg.substring(3, msg.length())).getString("name"));
+                        cg_User1.setId(SPUtils.getInstance(msg.substring(3, msg.length())).getString("id"));
+                        tv_info.setText("管理员" + cg_User1.getName() + "打卡，请继续输入管理员信息");
                         Observable.timer(60, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new Observer<Long>() {
@@ -266,8 +299,10 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
                                     @Override
                                     public void onNext(Long aLong) {
-                                        successCount = 0;
-
+                                        fingerprintCount = 0;
+                                        cg_User1 = new User();
+                                        cg_User2 = new User();
+                                        photoCount = 0;
                                     }
 
                                     @Override
@@ -280,18 +315,26 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
                                     }
                                 });
-                    } else if (successCount == 1) {
-                        if (!last_men.equals(SPUtils.getInstance(msg.substring(3, 4)).getString("name"))) {
-                            tv_info.setText("管理员" + SPUtils.getInstance(msg.substring(3, 4)).getString("name") + "打卡，双人管理成功");
+                    } else if (fingerprintCount == 1) {
+                        if (!cg_User1.getName().equals(SPUtils.getInstance(msg.substring(3, msg.length())).getString("name"))) {
+                            pp.capture();
+                            fingerprintCount++;
+                            tv_info.setText("管理员" + SPUtils.getInstance(msg.substring(3, msg.length())).getString("name") + "打卡，双人管理成功");
                             EventBus.getDefault().post(new LegalEvent(true));
-                            successCount++;
-                            last_men = null;
-                        } else if (last_men.equals(SPUtils.getInstance(msg.substring(3, 4)).getString("name")) && tv_info.getText().toString().equals("松开手指")) {
+                            cg_User2.setName(SPUtils.getInstance(msg.substring(3, msg.length())).getString("name"));
+                            cg_User2.setId(SPUtils.getInstance(msg.substring(3, msg.length())).getString("id"));
+                        } else if (cg_User1.getName().equals(SPUtils.getInstance(msg.substring(3, msg.length())).getString("name")) && tv_info.getText().toString().equals("松开手指")) {
                             tv_info.setText("请不要连续输入相同的管理员信息");
                         }
                     }
-                }else if(SPUtils.getInstance(msg.substring(3, 4)).getString("type").equals(String.valueOf(2))){
-                    successCount = 0;
+                }else if(SPUtils.getInstance(msg.substring(3, msg.length())).getString("type").equals(String.valueOf(2))||SPUtils.getInstance(msg.substring(3, msg.length())).getString("type").equals(String.valueOf(3))){
+                    fingerprintCount = 0;
+                    option = 2;
+                    pp.capture();
+                    checkUser = new User();
+                    checkUser.setId(SPUtils.getInstance(msg.substring(3, msg.length())).getString("id"));
+                    checkUser.setName(SPUtils.getInstance(msg.substring(3, msg.length())).getString("name"));
+                    checkUser.setType(SPUtils.getInstance(msg.substring(3, msg.length())).getString("type"));
                 }else {
                     tv_info.setText("该人员的身份合法性尚未通过");
                 }
@@ -307,12 +350,88 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
 
     private void OpenDoorRecord(boolean leagl){
+        JSONObject jsonObject = new JSONObject();
+        if (leagl){
+            try {
+                jsonObject.put("id1",cg_User1.getId());
+                jsonObject.put("name1",cg_User1.getName());
+                jsonObject.put("id2", cg_User2.getId());
+                jsonObject.put("name2", cg_User2.getName());
+                jsonObject.put("photo1", cg_User1.getPhoto());
+                jsonObject.put("photo2", cg_User2.getPhoto());
+                jsonObject.put("datetime",TimeUtils.getNowString());
+                jsonObject.put("state","y");
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }else{
+            try {
+                jsonObject.put("id1",cg_User1.getId());
+                jsonObject.put("name1",cg_User1.getName());
+                jsonObject.put("id2", cg_User2.getId());
+                jsonObject.put("name2", cg_User2.getName());
+                jsonObject.put("photo1", cg_User1.getPhoto());
+                jsonObject.put("photo2", cg_User2.getPhoto());
+                jsonObject.put("datetime",TimeUtils.getNowString());
+                jsonObject.put("state","n");
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        RetrofitGenerator.getOpenDoorRecordApi().openDoorRecord(RequestEnvelope.GetRequestEnvelope(
+                new OpenDoorRecordModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
+        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe();
 
+    }
+
+
+    private void CheckRecord(Bitmap bmp){
+
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("id",checkUser.getId());
+            jsonObject.put("name",checkUser.getName());
+            jsonObject.put("photo", FileUtils.bitmapToBase64(bmp));
+            jsonObject.put("personType",checkUser.getType());
+            jsonObject.put("datetime",TimeUtils.getNowString());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        RetrofitGenerator.getCheckRecordApi().checkRecord(RequestEnvelope.GetRequestEnvelope(
+                new CheckRecordModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
+        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(ResponseEnvelope responseEnvelope) {
+                Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.checkRecordResponse.info,
+                        new TypeToken<HashMap<String, String>>() {
+                        }.getType());
+                if (infoMap.get("result").equals("true")) {
+                    ToastUtils.showLong("上传成功");
+                }else{
+                    ToastUtils.showLong("上传失败");
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                ToastUtils.showLong("上传失败");
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
     }
 
     private void QueryPersonInfo(String sp){
         final String spname =sp;
-        if(SPUtils.getInstance(sp).getBoolean("check",false)){
+        if(SPUtils.getInstance(sp).getBoolean("need_check",true)){
             RetrofitGenerator.getQueryPersonInfoApi().
                     QueryPersonInfo(RequestEnvelope.GetRequestEnvelope(new QueryPersonInfoModule(
                             SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),SPUtils.getInstance(sp).getString("id")
@@ -324,12 +443,13 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
                 @Override
                 public void onNext(ResponseEnvelope responseEnvelope) {
-                    Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.registerPersonResponse.info,
+                    Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.queryPersonInfoResponse.info,
                             new TypeToken<HashMap<String, String>>() {
                             }.getType());
                     if (infoMap.get("result").equals("true")) {
-                        SPUtils.getInstance(spname).put("check",true);
+                        SPUtils.getInstance(spname).put("need_check",false);
                         SPUtils.getInstance(spname).put("type",infoMap.get("info"));
+                        tv_info.setText("该人员的身份合法性已在机器验证");
                     }
                 }
 
