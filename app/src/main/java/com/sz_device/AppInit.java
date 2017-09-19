@@ -5,6 +5,7 @@ import android.content.Context;
 
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.Utils;
+import com.log.Lg;
 import com.squareup.leakcanary.LeakCanary;
 import com.sz_device.Tools.DESX;
 import com.sz_device.Tools.NetInfo;
@@ -35,6 +36,9 @@ public class AppInit extends Application {
     public void onCreate() {
 
         super.onCreate();
+
+        Lg.setIsSave(true);
+
 
         if (LeakCanary.isInAnalyzerProcess(this)) {
             return;

@@ -1,5 +1,6 @@
 package com.sz_device.Retrofit;
 
+import com.log.Lg;
 import com.sz_device.Retrofit.InterfaceApi.AlarmCeaseApi;
 import com.sz_device.Retrofit.InterfaceApi.AlarmRecordApi;
 import com.sz_device.Retrofit.InterfaceApi.CheckOnlineApi;
@@ -17,9 +18,11 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
 import org.simpleframework.xml.strategy.Strategy;
+
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.exceptions.OnErrorNotImplementedException;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -33,6 +36,7 @@ import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
  * Created by SmileXie on 16/7/16.
  */
 public class RetrofitGenerator {
+    private static String TAG = "RetrofitGenerator";
     private static final String PREFS_NAME = "UserInfo";
     //private static final String Uri = "http://192.168.11.167:7001/VerifyService/services/";
     private static final String Uri = "http://192.168.11.165:8080/daWebservice/webservice/";
@@ -68,16 +72,20 @@ public class RetrofitGenerator {
     private static <S> S createService(Class<S> serviceClass) {
         okHttpClient.interceptors().add(new Interceptor() {
             @Override
-            public okhttp3.Response intercept(Chain chain) throws IOException {
-                Request original = chain.request();
-                Request.Builder requestBuilder = original.newBuilder()
-                        .header("Content-Type", "text/xml;charset=UTF-8")   // 对于SOAP 1.1， 如果是soap1.2 应是Content-Type: application/soap+xml; charset=utf-8
-                        .method(original.method(), original.body());
-                Request request = requestBuilder.build();
+            public okhttp3.Response intercept(Chain chain) {
+                try {
+                    Request original = chain.request();
+                    Request.Builder requestBuilder = original.newBuilder()
+                            .header("Content-Type", "text/xml;charset=UTF-8")   // 对于SOAP 1.1， 如果是soap1.2 应是Content-Type: application/soap+xml; charset=utf-8
+                            .method(original.method(), original.body());
+                    Request request = requestBuilder.build();
                     return chain.proceed(request);
+                } catch (IOException e) {
+                    Lg.e(TAG + "createService", e.toString());
+                }
+                return null;
             }
         });
-
         OkHttpClient client = okHttpClient.connectTimeout(30, TimeUnit.SECONDS)
                 .writeTimeout(60, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)
@@ -157,14 +165,14 @@ public class RetrofitGenerator {
 
     public static GetFingerPrintApi getFingerPrintApi() {
         if (getFingerprintIdApi == null) {
-            getFingerprintIdApi= createService(GetFingerPrintApi.class);
+            getFingerprintIdApi = createService(GetFingerPrintApi.class);
         }
         return getFingerprintIdApi;
     }
 
     public static RegisterPersonApi getRegisterPersonApi() {
         if (registerPersonApi == null) {
-            registerPersonApi= createService(RegisterPersonApi.class);
+            registerPersonApi = createService(RegisterPersonApi.class);
         }
         return registerPersonApi;
     }
@@ -172,14 +180,14 @@ public class RetrofitGenerator {
 
     public static QueryPersonInfoApi getQueryPersonInfoApi() {
         if (queryPersonInfoApi == null) {
-            queryPersonInfoApi= createService(QueryPersonInfoApi.class);
+            queryPersonInfoApi = createService(QueryPersonInfoApi.class);
         }
         return queryPersonInfoApi;
     }
 
     public static CheckRecordApi getCheckRecordApi() {
         if (checkRecordApi == null) {
-            checkRecordApi= createService(CheckRecordApi.class);
+            checkRecordApi = createService(CheckRecordApi.class);
         }
         return checkRecordApi;
     }

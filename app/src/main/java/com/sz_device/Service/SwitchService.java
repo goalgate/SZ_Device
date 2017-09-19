@@ -87,7 +87,7 @@ public class SwitchService extends Service implements ISwitchView {
             }
         });
 
-        Observable.interval(0, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
+        Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {

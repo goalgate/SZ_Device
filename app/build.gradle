@@ -55,4 +55,5 @@ dependencies {
                 exclude module: 'xpp3'
             }
     compile "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
+    compile "com.trello.rxlifecycle2:rxlifecycle:$retrofitVersion"
 }

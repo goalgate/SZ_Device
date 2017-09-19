@@ -14,6 +14,8 @@ public class ResponseBody {
     @Element(name = "testNetResponse", required = false)
     public ResponseModel testNetResponse;
 
+
+
     @Element(name = "checkOnlineResponse", required = false)
     public ResponseModel checkOnlineResponse;
 

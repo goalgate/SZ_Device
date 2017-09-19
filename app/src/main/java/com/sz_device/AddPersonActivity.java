@@ -33,7 +33,6 @@ import com.sz_device.Retrofit.Request.ResquestModule.GetFingerprintIdModule;
 import com.sz_device.Retrofit.Request.ResquestModule.RegisterPersonModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
-import com.sz_device.Tools.AppActivitys;
 import com.sz_device.Tools.FileUtils;
 import com.sz_device.Tools.User;
 
