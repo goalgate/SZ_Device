@@ -19,4 +19,6 @@
     <color name="color_info">#cacdd9</color>
     <color name="color_text">#3a70db</color>
     <color name="transparent">#00000000</color>
+
+    <color name="primary_text">#212121</color>
 </resources>

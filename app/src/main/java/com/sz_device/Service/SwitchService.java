@@ -7,6 +7,7 @@ import android.os.IBinder;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sz_device.EventBus.LegalEvent;
@@ -24,6 +25,7 @@ import com.sz_device.Retrofit.Request.ResquestModule.StateRecordModule;
 import com.sz_device.Retrofit.Request.ResquestModule.TestNetModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
+import com.sz_device.Tools.MyObserver;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -95,12 +97,12 @@ public class SwitchService extends Service implements ISwitchView {
                             RetrofitGenerator.getTestNetApi().testNet(RequestEnvelope.GetRequestEnvelope(new TestNetModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"))))
                                     .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
                                 @Override
-                                public void onSubscribe(Disposable d) {
+                                public void onSubscribe(@NonNull Disposable d) {
 
                                 }
 
                                 @Override
-                                public void onNext(ResponseEnvelope responseEnvelope) {
+                                public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
                                     if (responseEnvelope != null) {
                                         Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.testNetResponse.info,
                                                 new TypeToken<HashMap<String, String>>() {
@@ -116,7 +118,8 @@ public class SwitchService extends Service implements ISwitchView {
                                 }
 
                                 @Override
-                                public void onError(Throwable e) {
+                                public void onError(@NonNull Throwable e) {
+
                                     network_state = false;
                                     EventBus.getDefault().post(new NetworkEvent(false, "服务器连接出错"));
                                 }
@@ -169,7 +172,9 @@ public class SwitchService extends Service implements ISwitchView {
                 Last_Value = value;
                 if (value.equals("AAAAAA000000000000") && legal == false) {
                     sp.OutD9(true);
-                    alarmRecord();
+                    if(network_state){
+                        alarmRecord();
+                    }
                     alarming = true;
                 }
             }
@@ -280,7 +285,7 @@ public class SwitchService extends Service implements ISwitchView {
 
         RetrofitGenerator.getAlarmCeaseApi().alarmCease(RequestEnvelope.GetRequestEnvelope(
                 new AlarmCeaseModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())
-        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe();
+        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new MyObserver());
     }
 
     private void CloseDoorRecord(String time) {
@@ -292,7 +297,7 @@ public class SwitchService extends Service implements ISwitchView {
         }
         RetrofitGenerator.getCloseDoorRecordApi().closeDoorRecord(RequestEnvelope.GetRequestEnvelope(new CloseDoorRecordModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())))
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
+                .subscribe(new MyObserver());
     }
 
     private void alarmRecord(){
@@ -306,7 +311,7 @@ public class SwitchService extends Service implements ISwitchView {
         }
         RetrofitGenerator.getAlarmRecordApi().alarmRecord(RequestEnvelope.GetRequestEnvelope(
            new AlarmRecordModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
-        )) .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe();
+        )) .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new MyObserver());
     }
 
     private void StateRecord() {
@@ -322,7 +327,7 @@ public class SwitchService extends Service implements ISwitchView {
 
         RetrofitGenerator.getStateRecordApi().stateRecord(RequestEnvelope.GetRequestEnvelope(new StateRecordModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())))
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
+                .subscribe(new MyObserver());
     }
 
     @Override

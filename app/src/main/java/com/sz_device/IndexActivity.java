@@ -8,11 +8,16 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.SurfaceView;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bigkoo.alertview.AlertView;
+import com.bigkoo.alertview.OnItemClickListener;
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
@@ -29,17 +34,21 @@ import com.sz_device.Fun_Camera.mvp.presenter.PhotoPresenter;
 import com.sz_device.Fun_Camera.mvp.view.IPhotoView;
 import com.sz_device.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Fun_FingerPrint.mvp.view.IFingerPrintView;
+import com.sz_device.Retrofit.InterfaceApi.TestNetApi;
 import com.sz_device.Retrofit.Request.RequestEnvelope;
 import com.sz_device.Retrofit.Request.ResquestModule.CheckOnlineModule;
 import com.sz_device.Retrofit.Request.ResquestModule.CheckRecordModule;
 import com.sz_device.Retrofit.Request.ResquestModule.OpenDoorRecordModule;
 import com.sz_device.Retrofit.Request.ResquestModule.QueryPersonInfoModule;
+import com.sz_device.Retrofit.Request.ResquestModule.TestNetModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Service.SwitchService;
 import com.sz_device.Tools.FileUtils;
+import com.sz_device.Tools.MyObserver;
 import com.sz_device.Tools.User;
 import com.sz_device.UI.AddPersonWindow;
+import com.sz_device.UI.OptionWindow;
 
 
 import org.greenrobot.eventbus.EventBus;
@@ -53,6 +62,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -75,11 +85,11 @@ import retrofit2.Response;
  * Created by zbsz on 2017/8/25.
  */
 
-public class IndexActivity extends Activity implements IFingerPrintView,IPhotoView, AddPersonWindow.OptionTypeListener {
+public class IndexActivity extends Activity implements IFingerPrintView,IPhotoView, AddPersonWindow.OptionTypeListener,OptionWindow.OptionListener {
 
     private static final String PREFS_NAME = "UserInfo";
 
-    boolean network_state;
+    public static final String Server_URL = "http://((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?):\\d{4}/";
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -95,14 +105,19 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
     int option;
 
+    boolean network_state;
+
     FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
 
     PhotoPresenter pp = PhotoPresenter.getInstance();
 
     int fingerprintCount = 0;
+
     int photoCount = 0;
 
-    private AddPersonWindow popUpWindow;
+    private AddPersonWindow personWindow;
+
+    private OptionWindow optionWindow;
 
     @BindView(R.id.img_captured)
     ImageView captured;
@@ -112,7 +127,6 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
     @BindView(R.id.surfaceView)
     SurfaceView surfaceView;
-
 
     @BindView(R.id.network_state)
     TextView tv_network_state;
@@ -126,11 +140,23 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
     @BindView(R.id.tv_humidity)
     TextView tv_humidity;
 
+    private AlertView inputServerView;
+    private String url;
+    private TextView dev_name;
+    private EditText etName;
+
     @OnClick(R.id.iv_person_add)
     void addPerson() {
-        popUpWindow = new AddPersonWindow(this);
-        popUpWindow.setOptionTypeListener(this);
-        popUpWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
+        personWindow = new AddPersonWindow(this);
+        personWindow.setOptionTypeListener(this);
+        personWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
+    }
+
+    @OnClick(R.id.iv_option)
+    void setOption(){
+        optionWindow = new OptionWindow(this);
+        optionWindow.setOptionListener(this);
+        optionWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
     }
 
     @Override
@@ -183,6 +209,65 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
                     }
                 });
 
+        inputServerView = new AlertView("服务器设置", null, "取消", new String[]{"确定"}, null, this, AlertView.Style.Alert, new OnItemClickListener() {
+            @Override
+            public void onItemClick(Object o, int position) {
+                if (position == 0) {
+
+                    Pattern pattern = Pattern.compile(Server_URL);
+
+                    url = etName.getText().toString().replaceAll(" ", "");
+
+                    if (!(url.endsWith("/"))) {
+                        url = url + "/";
+                    }
+                    if (!(url.startsWith("http://"))) {
+                        url = "http://" + url;
+                    }
+                    if (pattern.matcher(url).matches()) {
+                        new RetrofitGenerator().createSer(TestNetApi.class, url).testNet(RequestEnvelope.GetRequestEnvelope(new TestNetModule(SPUtils.getInstance("UserInfo").getString("jsonKey"))))
+                                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Observer<ResponseEnvelope>() {
+                                    @Override
+                                    public void onSubscribe(Disposable d) {
+                                        ToastUtils.showLong("测试连接中请稍后");
+                                    }
+
+                                    @Override
+                                    public void onNext(ResponseEnvelope responseEnvelope) {
+                                        if (responseEnvelope != null) {
+                                            Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.testNetResponse.info,
+                                                    new TypeToken<HashMap<String, String>>() {
+                                                    }.getType());
+                                            if (infoMap.get("result").equals("true")) {
+                                                SPUtils.getInstance(PREFS_NAME).put("server", url);
+                                                ToastUtils.showLong("服务器设置成功");
+                                            } else {
+                                                ToastUtils.showLong("设备出错");
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(Throwable e) {
+                                        ToastUtils.showLong("连接服务器失败");
+                                    }
+
+                                    @Override
+                                    public void onComplete() {
+
+                                    }
+                                });
+                    } else {
+                        ToastUtils.showLong("请输入正确的服务器地址");
+                    }
+                }
+            }
+        });
+        ViewGroup extView1 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputserver_form, null);
+        dev_name = (TextView) extView1.findViewById(R.id.dev_id);
+        etName = (EditText) extView1.findViewById(R.id.server_input);
+        inputServerView.addExtView(extView1);
 
     }
 
@@ -240,18 +325,34 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        fpp.fpCancel(true);
+        fpp.FingerPrintPresenterSetView(null);
+        fpp.fpClose();
         EventBus.getDefault().unregister(this);
         stopService(intent);
     }
 
     @Override
     public void onOptionType(Button view, int type) {
-        popUpWindow.dismiss();
+        personWindow.dismiss();
         if (type == 1) {
             ActivityUtils.startActivity(getPackageName(), getPackageName() + ".AddPersonActivity");
         } else {
             ToastUtils.showLong("该权限下无法删除人员信息");
         }
+    }
+
+    @Override
+    public void onOption(Button view, int type) {
+        optionWindow.dismiss();
+        if (type == 1) {
+            dev_name.setText(SPUtils.getInstance(PREFS_NAME).getString("dev_id"));
+            etName.setText(SPUtils.getInstance(PREFS_NAME).getString("server"));
+            inputServerView.show();
+        } else {
+
+        }
+
     }
 
     @Override
@@ -397,7 +498,7 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
         }
         RetrofitGenerator.getOpenDoorRecordApi().openDoorRecord(RequestEnvelope.GetRequestEnvelope(
                 new OpenDoorRecordModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
-        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe();
+        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new MyObserver());
 
     }
 
@@ -472,6 +573,7 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
                 @Override
                 public void onError(Throwable e) {
+                    tv_info.setText("服务器出错，无法验证合法性");
 
                 }
 
@@ -481,17 +583,13 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
                 }
             });
         }
-
-
-
-
-
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
     }
+
 
 
 }

@@ -39,7 +39,6 @@ public class AppInit extends Application {
 
         Lg.setIsSave(true);
 
-
         if (LeakCanary.isInAnalyzerProcess(this)) {
             return;
         }
@@ -64,6 +63,5 @@ public class AppInit extends Application {
             User_SP.put("dev_id", new NetInfo().getMacId());
             User_SP.put("jsonKey", DESX.encrypt(jsonKey.toString()));
         }
-
     }
 }

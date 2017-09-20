@@ -1,5 +1,6 @@
 package com.sz_device.Retrofit;
 
+import com.blankj.utilcode.util.NetworkUtils;
 import com.log.Lg;
 import com.sz_device.Retrofit.InterfaceApi.AlarmCeaseApi;
 import com.sz_device.Retrofit.InterfaceApi.AlarmRecordApi;
@@ -72,18 +73,13 @@ public class RetrofitGenerator {
     private static <S> S createService(Class<S> serviceClass) {
         okHttpClient.interceptors().add(new Interceptor() {
             @Override
-            public okhttp3.Response intercept(Chain chain) {
-                try {
-                    Request original = chain.request();
-                    Request.Builder requestBuilder = original.newBuilder()
-                            .header("Content-Type", "text/xml;charset=UTF-8")   // 对于SOAP 1.1， 如果是soap1.2 应是Content-Type: application/soap+xml; charset=utf-8
-                            .method(original.method(), original.body());
-                    Request request = requestBuilder.build();
-                    return chain.proceed(request);
-                } catch (IOException e) {
-                    Lg.e(TAG + "createService", e.toString());
-                }
-                return null;
+            public okhttp3.Response intercept(Chain chain) throws IOException {
+                Request original = chain.request();
+                Request.Builder requestBuilder = original.newBuilder()
+                        .header("Content-Type", "text/xml;charset=UTF-8")   // 对于SOAP 1.1， 如果是soap1.2 应是Content-Type: application/soap+xml; charset=utf-8
+                        .method(original.method(), original.body());
+                Request request = requestBuilder.build();
+                return chain.proceed(request);
             }
         });
         OkHttpClient client = okHttpClient.connectTimeout(30, TimeUnit.SECONDS)
@@ -95,7 +91,6 @@ public class RetrofitGenerator {
                 .addConverterFactory(SimpleXmlConverterFactory.create(serializer))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(Uri).client(client).build();
-
         return retrofit.create(serviceClass);
     }
 

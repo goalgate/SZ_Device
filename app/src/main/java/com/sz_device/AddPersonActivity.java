@@ -111,26 +111,26 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     @OnClick(R.id.btn_commit)
     void commit() {
         if (StringUtils.isEmpty(tv_person_name.getText().toString()) || (StringUtils.isEmpty(tv_id_card.getText().toString()))
-                || photoUri == null ) {
+                || photoUri == null) {
             ToastUtils.showLong("信息不全，无法上传数据");
         } else {
-            if(network_state){
+            if (network_state) {
                 user = SPUtils.getInstance(registerUser.getFingerprintId());
-                user.put("name",tv_person_name.getText().toString());
-                user.put("id",tv_id_card.getText().toString());
-                user.put("fp_id",registerUser.getFingerprintId());
+                user.put("name", tv_person_name.getText().toString());
+                user.put("id", tv_id_card.getText().toString());
+                user.put("fp_id", registerUser.getFingerprintId());
                 RegisterPerson();
-            }else{
+            } else {
                 ToastUtils.showLong("无法连接服务器，请稍后重试");
                 fpp.fpRemoveTmpl(registerUser.getFingerprintId());
             }
-            ActivityUtils.startActivity(getPackageName(),getPackageName()+".IndexActivity");
+            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".IndexActivity");
         }
     }
 
     @OnClick(R.id.btn_cancel)
     void cancel() {
-        ActivityUtils.startActivity(getPackageName(),getPackageName()+".IndexActivity");
+        ActivityUtils.startActivity(getPackageName(), getPackageName() + ".IndexActivity");
     }
 
     @Override
@@ -150,9 +150,14 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                             GetFingerprintIdModule requestModule = new GetFingerprintIdModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"));
                             RetrofitGenerator.getFingerPrintApi().getFingerPrint(RequestEnvelope.GetRequestEnvelope(requestModule))
                                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(new Consumer<ResponseEnvelope>() {
+                                    .subscribe(new Observer<ResponseEnvelope>() {
                                         @Override
-                                        public void accept(@NonNull ResponseEnvelope responseEnvelope) throws Exception {
+                                        public void onSubscribe(@NonNull Disposable d) {
+
+                                        }
+
+                                        @Override
+                                        public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
                                             Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.getFingerprintIdResponse.info,
                                                     new TypeToken<HashMap<String, String>>() {
                                                     }.getType());
@@ -161,34 +166,42 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                                                 fpp.fpCancel(true);
                                                 registerUser.setFingerprintId(infoMap.get("fingerprintId"));
                                                 fpp.fpEnroll(registerUser.getFingerprintId());
-                                            }else if(infoMap.get("result").equals("false")){
+                                            } else if (infoMap.get("result").equals("false")) {
 
                                             }
                                         }
+
+                                        @Override
+                                        public void onError(@NonNull Throwable e) {
+                                            ToastUtils.showLong("服务器出错");
+                                        }
+
+                                        @Override
+                                        public void onComplete() {
+
+                                        }
                                     });
-
-
                         }
                     }
                 });
     }
 
-    private void RegisterPerson(){
+    private void RegisterPerson() {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("id", tv_id_card.getText().toString());
             jsonObject.put("name", tv_person_name.getText().toString());
-            jsonObject.put("photo",registerUser.getPhoto());
+            jsonObject.put("photo", registerUser.getPhoto());
             jsonObject.put("fingerprintPhoto", registerUser.getFingerprintPhoto());
             jsonObject.put("fingerprintId", registerUser.getFingerprintId());
-            jsonObject.put("fingerprintKey",fpp.fpUpTemlate(registerUser.getFingerprintId()));
-            jsonObject.put("datetime",TimeUtils.getNowString());
+            jsonObject.put("fingerprintKey", fpp.fpUpTemlate(registerUser.getFingerprintId()));
+            jsonObject.put("datetime", TimeUtils.getNowString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
         RetrofitGenerator.getRegisterPersonApi().RegisterPerson(RequestEnvelope.GetRequestEnvelope(new RegisterPersonModule(
-                SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString()
-                ))).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString()
+        ))).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<ResponseEnvelope>() {
                     @Override
                     public void accept(@NonNull ResponseEnvelope responseEnvelope) throws Exception {
@@ -197,9 +210,9 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                                 }.getType());
                         if (infoMap.get("result").equals("true")) {
                             ToastUtils.showLong("上传成功");
-                        }else if(infoMap.get("result").equals("false")){
+                        } else if (infoMap.get("result").equals("false")) {
                             ToastUtils.showLong("上传失败");
-                        }else if(infoMap.get("result").equals("checkErr")){
+                        } else if (infoMap.get("result").equals("checkErr")) {
                             ToastUtils.showLong("上传失败");
                         }
                     }
@@ -274,6 +287,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     public void onBackPressed() {
 
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();

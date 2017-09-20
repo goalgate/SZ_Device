@@ -56,4 +56,5 @@ dependencies {
             }
     compile "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
     compile "com.trello.rxlifecycle2:rxlifecycle:$retrofitVersion"
+    compile 'com.bigkoo:alertview:1.0.3'
 }
