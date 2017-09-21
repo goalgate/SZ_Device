@@ -27,9 +27,9 @@ public class RequestEnvelope {
     public RequestBody body;
 
 
-    public static RequestEnvelope GetRequestEnvelope(IRequestModule module) {
+    public static RequestEnvelope GetRequestEnvelope(int method,IRequestModule module) {
         RequestEnvelope requestEnvelope = new RequestEnvelope();
-        RequestBody body = new RequestBody(module);
+        RequestBody body = new RequestBody(method,module);
         requestEnvelope.body = body;
         return requestEnvelope;
     }

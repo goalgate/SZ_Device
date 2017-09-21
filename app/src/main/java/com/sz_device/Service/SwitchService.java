@@ -7,22 +7,17 @@ import android.os.IBinder;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
-import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sz_device.EventBus.LegalEvent;
 import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.EventBus.TemHumEvent;
-import com.sz_device.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Fun_Switching.mvp.presenter.SwitchPresenter;
 import com.sz_device.Fun_Switching.mvp.view.ISwitchView;
 import com.sz_device.Retrofit.Request.RequestEnvelope;
-import com.sz_device.Retrofit.Request.ResquestModule.AlarmCeaseModule;
-import com.sz_device.Retrofit.Request.ResquestModule.AlarmRecordModule;
-import com.sz_device.Retrofit.Request.ResquestModule.CloseDoorRecordModule;
-import com.sz_device.Retrofit.Request.ResquestModule.StateRecordModule;
-import com.sz_device.Retrofit.Request.ResquestModule.TestNetModule;
+import com.sz_device.Retrofit.Request.ResquestModule.CommonRequestModule;
+import com.sz_device.Retrofit.Request.ResquestModule.OnlyPutKeyModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Tools.MyObserver;
@@ -33,7 +28,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +39,16 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.alarmCease;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.alarmRecord;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.checkOnline;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.closeDoorRecord;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.stateRecord;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.testNet;
 
 /**
  * Created by zbsz on 2017/8/28.
@@ -94,7 +98,7 @@ public class SwitchService extends Service implements ISwitchView {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
                         if (NetworkUtils.isConnected()) {
-                            RetrofitGenerator.getTestNetApi().testNet(RequestEnvelope.GetRequestEnvelope(new TestNetModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"))))
+                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(testNet,new OnlyPutKeyModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"))))
                                     .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
                                 @Override
                                 public void onSubscribe(@NonNull Disposable d) {
@@ -119,7 +123,6 @@ public class SwitchService extends Service implements ISwitchView {
 
                                 @Override
                                 public void onError(@NonNull Throwable e) {
-
                                     network_state = false;
                                     EventBus.getDefault().post(new NetworkEvent(false, "服务器连接出错"));
                                 }
@@ -129,7 +132,6 @@ public class SwitchService extends Service implements ISwitchView {
 
                                 }
                             });
-
                         } else {
                             network_state = false;
                             EventBus.getDefault().post(new NetworkEvent(false, "请检查网络是否已连接"));
@@ -145,6 +147,16 @@ public class SwitchService extends Service implements ISwitchView {
                             StateRecord();
                         }
 
+                    }
+                });
+        Observable.interval(1, 1, TimeUnit.HOURS).observeOn(Schedulers.io())
+                .subscribe(new Consumer<Long>() {
+                    @Override
+                    public void accept(@NonNull Long aLong) throws Exception {
+                        if(network_state){
+                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(checkOnline,new OnlyPutKeyModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"))))
+                               .subscribeOn(Schedulers.io()).subscribe(new MyObserver());
+                        }
                     }
                 });
     }
@@ -282,9 +294,8 @@ public class SwitchService extends Service implements ISwitchView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        RetrofitGenerator.getAlarmCeaseApi().alarmCease(RequestEnvelope.GetRequestEnvelope(
-                new AlarmCeaseModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(alarmCease,
+                new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())
         )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new MyObserver());
     }
 
@@ -295,7 +306,7 @@ public class SwitchService extends Service implements ISwitchView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getCloseDoorRecordApi().closeDoorRecord(RequestEnvelope.GetRequestEnvelope(new CloseDoorRecordModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())))
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(closeDoorRecord,new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())))
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new MyObserver());
     }
@@ -309,8 +320,8 @@ public class SwitchService extends Service implements ISwitchView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getAlarmRecordApi().alarmRecord(RequestEnvelope.GetRequestEnvelope(
-           new AlarmRecordModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
+           alarmRecord,new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
         )) .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new MyObserver());
     }
 
@@ -325,7 +336,7 @@ public class SwitchService extends Service implements ISwitchView {
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getStateRecordApi().stateRecord(RequestEnvelope.GetRequestEnvelope(new StateRecordModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())))
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(stateRecord,new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())))
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new MyObserver());
     }

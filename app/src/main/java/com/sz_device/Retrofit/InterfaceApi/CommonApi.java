@@ -9,11 +9,14 @@ import retrofit2.http.Headers;
 import retrofit2.http.POST;
 
 /**
- * Created by zbsz on 2017/9/14.
+ * Created by zbsz on 2017/9/21.
  */
 
-public interface RegisterPersonApi {
+public interface CommonApi {
+
+
     @Headers({"Content-Type: text/xml;charset=UTF-8", "style:'document'"})//请求的Action，类似于方法名
     @POST("daszws")
-    Observable<ResponseEnvelope> RegisterPerson(@Body RequestEnvelope requestEnvelope);
+    Observable<ResponseEnvelope> commonFunction(@Body RequestEnvelope requestEnvelope);
+
 }

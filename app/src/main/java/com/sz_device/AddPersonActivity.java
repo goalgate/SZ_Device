@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.icu.lang.UScript;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -17,7 +16,6 @@ import android.widget.TextView;
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.BarUtils;
 
-import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.TimeUtils;
@@ -26,14 +24,16 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.view.RxView;
 import com.sz_device.EventBus.NetworkEvent;
+import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Fun_FingerPrint.mvp.view.IFingerPrintView;
 import com.sz_device.Retrofit.Request.RequestEnvelope;
-import com.sz_device.Retrofit.Request.ResquestModule.GetFingerprintIdModule;
-import com.sz_device.Retrofit.Request.ResquestModule.RegisterPersonModule;
+import com.sz_device.Retrofit.Request.ResquestModule.CommonRequestModule;
+import com.sz_device.Retrofit.Request.ResquestModule.OnlyPutKeyModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Tools.FileUtils;
+import com.sz_device.Tools.MyObserver;
 import com.sz_device.Tools.User;
 
 import org.greenrobot.eventbus.EventBus;
@@ -50,13 +50,16 @@ import java.util.concurrent.TimeUnit;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.getFingerPrint;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.openDoorRecord;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.registerPerson;
 
 /**
  * Created by zbsz on 2017/7/31.
@@ -147,8 +150,8 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                     @Override
                     public void accept(@NonNull Object o) throws Exception {
                         if (!btn_commit.isClickable()) {
-                            GetFingerprintIdModule requestModule = new GetFingerprintIdModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"));
-                            RetrofitGenerator.getFingerPrintApi().getFingerPrint(RequestEnvelope.GetRequestEnvelope(requestModule))
+                            OnlyPutKeyModule requestModule = new OnlyPutKeyModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"));
+                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(getFingerPrint,requestModule))
                                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                                     .subscribe(new Observer<ResponseEnvelope>() {
                                         @Override
@@ -199,7 +202,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getRegisterPersonApi().RegisterPerson(RequestEnvelope.GetRequestEnvelope(new RegisterPersonModule(
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(registerPerson,new CommonRequestModule(
                 SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString()
         ))).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<ResponseEnvelope>() {
@@ -223,6 +226,26 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetNetworkEvent(NetworkEvent event) {
         network_state = event.getNetwork_state();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onGetOpenDoorEvent(OpenDoorEvent event) {
+        if (network_state) {
+            OpenDoorRecord(event.getLegal());
+        }
+    }
+
+    private void OpenDoorRecord(boolean leagl) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("datetime", TimeUtils.getNowString());
+            jsonObject.put("state", "n");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
+                openDoorRecord,new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())
+        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new MyObserver());
     }
 
     @Override

@@ -1,19 +1,6 @@
 package com.sz_device.Retrofit;
 
-import com.blankj.utilcode.util.NetworkUtils;
-import com.log.Lg;
-import com.sz_device.Retrofit.InterfaceApi.AlarmCeaseApi;
-import com.sz_device.Retrofit.InterfaceApi.AlarmRecordApi;
-import com.sz_device.Retrofit.InterfaceApi.CheckOnlineApi;
-import com.sz_device.Retrofit.InterfaceApi.CheckRecordApi;
-import com.sz_device.Retrofit.InterfaceApi.CloseDoorRecordApi;
-import com.sz_device.Retrofit.InterfaceApi.GetFingerPrintApi;
-import com.sz_device.Retrofit.InterfaceApi.OpenDoorRecordApi;
-import com.sz_device.Retrofit.InterfaceApi.QueryPersonInfoApi;
-import com.sz_device.Retrofit.InterfaceApi.RegisterPersonApi;
-import com.sz_device.Retrofit.InterfaceApi.StateRecordApi;
-import com.sz_device.Retrofit.InterfaceApi.TestNetApi;
-import com.sz_device.Retrofit.Request.ResquestModule.AlarmCeaseModule;
+import com.sz_device.Retrofit.InterfaceApi.CommonApi;
 
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
@@ -23,7 +10,6 @@ import org.simpleframework.xml.strategy.Strategy;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.exceptions.OnErrorNotImplementedException;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -48,7 +34,9 @@ public class RetrofitGenerator {
 
     private static OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder();
 
-    private static TestNetApi testNetApi;
+    private static CommonApi commonApi;
+
+ /*   private static TestNetApi testNetApi;
 
     private static CheckOnlineApi checkOnlineApi;
 
@@ -68,7 +56,7 @@ public class RetrofitGenerator {
 
     private static AlarmRecordApi alarmRecordApi;
 
-    private static AlarmCeaseApi alarmCeaseApi;
+    private static AlarmCeaseApi alarmCeaseApi;*/
 
     private static <S> S createService(Class<S> serviceClass) {
         okHttpClient.interceptors().add(new Interceptor() {
@@ -123,7 +111,14 @@ public class RetrofitGenerator {
         return retrofit.create(serviceClass);
     }
 
-    public static TestNetApi getTestNetApi() {
+    public static CommonApi getCommonApi() {
+        if (commonApi == null) {
+            commonApi = createService(CommonApi.class);
+        }
+        return commonApi;
+    }
+
+/*    public static TestNetApi getTestNetApi() {
         if (testNetApi == null) {
             testNetApi = createService(TestNetApi.class);
         }
@@ -199,6 +194,6 @@ public class RetrofitGenerator {
             alarmCeaseApi = createService(AlarmCeaseApi.class);
         }
         return alarmCeaseApi;
-    }
+    }*/
 
 }

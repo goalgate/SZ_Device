@@ -1,7 +1,5 @@
 package com.sz_device.EventBus;
 
-import com.sz_device.Retrofit.InterfaceApi.OpenDoorRecordApi;
-
 /**
  * Created by zbsz on 2017/9/12.
  */

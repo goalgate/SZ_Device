@@ -3,15 +3,15 @@ package com.sz_device.Retrofit.Request.ResquestModule;
 import org.simpleframework.xml.Element;
 
 /**
- * Created by zbsz on 2017/7/3.
+ * Created by zbsz on 2017/9/21.
  */
 
-public class CheckOnlineModule implements IRequestModule {
+public class OnlyPutKeyModule implements IRequestModule {
 
     @Element(name = "key", required = false)
     public String key;
 
-    public CheckOnlineModule(String key) {
+    public OnlyPutKeyModule(String key) {
         this.key = key;
     }
 }

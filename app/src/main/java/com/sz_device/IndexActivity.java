@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -24,7 +23,6 @@ import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.jakewharton.rxbinding2.view.RxView;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.sz_device.EventBus.LegalEvent;
 import com.sz_device.EventBus.NetworkEvent;
@@ -36,11 +34,9 @@ import com.sz_device.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Fun_FingerPrint.mvp.view.IFingerPrintView;
 import com.sz_device.Retrofit.InterfaceApi.TestNetApi;
 import com.sz_device.Retrofit.Request.RequestEnvelope;
-import com.sz_device.Retrofit.Request.ResquestModule.CheckOnlineModule;
-import com.sz_device.Retrofit.Request.ResquestModule.CheckRecordModule;
-import com.sz_device.Retrofit.Request.ResquestModule.OpenDoorRecordModule;
+import com.sz_device.Retrofit.Request.ResquestModule.CommonRequestModule;
+import com.sz_device.Retrofit.Request.ResquestModule.OnlyPutKeyModule;
 import com.sz_device.Retrofit.Request.ResquestModule.QueryPersonInfoModule;
-import com.sz_device.Retrofit.Request.ResquestModule.TestNetModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Service.SwitchService;
@@ -54,7 +50,6 @@ import com.sz_device.UI.OptionWindow;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
@@ -70,7 +65,6 @@ import butterknife.OnClick;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
@@ -80,6 +74,11 @@ import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.checkRecord;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.openDoorRecord;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.queryPersonInfo;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.testNet;
 
 /**
  * Created by zbsz on 2017/8/25.
@@ -176,23 +175,6 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
             }
         });
 
-        Observable.interval(1, 1, TimeUnit.HOURS).observeOn(Schedulers.io())
-                .subscribe(new Consumer<Long>() {
-                    @Override
-                    public void accept(@NonNull Long aLong) throws Exception {
-                        if(network_state){
-                            RetrofitGenerator.getCheckOnlineApi().CheckOnline(RequestEnvelope.GetRequestEnvelope(new CheckOnlineModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey")))).enqueue(new Callback<ResponseEnvelope>() {
-                                @Override
-                                public void onResponse(Call<ResponseEnvelope> call, Response<ResponseEnvelope> response) {
-                                }
-
-                                @Override
-                                public void onFailure(Call<ResponseEnvelope> call, Throwable t) {
-                                }
-                            });
-                        }
-                    }
-                });
         RxTextView.textChanges(tv_info)
                 .debounce(10, TimeUnit.SECONDS)
                 .switchMap(new Function<CharSequence, ObservableSource<String>>() {
@@ -225,7 +207,7 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
                         url = "http://" + url;
                     }
                     if (pattern.matcher(url).matches()) {
-                        new RetrofitGenerator().createSer(TestNetApi.class, url).testNet(RequestEnvelope.GetRequestEnvelope(new TestNetModule(SPUtils.getInstance("UserInfo").getString("jsonKey"))))
+                        new RetrofitGenerator().createSer(TestNetApi.class, url).testNet(RequestEnvelope.GetRequestEnvelope(testNet,new OnlyPutKeyModule(SPUtils.getInstance("UserInfo").getString("jsonKey"))))
                                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new Observer<ResponseEnvelope>() {
                                     @Override
@@ -496,8 +478,8 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
                 e.printStackTrace();
             }
         }
-        RetrofitGenerator.getOpenDoorRecordApi().openDoorRecord(RequestEnvelope.GetRequestEnvelope(
-                new OpenDoorRecordModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
+               openDoorRecord,new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
         )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new MyObserver());
 
     }
@@ -515,8 +497,8 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
         }catch (Exception e){
             e.printStackTrace();
         }
-        RetrofitGenerator.getCheckRecordApi().checkRecord(RequestEnvelope.GetRequestEnvelope(
-                new CheckRecordModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
+               checkRecord, new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
         )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
             @Override
             public void onSubscribe(Disposable d) {
@@ -550,8 +532,7 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
     private void QueryPersonInfo(String sp){
         final String spname =sp;
         if(SPUtils.getInstance(sp).getBoolean("need_check",true)){
-            RetrofitGenerator.getQueryPersonInfoApi().
-                    QueryPersonInfo(RequestEnvelope.GetRequestEnvelope(new QueryPersonInfoModule(
+            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(queryPersonInfo,new QueryPersonInfoModule(
                             SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),SPUtils.getInstance(sp).getString("id")
                     ))).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
                 @Override
