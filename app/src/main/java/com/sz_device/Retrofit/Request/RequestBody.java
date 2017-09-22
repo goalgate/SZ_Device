@@ -26,75 +26,75 @@ import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.testNet;
 public class RequestBody {
 
     @Element(name = "inf:testNet", required = false)
-    public OnlyPutKeyModule testNetModule;
+    public IRequestModule testNetModule;
 
     @Element(name = "inf:checkOnline", required = false)
-    public OnlyPutKeyModule checkOnlineModule;
+    public IRequestModule checkOnlineModule;
 
     @Element(name = "inf:stateRecord", required = false)
-    public CommonRequestModule stateRecordModule;
+    public IRequestModule stateRecordModule;
 
     @Element(name = "inf:openDoorRecord", required = false)
-    public CommonRequestModule openDoorRecordModule;
+    public IRequestModule openDoorRecordModule;
 
     @Element(name = "inf:closeDoorRecord", required = false)
-    public CommonRequestModule closeDoorRecordModule;
+    public IRequestModule closeDoorRecordModule;
 
     @Element(name = "inf:getFingerprintId", required = false)
-    public OnlyPutKeyModule getFingerprintIdModule;
+    public IRequestModule getFingerprintIdModule;
 
     @Element(name = "inf:registerPerson", required = false)
-    public CommonRequestModule registerPersonModule;
+    public IRequestModule registerPersonModule;
 
     @Element(name = "inf:queryPersonInfo", required = false)
-    public QueryPersonInfoModule queryPersonInfoModule;
+    public IRequestModule queryPersonInfoModule;
 
     @Element(name = "inf:checkRecord", required = false)
-    public CommonRequestModule checkRecordModule;
+    public IRequestModule checkRecordModule;
 
     @Element(name = "inf:alarmRecord", required = false)
-    public CommonRequestModule alarmRecordModule;
+    public IRequestModule alarmRecordModule;
 
     @Element(name = "inf:alarmCease", required = false)
-    public CommonRequestModule alarmCeaseModule;
+    public IRequestModule alarmCeaseModule;
 
-    public RequestBody(int method, IRequestModule module) {
-        switch (method) {
+    public RequestBody(IRequestModule module) {
+        switch (module.getMethod()) {
             case testNet:
-                testNetModule = (OnlyPutKeyModule) module;
+                testNetModule = module;
                 break;
             case checkOnline:
-                checkOnlineModule = (OnlyPutKeyModule) module;
+                checkOnlineModule = module;
                 break;
             case stateRecord:
-                stateRecordModule = (CommonRequestModule) module;
+                stateRecordModule = module;
                 break;
             case openDoorRecord:
-                openDoorRecordModule = (CommonRequestModule) module;
+                openDoorRecordModule = module;
                 break;
             case closeDoorRecord:
-                closeDoorRecordModule = (CommonRequestModule) module;
+                closeDoorRecordModule = module;
                 break;
             case getFingerPrint:
-                getFingerprintIdModule = (OnlyPutKeyModule) module;
+                getFingerprintIdModule = module;
                 break;
             case queryPersonInfo:
-                queryPersonInfoModule = (QueryPersonInfoModule) module;
+                queryPersonInfoModule = module;
                 break;
             case registerPerson:
-                registerPersonModule = (CommonRequestModule) module;
+                registerPersonModule = module;
                 break;
             case checkRecord:
-                checkRecordModule = (CommonRequestModule) module;
+                checkRecordModule = module;
                 break;
             case alarmRecord:
-                alarmRecordModule = (CommonRequestModule) module;
+                alarmRecordModule = module;
                 break;
             case alarmCease:
-                alarmCeaseModule = (CommonRequestModule) module;
+                alarmCeaseModule = module;
                 break;
             default:
-                ToastUtils.showLong("接口方法错误");
+                testNetModule = module;
 
         }
 

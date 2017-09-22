@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-
+apply plugin: 'org.greenrobot.greendao'
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
@@ -57,4 +57,5 @@ dependencies {
     compile "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
     compile "com.trello.rxlifecycle2:rxlifecycle:$retrofitVersion"
     compile 'com.bigkoo:alertview:1.0.3'
+    compile 'org.greenrobot:greendao:3.2.2'
 }

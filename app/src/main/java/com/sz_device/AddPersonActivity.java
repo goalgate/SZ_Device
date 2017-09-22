@@ -34,6 +34,8 @@ import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Tools.FileUtils;
 import com.sz_device.Tools.MyObserver;
+import com.sz_device.Tools.UnUploadPackage;
+import com.sz_device.Tools.UnUploadPackageDao;
 import com.sz_device.Tools.User;
 
 import org.greenrobot.eventbus.EventBus;
@@ -77,6 +79,8 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     boolean network_state = false;
 
     String TAG = "AddPersonActivity";
+
+    UnUploadPackageDao unUploadPackageDao;
 
     FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
 
@@ -127,13 +131,13 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                 ToastUtils.showLong("无法连接服务器，请稍后重试");
                 fpp.fpRemoveTmpl(registerUser.getFingerprintId());
             }
-            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".IndexActivity");
+
         }
     }
 
     @OnClick(R.id.btn_cancel)
     void cancel() {
-        ActivityUtils.startActivity(getPackageName(), getPackageName() + ".IndexActivity");
+        finish();
     }
 
     @Override
@@ -150,8 +154,8 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                     @Override
                     public void accept(@NonNull Object o) throws Exception {
                         if (!btn_commit.isClickable()) {
-                            OnlyPutKeyModule requestModule = new OnlyPutKeyModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"));
-                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(getFingerPrint,requestModule))
+                            OnlyPutKeyModule getFingerPrintM = new OnlyPutKeyModule(getFingerPrint,SPUtils.getInstance(PREFS_NAME).getString("jsonKey"));
+                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(getFingerPrintM))
                                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                                     .subscribe(new Observer<ResponseEnvelope>() {
                                         @Override
@@ -202,9 +206,11 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(registerPerson,new CommonRequestModule(
-                SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString()
-        ))).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+
+        CommonRequestModule registerPersonM = new CommonRequestModule(
+                registerPerson, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString()
+        );
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(registerPersonM)).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<ResponseEnvelope>() {
                     @Override
                     public void accept(@NonNull ResponseEnvelope responseEnvelope) throws Exception {
@@ -213,6 +219,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                                 }.getType());
                         if (infoMap.get("result").equals("true")) {
                             ToastUtils.showLong("上传成功");
+                            finish();
                         } else if (infoMap.get("result").equals("false")) {
                             ToastUtils.showLong("上传失败");
                         } else if (infoMap.get("result").equals("checkErr")) {
@@ -230,22 +237,31 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetOpenDoorEvent(OpenDoorEvent event) {
-        if (network_state) {
-            OpenDoorRecord(event.getLegal());
-        }
+        OpenDoorRecord(event.getLegal());
+
     }
 
     private void OpenDoorRecord(boolean leagl) {
-        JSONObject jsonObject = new JSONObject();
+        JSONObject openDoorRecordJson = new JSONObject();
         try {
-            jsonObject.put("datetime", TimeUtils.getNowString());
-            jsonObject.put("state", "n");
+            openDoorRecordJson.put("datetime", TimeUtils.getNowString());
+            openDoorRecordJson.put("state", "n");
         } catch (Exception e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
-                openDoorRecord,new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())
-        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new MyObserver());
+        if(network_state){
+            CommonRequestModule openDoorRecordM = new CommonRequestModule( openDoorRecord,SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), openDoorRecordJson.toString());
+            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(openDoorRecordM))
+                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new MyObserver(unUploadPackageDao,openDoorRecordM));
+        }else{
+            UnUploadPackage un = new UnUploadPackage();
+            un.setMethod(openDoorRecord);
+            un.setJsonData(openDoorRecordJson.toString());
+            un.setUpload(false);
+            unUploadPackageDao.insert(un);
+        }
+
     }
 
     @Override
@@ -288,6 +304,10 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
         if (msg.endsWith("录入成功")) {
             btn_commit.setClickable(true);
         }
+        if (msg.equals("指纹模板已存在")) {
+            fpp.fpRemoveTmpl(registerUser.getFingerprintId());
+            fpp.fpEnroll(registerUser.getFingerprintId());
+        }
     }
 
     @Override
@@ -302,12 +322,17 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
         super.onPause();
         fpp.fpCancel(true);
         fpp.FingerPrintPresenterSetView(null);
-        this.finish();
         Log.e(TAG, "onPause");
     }
 
     @Override
     public void onBackPressed() {
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
 
     }
 

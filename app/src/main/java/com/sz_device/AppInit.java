@@ -8,8 +8,11 @@ import com.blankj.utilcode.util.Utils;
 import com.log.Lg;
 import com.squareup.leakcanary.LeakCanary;
 import com.sz_device.Tools.DESX;
+import com.sz_device.Tools.DaoMaster;
+import com.sz_device.Tools.DaoSession;
 import com.sz_device.Tools.NetInfo;
 
+import org.greenrobot.greendao.database.Database;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -31,6 +34,8 @@ public class AppInit extends Application {
     }
 
     SPUtils User_SP;
+
+    private DaoSession daoSession;
 
     @Override
     public void onCreate() {
@@ -62,6 +67,14 @@ public class AppInit extends Application {
             User_SP.put("firstStart", false);
             User_SP.put("dev_id", new NetInfo().getMacId());
             User_SP.put("jsonKey", DESX.encrypt(jsonKey.toString()));
+            User_SP.put("server", "http://192.168.11.165:8080/");
         }
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this,  "unUploadPackage-db");
+        Database db =  helper.getWritableDb();
+        daoSession = new DaoMaster(db).newSession();
+    }
+
+    public DaoSession getDaoSession() {
+        return daoSession;
     }
 }

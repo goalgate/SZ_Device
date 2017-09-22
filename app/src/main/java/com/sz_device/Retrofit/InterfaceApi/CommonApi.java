@@ -16,7 +16,7 @@ public interface CommonApi {
 
 
     @Headers({"Content-Type: text/xml;charset=UTF-8", "style:'document'"})//请求的Action，类似于方法名
-    @POST("daszws")
+    @POST("daWebservice/webservice/daszws")
     Observable<ResponseEnvelope> commonFunction(@Body RequestEnvelope requestEnvelope);
 
 }

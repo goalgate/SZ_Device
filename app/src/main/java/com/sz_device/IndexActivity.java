@@ -32,7 +32,7 @@ import com.sz_device.Fun_Camera.mvp.presenter.PhotoPresenter;
 import com.sz_device.Fun_Camera.mvp.view.IPhotoView;
 import com.sz_device.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Fun_FingerPrint.mvp.view.IFingerPrintView;
-import com.sz_device.Retrofit.InterfaceApi.TestNetApi;
+import com.sz_device.Retrofit.InterfaceApi.CommonApi;
 import com.sz_device.Retrofit.Request.RequestEnvelope;
 import com.sz_device.Retrofit.Request.ResquestModule.CommonRequestModule;
 import com.sz_device.Retrofit.Request.ResquestModule.OnlyPutKeyModule;
@@ -40,8 +40,11 @@ import com.sz_device.Retrofit.Request.ResquestModule.QueryPersonInfoModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Service.SwitchService;
+import com.sz_device.Tools.DaoSession;
 import com.sz_device.Tools.FileUtils;
 import com.sz_device.Tools.MyObserver;
+import com.sz_device.Tools.UnUploadPackage;
+import com.sz_device.Tools.UnUploadPackageDao;
 import com.sz_device.Tools.User;
 import com.sz_device.UI.AddPersonWindow;
 import com.sz_device.UI.OptionWindow;
@@ -71,13 +74,9 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.checkRecord;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.openDoorRecord;
-import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.queryPersonInfo;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.testNet;
 
 /**
@@ -144,6 +143,8 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
     private TextView dev_name;
     private EditText etName;
 
+    UnUploadPackageDao unUploadPackageDao;
+
     @OnClick(R.id.iv_person_add)
     void addPerson() {
         personWindow = new AddPersonWindow(this);
@@ -164,6 +165,9 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
         setContentView(R.layout.activity_index);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
+
+        DaoSession daoSession = AppInit.getInstance().getDaoSession();
+        unUploadPackageDao = daoSession.getUnUploadPackageDao();
         openService();
 
         fpp.fpInit(this);
@@ -207,7 +211,7 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
                         url = "http://" + url;
                     }
                     if (pattern.matcher(url).matches()) {
-                        new RetrofitGenerator().createSer(TestNetApi.class, url).testNet(RequestEnvelope.GetRequestEnvelope(testNet,new OnlyPutKeyModule(SPUtils.getInstance("UserInfo").getString("jsonKey"))))
+                        new RetrofitGenerator().createSer(CommonApi.class, url).commonFunction(RequestEnvelope.GetRequestEnvelope(new OnlyPutKeyModule(testNet,SPUtils.getInstance("UserInfo").getString("jsonKey"))))
                                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new Observer<ResponseEnvelope>() {
                                     @Override
@@ -274,12 +278,9 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetOpenDoorEvent(OpenDoorEvent event) {
-        if(network_state){
-            OpenDoorRecord(event.getLegal());
-        }
+        OpenDoorRecord(event.getLegal());
         cg_User1 = new User();
         cg_User2 = new User();
-
     }
 
     @Override
@@ -308,8 +309,6 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
     protected void onDestroy() {
         super.onDestroy();
         fpp.fpCancel(true);
-        fpp.FingerPrintPresenterSetView(null);
-        fpp.fpClose();
         EventBus.getDefault().unregister(this);
         stopService(intent);
     }
@@ -352,9 +351,8 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
                 cg_User2.setPhoto(FileUtils.bitmapToBase64(bmp));
             }
         }else if(option == 2){
-            if(network_state){
-                CheckRecord(bmp);
-            }
+            CheckRecord(bmp);
+
         }
         Matrix matrix = new Matrix();
         matrix.postScale(0.5f,0.5f);
@@ -450,90 +448,114 @@ public class IndexActivity extends Activity implements IFingerPrintView,IPhotoVi
 
 
     private void OpenDoorRecord(boolean leagl){
-        JSONObject jsonObject = new JSONObject();
+        final JSONObject openDoorRecordJson= new JSONObject();
         if (leagl){
             try {
-                jsonObject.put("id1",cg_User1.getId());
-                jsonObject.put("name1",cg_User1.getName());
-                jsonObject.put("id2", cg_User2.getId());
-                jsonObject.put("name2", cg_User2.getName());
-                jsonObject.put("photo1", cg_User1.getPhoto());
-                jsonObject.put("photo2", cg_User2.getPhoto());
-                jsonObject.put("datetime",TimeUtils.getNowString());
-                jsonObject.put("state","y");
+                openDoorRecordJson.put("id1",cg_User1.getId());
+                openDoorRecordJson.put("name1",cg_User1.getName());
+                openDoorRecordJson.put("id2", cg_User2.getId());
+                openDoorRecordJson.put("name2", cg_User2.getName());
+                openDoorRecordJson.put("photo1", cg_User1.getPhoto());
+                openDoorRecordJson.put("photo2", cg_User2.getPhoto());
+                openDoorRecordJson.put("datetime",TimeUtils.getNowString());
+                openDoorRecordJson.put("state","y");
             }catch (Exception e){
                 e.printStackTrace();
             }
         }else{
             try {
-                jsonObject.put("id1",cg_User1.getId());
-                jsonObject.put("name1",cg_User1.getName());
-                jsonObject.put("id2", cg_User2.getId());
-                jsonObject.put("name2", cg_User2.getName());
-                jsonObject.put("photo1", cg_User1.getPhoto());
-                jsonObject.put("photo2", cg_User2.getPhoto());
-                jsonObject.put("datetime",TimeUtils.getNowString());
-                jsonObject.put("state","n");
+                openDoorRecordJson.put("id1",cg_User1.getId());
+                openDoorRecordJson.put("name1",cg_User1.getName());
+                openDoorRecordJson.put("id2", cg_User2.getId());
+                openDoorRecordJson.put("name2", cg_User2.getName());
+                openDoorRecordJson.put("photo1", cg_User1.getPhoto());
+                openDoorRecordJson.put("photo2", cg_User2.getPhoto());
+                openDoorRecordJson.put("datetime",TimeUtils.getNowString());
+                openDoorRecordJson.put("state","n");
             }catch (Exception e){
                 e.printStackTrace();
             }
         }
-        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
-               openDoorRecord,new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
-        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new MyObserver());
-
+        if(network_state){
+            CommonRequestModule openDoorRecordM = new CommonRequestModule(openDoorRecord,SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),openDoorRecordJson.toString());
+            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(openDoorRecordM))
+                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new MyObserver(unUploadPackageDao,openDoorRecordM));
+        }else {
+            UnUploadPackage un = new UnUploadPackage();
+            un.setMethod(openDoorRecord);
+            un.setJsonData(openDoorRecordJson.toString());
+            un.setUpload(false);
+            unUploadPackageDao.insert(un);
+        }
     }
 
 
     private void CheckRecord(Bitmap bmp){
 
-        JSONObject jsonObject = new JSONObject();
+        final JSONObject checkRecordJson = new JSONObject();
         try {
-            jsonObject.put("id",checkUser.getId());
-            jsonObject.put("name",checkUser.getName());
-            jsonObject.put("photo", FileUtils.bitmapToBase64(bmp));
-            jsonObject.put("personType",checkUser.getType());
-            jsonObject.put("datetime",TimeUtils.getNowString());
+            checkRecordJson.put("id",checkUser.getId());
+            checkRecordJson.put("name",checkUser.getName());
+            checkRecordJson.put("photo", FileUtils.bitmapToBase64(bmp));
+            checkRecordJson.put("personType",checkUser.getType());
+            checkRecordJson.put("datetime",TimeUtils.getNowString());
         }catch (Exception e){
             e.printStackTrace();
         }
-        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
-               checkRecord, new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
-        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
-            @Override
-            public void onSubscribe(Disposable d) {
+        if(network_state){
+            CommonRequestModule checkRecordM = new CommonRequestModule( checkRecord,SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),checkRecordJson.toString());
+            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(checkRecordM))
+                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Observer<ResponseEnvelope>() {
+                @Override
+                public void onSubscribe(Disposable d) {
 
-            }
+                }
 
-            @Override
-            public void onNext(ResponseEnvelope responseEnvelope) {
-                Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.checkRecordResponse.info,
-                        new TypeToken<HashMap<String, String>>() {
-                        }.getType());
-                if (infoMap.get("result").equals("true")) {
-                    ToastUtils.showLong("上传成功");
-                }else{
+                @Override
+                public void onNext(ResponseEnvelope responseEnvelope) {
+                    Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.checkRecordResponse.info,
+                            new TypeToken<HashMap<String, String>>() {
+                            }.getType());
+                    if (infoMap.get("result").equals("true")) {
+                        ToastUtils.showLong("上传成功");
+                    }else{
+                        ToastUtils.showLong("上传失败");
+                    }
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                    UnUploadPackage un = new UnUploadPackage();
+                    un.setMethod(checkRecord);
+                    un.setJsonData(checkRecordJson.toString());
+                    un.setUpload(false);
+                    unUploadPackageDao.insert(un);
                     ToastUtils.showLong("上传失败");
                 }
-            }
 
-            @Override
-            public void onError(Throwable e) {
-                ToastUtils.showLong("上传失败");
-            }
+                @Override
+                public void onComplete() {
 
-            @Override
-            public void onComplete() {
+                }
+            });
+        }else {
+            ToastUtils.showLong("上传失败,网络连通将该数据上传到服务器");
+            UnUploadPackage un = new UnUploadPackage();
+            un.setMethod(checkRecord);
+            un.setJsonData(checkRecordJson.toString());
+            un.setUpload(false);
+            unUploadPackageDao.insert(un);
+        }
 
-            }
-        });
     }
 
     private void QueryPersonInfo(String sp){
         final String spname =sp;
         if(SPUtils.getInstance(sp).getBoolean("need_check",true)){
-            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(queryPersonInfo,new QueryPersonInfoModule(
-                            SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),SPUtils.getInstance(sp).getString("id")
+            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new QueryPersonInfoModule(
+                        SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),SPUtils.getInstance(sp).getString("id")
                     ))).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
                 @Override
                 public void onSubscribe(Disposable d) {

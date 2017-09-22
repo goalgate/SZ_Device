@@ -5,5 +5,6 @@ package com.sz_device.Retrofit.Request.ResquestModule;
  */
 
 public interface IRequestModule {
-
+    int getMethod();
+    String getJSON();
 }

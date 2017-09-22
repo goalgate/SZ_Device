@@ -7,8 +7,10 @@ import android.os.IBinder;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.sz_device.AppInit;
 import com.sz_device.EventBus.LegalEvent;
 import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
@@ -20,15 +22,21 @@ import com.sz_device.Retrofit.Request.ResquestModule.CommonRequestModule;
 import com.sz_device.Retrofit.Request.ResquestModule.OnlyPutKeyModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
+import com.sz_device.Tools.DaoSession;
 import com.sz_device.Tools.MyObserver;
+import com.sz_device.Tools.UnUploadPackage;
+import com.sz_device.Tools.UnUploadPackageDao;
+import com.sz_device.Tools.UploadValue;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.greenrobot.greendao.query.QueryBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -39,9 +47,6 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.alarmCease;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.alarmRecord;
@@ -80,12 +85,21 @@ public class SwitchService extends Service implements ISwitchView {
 
     boolean alarming = false;
 
+    UnUploadPackageDao unUploadPackageDao;
+
+    UploadValue isUploading = new UploadValue();
+
+    QueryBuilder qb ;
+
     @Override
     public void onCreate() {
         super.onCreate();
         EventBus.getDefault().register(this);
         sp.SwitchPresenterSetView(this);
         sp.switch_Open();
+        DaoSession daoSession = AppInit.getInstance().getDaoSession();
+        unUploadPackageDao = daoSession.getUnUploadPackageDao();
+        qb = unUploadPackageDao.queryBuilder();
         Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
             @Override
             public void accept(@NonNull Long aLong) throws Exception {
@@ -93,20 +107,27 @@ public class SwitchService extends Service implements ISwitchView {
             }
         });
 
-        Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(Schedulers.io())
+        Observable.interval(0, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
+                        qb.where(UnUploadPackageDao.Properties.Upload.eq(false));
+
                         if (NetworkUtils.isConnected()) {
-                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(testNet,new OnlyPutKeyModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"))))
+                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope
+                                    .GetRequestEnvelope(new OnlyPutKeyModule(testNet, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"))))
                                     .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
                                 @Override
                                 public void onSubscribe(@NonNull Disposable d) {
-
                                 }
 
                                 @Override
                                 public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
+                                    qb.where(UnUploadPackageDao.Properties.Upload.eq(false));
+                                    if (!isUploading.getIsUploading() && qb.list().size() > 0) {
+                                        isUploading.setIsUploading(true);
+                                        reUpload(qb.list());
+                                    }
                                     if (responseEnvelope != null) {
                                         Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.testNetResponse.info,
                                                 new TypeToken<HashMap<String, String>>() {
@@ -153,9 +174,9 @@ public class SwitchService extends Service implements ISwitchView {
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
-                        if(network_state){
-                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(checkOnline,new OnlyPutKeyModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"))))
-                               .subscribeOn(Schedulers.io()).subscribe(new MyObserver());
+                        if (network_state) {
+                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new OnlyPutKeyModule(checkOnline, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"))))
+                                    .subscribeOn(Schedulers.io()).subscribe(new MyObserver());
                         }
                     }
                 });
@@ -180,13 +201,11 @@ public class SwitchService extends Service implements ISwitchView {
     @Override
     public void onSwitchingText(String value) {
         if ((Last_Value == null || Last_Value.equals(""))) {
-            if(value.startsWith("AAAAAA")){
+            if (value.startsWith("AAAAAA")) {
                 Last_Value = value;
                 if (value.equals("AAAAAA000000000000") && legal == false) {
                     sp.OutD9(true);
-                    if(network_state){
-                        alarmRecord();
-                    }
+                    alarmRecord();
                     alarming = true;
                 }
             }
@@ -201,16 +220,16 @@ public class SwitchService extends Service implements ISwitchView {
                     if (Last_Value.equals("AAAAAA000000000000")) {
                         if (legal == false) {
                             sp.OutD9(true);
-                            if(first_open && network_state){
+                            if (first_open) {
                                 alarmRecord();
                                 alarming = true;
                             }
-                            if(first_open && network_state){
+                            if (first_open) {
                                 EventBus.getDefault().post(new OpenDoorEvent(false));
                                 first_open = false;
                             }
                         } else {
-                            if(first_open && network_state){
+                            if (first_open && network_state) {
                                 EventBus.getDefault().post(new OpenDoorEvent(true));
                                 first_open = false;
                             }
@@ -234,11 +253,9 @@ public class SwitchService extends Service implements ISwitchView {
                                     @Override
                                     public void onNext(Long aLong) {
                                         legal = false;
-                                        if (network_state) {
-                                            CloseDoorRecord(closeDoorTime);
-                                        }
+                                        CloseDoorRecord(closeDoorTime);
                                         first_open = true;
-                                     }
+                                    }
 
                                     @Override
                                     public void onError(Throwable e) {
@@ -254,7 +271,7 @@ public class SwitchService extends Service implements ISwitchView {
                 }
                 if (legal == true) {
                     sp.OutD9(false);
-                    if(network_state&&alarming){
+                    if (alarming) {
                         AlarmCease();
                         alarming = false;
                     }
@@ -287,42 +304,72 @@ public class SwitchService extends Service implements ISwitchView {
         }
     }
 
-    private void AlarmCease(){
-        JSONObject jsonObject = new JSONObject();
+    private void AlarmCease() {
+        final JSONObject AlarmCeaseJson = new JSONObject();
         try {
-            jsonObject.put("datetime",TimeUtils.getNowString());
+            AlarmCeaseJson.put("datetime", TimeUtils.getNowString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(alarmCease,
-                new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())
-        )).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new MyObserver());
+        if (network_state) {
+            CommonRequestModule alarmCeaseM = new CommonRequestModule(alarmCease, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), AlarmCeaseJson.toString());
+            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(alarmCeaseM))
+                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new MyObserver(unUploadPackageDao, alarmCeaseM));
+        } else {
+            UnUploadPackage un = new UnUploadPackage();
+            un.setMethod(alarmCease);
+            un.setJsonData(AlarmCeaseJson.toString());
+            un.setUpload(false);
+            unUploadPackageDao.insert(un);
+        }
+
     }
 
     private void CloseDoorRecord(String time) {
-        JSONObject jsonObject = new JSONObject();
+        JSONObject CloseDoorRecordJson = new JSONObject();
         try {
-            jsonObject.put("datetime", time);
+            CloseDoorRecordJson.put("datetime", time);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(closeDoorRecord,new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())))
-                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver());
+        if (network_state) {
+            CommonRequestModule closeDoorRecordM = new CommonRequestModule(closeDoorRecord, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), CloseDoorRecordJson.toString());
+            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(closeDoorRecordM))
+                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new MyObserver(unUploadPackageDao, closeDoorRecordM));
+        } else {
+            UnUploadPackage un = new UnUploadPackage();
+            un.setMethod(closeDoorRecord);
+            un.setJsonData(CloseDoorRecordJson.toString());
+            un.setUpload(false);
+            unUploadPackageDao.insert(un);
+        }
+
     }
 
-    private void alarmRecord(){
-        JSONObject jsonObject = new JSONObject();
+    private void alarmRecord() {
+        JSONObject alarmRecordJson = new JSONObject();
         try {
-            jsonObject.put("datetime", TimeUtils.getNowString());
-            jsonObject.put("alarmType", String.valueOf(1));
-            jsonObject.put("alarmValue",String.valueOf(0));
+            alarmRecordJson.put("datetime", TimeUtils.getNowString());
+            alarmRecordJson.put("alarmType", String.valueOf(1));
+            alarmRecordJson.put("alarmValue", String.valueOf(0));
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
-           alarmRecord,new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())
-        )) .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new MyObserver());
+        if (network_state) {
+            CommonRequestModule alarmRecordM = new CommonRequestModule(alarmRecord, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), alarmRecordJson.toString());
+            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(alarmRecordM))
+                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new MyObserver(unUploadPackageDao, alarmRecordM));
+        } else {
+            UnUploadPackage un = new UnUploadPackage();
+            un.setMethod(alarmRecord);
+            un.setJsonData(alarmRecordJson.toString());
+            un.setUpload(false);
+            unUploadPackageDao.insert(un);
+        }
+
     }
 
     private void StateRecord() {
@@ -336,7 +383,7 @@ public class SwitchService extends Service implements ISwitchView {
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(stateRecord,new CommonRequestModule(SPUtils.getInstance(PREFS_NAME).getString("jsonKey"),jsonObject.toString())))
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new CommonRequestModule(stateRecord, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())))
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new MyObserver());
     }
@@ -349,5 +396,36 @@ public class SwitchService extends Service implements ISwitchView {
         }
         last_mTemperature = temperature;
         last_mHumidity = humidity;
+    }
+
+    private void reUpload(List<UnUploadPackage> list) {
+
+        for (final UnUploadPackage unUploadPackage : list) {
+                    RetrofitGenerator.getCommonApi()
+                            .commonFunction(RequestEnvelope.GetRequestEnvelope(
+                                    new CommonRequestModule(unUploadPackage.getMethod(), SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), unUploadPackage.getJsonData())))
+                            .subscribeOn(Schedulers.io()).subscribe(new Observer<ResponseEnvelope>() {
+                        @Override
+                        public void onSubscribe(@NonNull Disposable d) {
+
+                        }
+
+                        @Override
+                        public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
+                            unUploadPackageDao.delete(unUploadPackage);
+                        }
+
+                        @Override
+                        public void onError(@NonNull Throwable e) {
+
+                        }
+
+                        @Override
+                        public void onComplete() {
+
+                        }
+                    });
+            }
+        isUploading.setIsUploading(false);
     }
 }

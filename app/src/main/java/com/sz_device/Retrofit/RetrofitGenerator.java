@@ -1,5 +1,6 @@
 package com.sz_device.Retrofit;
 
+import com.blankj.utilcode.util.SPUtils;
 import com.sz_device.Retrofit.InterfaceApi.CommonApi;
 
 import org.simpleframework.xml.Serializer;
@@ -25,9 +26,7 @@ import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
 public class RetrofitGenerator {
     private static String TAG = "RetrofitGenerator";
     private static final String PREFS_NAME = "UserInfo";
-    //private static final String Uri = "http://192.168.11.167:7001/VerifyService/services/";
     private static final String Uri = "http://192.168.11.165:8080/daWebservice/webservice/";
-
 
     private static Strategy strategy = new AnnotationStrategy();
     private static Serializer serializer = new Persister(strategy);
@@ -36,27 +35,6 @@ public class RetrofitGenerator {
 
     private static CommonApi commonApi;
 
- /*   private static TestNetApi testNetApi;
-
-    private static CheckOnlineApi checkOnlineApi;
-
-    private static StateRecordApi stateRecordApi;
-
-    private static OpenDoorRecordApi openDoorRecordApi;
-
-    private static CloseDoorRecordApi closeDoorRecordApi;
-
-    private static GetFingerPrintApi getFingerprintIdApi;
-
-    private static RegisterPersonApi registerPersonApi;
-
-    private static QueryPersonInfoApi queryPersonInfoApi;
-
-    private static CheckRecordApi checkRecordApi;
-
-    private static AlarmRecordApi alarmRecordApi;
-
-    private static AlarmCeaseApi alarmCeaseApi;*/
 
     private static <S> S createService(Class<S> serviceClass) {
         okHttpClient.interceptors().add(new Interceptor() {
@@ -78,7 +56,7 @@ public class RetrofitGenerator {
         Retrofit retrofit = new Retrofit.Builder()
                 .addConverterFactory(SimpleXmlConverterFactory.create(serializer))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .baseUrl(Uri).client(client).build();
+                .baseUrl(SPUtils.getInstance(PREFS_NAME).getString("server")).client(client).build();
         return retrofit.create(serviceClass);
     }
 
@@ -117,83 +95,5 @@ public class RetrofitGenerator {
         }
         return commonApi;
     }
-
-/*    public static TestNetApi getTestNetApi() {
-        if (testNetApi == null) {
-            testNetApi = createService(TestNetApi.class);
-        }
-        return testNetApi;
-    }
-
-    public static CheckOnlineApi getCheckOnlineApi() {
-        if (checkOnlineApi == null) {
-            checkOnlineApi = createService(CheckOnlineApi.class);
-        }
-        return checkOnlineApi;
-    }
-
-    public static StateRecordApi getStateRecordApi() {
-        if (stateRecordApi == null) {
-            stateRecordApi = createService(StateRecordApi.class);
-        }
-        return stateRecordApi;
-    }
-
-    public static OpenDoorRecordApi getOpenDoorRecordApi() {
-        if (openDoorRecordApi == null) {
-            openDoorRecordApi = createService(OpenDoorRecordApi.class);
-        }
-        return openDoorRecordApi;
-    }
-
-    public static CloseDoorRecordApi getCloseDoorRecordApi() {
-        if (closeDoorRecordApi == null) {
-            closeDoorRecordApi = createService(CloseDoorRecordApi.class);
-        }
-        return closeDoorRecordApi;
-    }
-
-    public static GetFingerPrintApi getFingerPrintApi() {
-        if (getFingerprintIdApi == null) {
-            getFingerprintIdApi = createService(GetFingerPrintApi.class);
-        }
-        return getFingerprintIdApi;
-    }
-
-    public static RegisterPersonApi getRegisterPersonApi() {
-        if (registerPersonApi == null) {
-            registerPersonApi = createService(RegisterPersonApi.class);
-        }
-        return registerPersonApi;
-    }
-
-
-    public static QueryPersonInfoApi getQueryPersonInfoApi() {
-        if (queryPersonInfoApi == null) {
-            queryPersonInfoApi = createService(QueryPersonInfoApi.class);
-        }
-        return queryPersonInfoApi;
-    }
-
-    public static CheckRecordApi getCheckRecordApi() {
-        if (checkRecordApi == null) {
-            checkRecordApi = createService(CheckRecordApi.class);
-        }
-        return checkRecordApi;
-    }
-
-    public static AlarmRecordApi getAlarmRecordApi() {
-        if (alarmRecordApi == null) {
-            alarmRecordApi = createService(AlarmRecordApi.class);
-        }
-        return alarmRecordApi;
-    }
-
-    public static AlarmCeaseApi getAlarmCeaseApi() {
-        if (alarmCeaseApi == null) {
-            alarmCeaseApi = createService(AlarmCeaseApi.class);
-        }
-        return alarmCeaseApi;
-    }*/
 
 }
