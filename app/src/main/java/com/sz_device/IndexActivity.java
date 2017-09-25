@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -101,7 +102,7 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
     User cg_User2 = new User();
 
-    Bitmap global_bitmap;
+    Bitmap checkUser_bitmap;
 
     boolean network_state;
 
@@ -339,7 +340,12 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
     @Override
     public void onGetPhoto(Bitmap bmp) {
-        global_bitmap = bmp;
+        if (fingerprintCount == 0) {
+            cg_User1.setPhoto(FileUtils.bitmapToBase64(bmp));
+        }else if(fingerprintCount == 1){
+            cg_User2.setPhoto(FileUtils.bitmapToBase64(bmp));
+        }
+        checkUser_bitmap = bmp;
         Matrix matrix = new Matrix();
         matrix.postScale(0.5f, 0.5f);
         bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
@@ -361,10 +367,12 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
     @Override
     public void onText(String msg) {
-        if ("请确认指纹是否已登记".equals(msg)) {
-            tv_info.setText("请确认指纹是否已登记,再重试");
-        } else if ("松开手指".equals(msg)) {
-            tv_info.setText(msg);
+        if(fingerprintCount<=2){
+            if ("请确认指纹是否已登记".equals(msg)) {
+                tv_info.setText("请确认指纹是否已登记,再重试");
+            } else if ("松开手指".equals(msg)) {
+                tv_info.setText(msg);
+            }
         }
     }
 
@@ -526,7 +534,7 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
                 fingerprintCount++;
                 cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
                 cg_User1.setId(SPUtils.getInstance(sp).getString("id"));
-                cg_User1.setPhoto(FileUtils.bitmapToBase64(global_bitmap));
+
                 tv_info.setText("管理员" + cg_User1.getName() + "打卡，请继续输入管理员信息");
                 Observable.timer(60, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -554,9 +562,8 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
                             }
                         });
-            } else if (fingerprintCount == 1) {
+            } else if (fingerprintCount == 1&&cg_User1.getPhoto()!=null) {
                 if (!cg_User1.getName().equals(SPUtils.getInstance(sp).getString("name"))) {
-                    cg_User2.setPhoto(FileUtils.bitmapToBase64(global_bitmap));
                     fingerprintCount++;
                     tv_info.setText("管理员" + SPUtils.getInstance(sp).getString("name") + "打卡，双人管理成功");
                     EventBus.getDefault().post(new LegalEvent(true));
@@ -565,6 +572,9 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
                 } else if (cg_User1.getName().equals(SPUtils.getInstance(sp).getString("name")) && tv_info.getText().toString().equals("松开手指")) {
                     tv_info.setText("请不要连续输入相同的管理员信息");
                 }
+            }else if (fingerprintCount == 1&& TextUtils.isEmpty(cg_User1.getPhoto())) {
+                fingerprintCount=0;
+                tv_info.setText("指纹数据过于频繁，请重新再来");
             }
         } else if (SPUtils.getInstance(sp).getString("type").equals(String.valueOf(2)) || SPUtils.getInstance(sp).getString("type").equals(String.valueOf(3))) {
             fingerprintCount = 0;
@@ -572,7 +582,7 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
             checkUser.setId(SPUtils.getInstance(sp).getString("id"));
             checkUser.setName(SPUtils.getInstance(sp).getString("name"));
             checkUser.setType(SPUtils.getInstance(sp).getString("type"));
-            CheckRecord(global_bitmap);
+            CheckRecord(checkUser_bitmap);
         } else {
             tv_info.setText("该人员的身份合法性尚未通过");
         }

@@ -89,7 +89,6 @@ public class SwitchService extends Service implements ISwitchView {
 
     UploadValue isUploading = new UploadValue();
 
-
     QueryBuilder qb ;
 
     @Override
@@ -230,7 +229,7 @@ public class SwitchService extends Service implements ISwitchView {
                                 first_open = false;
                             }
                         } else {
-                            if (first_open && network_state) {
+                            if (first_open) {
                                 EventBus.getDefault().post(new OpenDoorEvent(true));
                                 first_open = false;
                             }
@@ -428,6 +427,6 @@ public class SwitchService extends Service implements ISwitchView {
                     });
             }
 
-        //isUploading.setIsUploading(false);
+        isUploading.setIsUploading(false);
     }
 }
