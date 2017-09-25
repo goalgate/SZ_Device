@@ -1,5 +1,9 @@
 package com.sz_device.Tools;
 
+import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.Generated;
+
 /**
  * Created by zbsz on 2017/9/14.
  */
@@ -13,12 +17,31 @@ public class User {
     private String fingerprintKey;
     private String type;
 
-    public void setType(String type) {
-        this.type = type;
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public String getFingerprintPhoto() {
+        return fingerprintPhoto;
+    }
+
+    public String getFingerprintId() {
+        return fingerprintId;
+    }
+
+    public String getFingerprintKey() {
+        return fingerprintKey;
     }
 
     public String getType() {
-
         return type;
     }
 
@@ -46,27 +69,7 @@ public class User {
         this.fingerprintKey = fingerprintKey;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getPhoto() {
-        return photo;
-    }
-
-    public String getFingerprintPhoto() {
-        return fingerprintPhoto;
-    }
-
-    public String getFingerprintId() {
-        return fingerprintId;
-    }
-
-    public String getFingerprintKey() {
-        return fingerprintKey;
+    public void setType(String type) {
+        this.type = type;
     }
 }

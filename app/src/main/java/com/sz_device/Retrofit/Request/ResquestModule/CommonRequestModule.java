@@ -1,5 +1,7 @@
 package com.sz_device.Retrofit.Request.ResquestModule;
 
+import com.blankj.utilcode.util.SPUtils;
+
 import org.simpleframework.xml.Element;
 
 /**
@@ -7,6 +9,8 @@ import org.simpleframework.xml.Element;
  */
 
 public class CommonRequestModule implements IRequestModule {
+
+    private static final String PREFS_NAME = "UserInfo";
 
     public int method;
 
@@ -18,9 +22,9 @@ public class CommonRequestModule implements IRequestModule {
     @Element(name = "jsonData" )
     public String jsonData;
 
-    public CommonRequestModule(int method,String key,String jsonData) {
+    public CommonRequestModule(int method,String jsonData) {
         this.method = method;
-        this.key = key;
+        this.key = SPUtils.getInstance(PREFS_NAME).getString("jsonKey");
         this.jsonData = jsonData;
     }
 

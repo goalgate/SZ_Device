@@ -68,7 +68,6 @@ import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.registerPerson;
  */
 
 public class AddPersonActivity extends Activity implements IFingerPrintView {
-    private static final String PREFS_NAME = "UserInfo";
 
     Uri photoUri = null;
 
@@ -154,7 +153,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                     @Override
                     public void accept(@NonNull Object o) throws Exception {
                         if (!btn_commit.isClickable()) {
-                            OnlyPutKeyModule getFingerPrintM = new OnlyPutKeyModule(getFingerPrint,SPUtils.getInstance(PREFS_NAME).getString("jsonKey"));
+                            OnlyPutKeyModule getFingerPrintM = new OnlyPutKeyModule(getFingerPrint);
                             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(getFingerPrintM))
                                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                                     .subscribe(new Observer<ResponseEnvelope>() {
@@ -208,8 +207,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
         }
 
         CommonRequestModule registerPersonM = new CommonRequestModule(
-                registerPerson, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString()
-        );
+                registerPerson, jsonObject.toString());
         RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(registerPersonM)).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<ResponseEnvelope>() {
                     @Override
@@ -250,7 +248,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
             e.printStackTrace();
         }
         if(network_state){
-            CommonRequestModule openDoorRecordM = new CommonRequestModule( openDoorRecord,SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), openDoorRecordJson.toString());
+            CommonRequestModule openDoorRecordM = new CommonRequestModule(openDoorRecord,openDoorRecordJson.toString());
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(openDoorRecordM))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new MyObserver(unUploadPackageDao,openDoorRecordM));
@@ -327,6 +325,11 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
 
     @Override
     public void onBackPressed() {
+
+    }
+
+    @Override
+    public void onFpSucc(String msg) {
 
     }
 

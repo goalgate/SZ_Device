@@ -366,7 +366,7 @@ public class FingerPrintImpl implements IFingerPrint {
 
                     if (w_nRet == DevComm.ERR_SUCCESS) {
                         m_strPost = String.format("TAG%d", w_nID[0]);
-                        handler.sendMessage(getMsg(0x234));
+                        handler.sendMessage(getMsg(0x456));
                     } else {
                         //m_strPost = String.format("\r\nMatch Time : %dms", m_nPassedTime);
                         //m_strPost = GetErrorMsg(w_nRet) + m_strPost;
@@ -807,7 +807,7 @@ public class FingerPrintImpl implements IFingerPrint {
                 Bitmap image = BitmapFactory.decodeByteArray(m_bmpImage, 0, nSize);
                 listener.onSetImg(image);
             } else if (msg.what == 0x456) {
-
+                listener.onFpSucc(m_strPost);
             }
         }
     };

@@ -14,6 +14,8 @@ import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.alarmRecord;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.checkOnline;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.checkRecord;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.closeDoorRecord;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.downPersonFingerprintInfo;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.downPersonInfo;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.getFingerPrint;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.openDoorRecord;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.queryPersonInfo;
@@ -58,6 +60,12 @@ public class RequestBody {
     @Element(name = "inf:alarmCease", required = false)
     public IRequestModule alarmCeaseModule;
 
+    @Element(name = "inf:downPersonInfo", required = false)
+    public IRequestModule downPersonInfoModule;
+
+    @Element(name = "inf:downPersonFingerprintInfo", required = false)
+    public IRequestModule downPersonFingerprintInfoModule;
+
     public RequestBody(IRequestModule module) {
         switch (module.getMethod()) {
             case testNet:
@@ -93,8 +101,15 @@ public class RequestBody {
             case alarmCease:
                 alarmCeaseModule = module;
                 break;
+            case downPersonInfo:
+                downPersonInfoModule = module;
+                break;
+            case downPersonFingerprintInfo:
+                downPersonFingerprintInfoModule = module;
+                break;
             default:
-                testNetModule = module;
+                ToastUtils.showLong("接口方法错误");
+
 
         }
 

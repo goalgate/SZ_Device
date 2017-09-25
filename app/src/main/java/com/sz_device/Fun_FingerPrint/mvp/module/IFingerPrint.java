@@ -44,5 +44,6 @@ public interface IFingerPrint {
 
         void onText(String msg);
 
+        void onFpSucc(String msg);
     }
 }

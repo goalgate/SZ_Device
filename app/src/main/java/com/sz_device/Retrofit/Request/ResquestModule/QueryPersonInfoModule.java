@@ -2,6 +2,8 @@ package com.sz_device.Retrofit.Request.ResquestModule;
 
 import android.os.Message;
 
+import com.blankj.utilcode.util.SPUtils;
+
 import org.json.JSONArray;
 import org.simpleframework.xml.Element;
 
@@ -14,7 +16,7 @@ import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.queryPersonInfo;
  */
 
 public class QueryPersonInfoModule implements IRequestModule {
-
+    private static final String PREFS_NAME = "UserInfo";
 
     @Element(name = "key")
     public String key;
@@ -23,8 +25,8 @@ public class QueryPersonInfoModule implements IRequestModule {
     @Element(name = "id" )
     public String id;
 
-    public QueryPersonInfoModule(String key, String id) {
-        this.key = key;
+    public QueryPersonInfoModule( String id) {
+        this.key = SPUtils.getInstance(PREFS_NAME).getString("jsonKey");
         this.id = id;
     }
 

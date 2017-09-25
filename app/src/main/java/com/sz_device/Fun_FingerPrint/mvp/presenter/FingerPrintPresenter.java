@@ -115,6 +115,13 @@ public class FingerPrintPresenter {
                     view.onText(msg);
                 }
             }
+
+            @Override
+            public void onFpSucc(String msg) {
+                if (view != null) {
+                    view.onFpSucc(msg);
+                }
+            }
         };
     }
 }

@@ -89,6 +89,7 @@ public class SwitchService extends Service implements ISwitchView {
 
     UploadValue isUploading = new UploadValue();
 
+
     QueryBuilder qb ;
 
     @Override
@@ -115,7 +116,7 @@ public class SwitchService extends Service implements ISwitchView {
 
                         if (NetworkUtils.isConnected()) {
                             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope
-                                    .GetRequestEnvelope(new OnlyPutKeyModule(testNet, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"))))
+                                    .GetRequestEnvelope(new OnlyPutKeyModule(testNet)))
                                     .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
                                 @Override
                                 public void onSubscribe(@NonNull Disposable d) {
@@ -124,7 +125,7 @@ public class SwitchService extends Service implements ISwitchView {
                                 @Override
                                 public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
                                     qb.where(UnUploadPackageDao.Properties.Upload.eq(false));
-                                    if (!isUploading.getIsUploading() && qb.list().size() > 0) {
+                                    if (!isUploading.getIsUploading()&& qb.list().size() > 0) {
                                         isUploading.setIsUploading(true);
                                         reUpload(qb.list());
                                     }
@@ -175,7 +176,7 @@ public class SwitchService extends Service implements ISwitchView {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
                         if (network_state) {
-                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new OnlyPutKeyModule(checkOnline, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"))))
+                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new OnlyPutKeyModule(checkOnline)))
                                     .subscribeOn(Schedulers.io()).subscribe(new MyObserver());
                         }
                     }
@@ -312,7 +313,7 @@ public class SwitchService extends Service implements ISwitchView {
             e.printStackTrace();
         }
         if (network_state) {
-            CommonRequestModule alarmCeaseM = new CommonRequestModule(alarmCease, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), AlarmCeaseJson.toString());
+            CommonRequestModule alarmCeaseM = new CommonRequestModule(alarmCease,AlarmCeaseJson.toString());
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(alarmCeaseM))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new MyObserver(unUploadPackageDao, alarmCeaseM));
@@ -334,7 +335,7 @@ public class SwitchService extends Service implements ISwitchView {
             e.printStackTrace();
         }
         if (network_state) {
-            CommonRequestModule closeDoorRecordM = new CommonRequestModule(closeDoorRecord, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), CloseDoorRecordJson.toString());
+            CommonRequestModule closeDoorRecordM = new CommonRequestModule(closeDoorRecord,CloseDoorRecordJson.toString());
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(closeDoorRecordM))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new MyObserver(unUploadPackageDao, closeDoorRecordM));
@@ -358,7 +359,7 @@ public class SwitchService extends Service implements ISwitchView {
             e.printStackTrace();
         }
         if (network_state) {
-            CommonRequestModule alarmRecordM = new CommonRequestModule(alarmRecord, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), alarmRecordJson.toString());
+            CommonRequestModule alarmRecordM = new CommonRequestModule(alarmRecord, alarmRecordJson.toString());
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(alarmRecordM))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new MyObserver(unUploadPackageDao, alarmRecordM));
@@ -383,7 +384,7 @@ public class SwitchService extends Service implements ISwitchView {
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new CommonRequestModule(stateRecord, SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), jsonObject.toString())))
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new CommonRequestModule(stateRecord, jsonObject.toString())))
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new MyObserver());
     }
@@ -403,7 +404,7 @@ public class SwitchService extends Service implements ISwitchView {
         for (final UnUploadPackage unUploadPackage : list) {
                     RetrofitGenerator.getCommonApi()
                             .commonFunction(RequestEnvelope.GetRequestEnvelope(
-                                    new CommonRequestModule(unUploadPackage.getMethod(), SPUtils.getInstance(PREFS_NAME).getString("jsonKey"), unUploadPackage.getJsonData())))
+                                    new CommonRequestModule(unUploadPackage.getMethod(), unUploadPackage.getJsonData())))
                             .subscribeOn(Schedulers.io()).subscribe(new Observer<ResponseEnvelope>() {
                         @Override
                         public void onSubscribe(@NonNull Disposable d) {
@@ -426,6 +427,7 @@ public class SwitchService extends Service implements ISwitchView {
                         }
                     });
             }
-        isUploading.setIsUploading(false);
+
+        //isUploading.setIsUploading(false);
     }
 }

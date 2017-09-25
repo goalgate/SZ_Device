@@ -48,9 +48,9 @@ public class RetrofitGenerator {
                 return chain.proceed(request);
             }
         });
-        OkHttpClient client = okHttpClient.connectTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(60, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
+        OkHttpClient client = okHttpClient.connectTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
                 .build();
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -75,9 +75,9 @@ public class RetrofitGenerator {
             }
         });
 
-        OkHttpClient client = okHttpClient.connectTimeout(1, TimeUnit.MINUTES)
-                .writeTimeout(2, TimeUnit.MINUTES)
-                .readTimeout(2, TimeUnit.MINUTES)
+        OkHttpClient client = okHttpClient.connectTimeout(10, TimeUnit.MINUTES)
+                .writeTimeout(20, TimeUnit.MINUTES)
+                .readTimeout(20, TimeUnit.MINUTES)
                 .build();
 
 

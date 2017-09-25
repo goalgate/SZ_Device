@@ -43,4 +43,10 @@ public class ResponseBody {
 
     @Element(name = "alarmCeaseResponse", required = false)
     public ResponseModel alarmCeaseResponse;
+
+    @Element(name = "downPersonFingerprintInfoResponse", required = false)
+    public ResponseListModel downPersonFingerprintInfoResponse;
+
+    @Element(name = "downPersonInfoResponse", required = false)
+    public ResponseListModel downPersonInfoResponse;
 }

@@ -16,8 +16,8 @@ public class InterfaceCode{
     public final static int alarmRecord = 9;
     public final static int alarmCease = 10;
     public final static int checkRecord = 11;
-
-
+    public final static int downPersonInfo = 12;
+    public final static int downPersonFingerprintInfo = 13;
 
 
 

@@ -11,4 +11,6 @@ public interface IFingerPrintView {
     void onSetImg(Bitmap bmp);
 
     void onText(String msg);
+
+    void onFpSucc(String msg);
 }
