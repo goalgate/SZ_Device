@@ -279,6 +279,7 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
         OpenDoorRecord(event.getLegal());
         cg_User1 = new User();
         cg_User2 = new User();
+        fingerprintCount = 0;
     }
 
     @Override
@@ -336,28 +337,6 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
     public void onCaremaText(String s) {
         pp.setDisplay(surfaceView.getHolder());
 
-    }
-
-    @Override
-    public void onGetPhoto(Bitmap bmp) {
-        if (fingerprintCount == 0) {
-            cg_User1.setPhoto(FileUtils.bitmapToBase64(bmp));
-        }else if(fingerprintCount == 1){
-            cg_User2.setPhoto(FileUtils.bitmapToBase64(bmp));
-        }
-        checkUser_bitmap = bmp;
-        Matrix matrix = new Matrix();
-        matrix.postScale(0.5f, 0.5f);
-        bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
-        captured.setImageBitmap(bmp);
-        Observable.timer(1, TimeUnit.SECONDS)
-                .observeOn(AndroidSchedulers.mainThread()).subscribeOn(Schedulers.newThread())
-                .subscribe(new Consumer<Long>() {
-                    @Override
-                    public void accept(@NonNull Long aLong) throws Exception {
-                        captured.setImageBitmap(null);
-                    }
-                });
     }
 
     @Override
@@ -491,7 +470,7 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
     private void QueryPersonInfo(final String sp) {
         final String spname = sp;
-        pp.capture();
+
         if(network_state){
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new QueryPersonInfoModule(SPUtils.getInstance(sp).getString("id"))))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
@@ -530,11 +509,10 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
     private void loadMessage(String sp) {
         if (SPUtils.getInstance(sp).getString("type").equals(String.valueOf(1))) {
-            if (fingerprintCount == 0) {
-                fingerprintCount++;
+            if (fingerprintCount == 0){
+                pp.capture();
                 cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
                 cg_User1.setId(SPUtils.getInstance(sp).getString("id"));
-
                 tv_info.setText("管理员" + cg_User1.getName() + "打卡，请继续输入管理员信息");
                 Observable.timer(60, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -562,19 +540,16 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
                             }
                         });
-            } else if (fingerprintCount == 1&&cg_User1.getPhoto()!=null) {
+            } else if (fingerprintCount == 1) {
                 if (!cg_User1.getName().equals(SPUtils.getInstance(sp).getString("name"))) {
-                    fingerprintCount++;
+                    pp.capture();
                     tv_info.setText("管理员" + SPUtils.getInstance(sp).getString("name") + "打卡，双人管理成功");
                     EventBus.getDefault().post(new LegalEvent(true));
                     cg_User2.setName(SPUtils.getInstance(sp).getString("name"));
                     cg_User2.setId(SPUtils.getInstance(sp).getString("id"));
-                } else if (cg_User1.getName().equals(SPUtils.getInstance(sp).getString("name")) && tv_info.getText().toString().equals("松开手指")) {
+                } else if (cg_User1.getName().equals(SPUtils.getInstance(sp).getString("name"))) {
                     tv_info.setText("请不要连续输入相同的管理员信息");
                 }
-            }else if (fingerprintCount == 1&& TextUtils.isEmpty(cg_User1.getPhoto())) {
-                fingerprintCount=0;
-                tv_info.setText("指纹数据过于频繁，请重新再来");
             }
         } else if (SPUtils.getInstance(sp).getString("type").equals(String.valueOf(2)) || SPUtils.getInstance(sp).getString("type").equals(String.valueOf(3))) {
             fingerprintCount = 0;
@@ -590,6 +565,29 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
     }
 
+    @Override
+    public void onGetPhoto(Bitmap bmp) {
+        if (fingerprintCount == 0) {
+            cg_User1.setPhoto(FileUtils.bitmapToBase64(bmp));
+            fingerprintCount++;
+        }else if(fingerprintCount == 1){
+            cg_User2.setPhoto(FileUtils.bitmapToBase64(bmp));
+            fingerprintCount++;
+        }
+        checkUser_bitmap = bmp;
+        Matrix matrix = new Matrix();
+        matrix.postScale(0.5f, 0.5f);
+        bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+        captured.setImageBitmap(bmp);
+        Observable.timer(1, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread()).subscribeOn(Schedulers.newThread())
+                .subscribe(new Consumer<Long>() {
+                    @Override
+                    public void accept(@NonNull Long aLong) throws Exception {
+                        captured.setImageBitmap(null);
+                    }
+                });
+    }
 
     @Override
     public void onBackPressed() {

@@ -89,7 +89,7 @@ public class SwitchService extends Service implements ISwitchView {
 
     UploadValue isUploading = new UploadValue();
 
-    QueryBuilder qb ;
+    QueryBuilder qb;
 
     @Override
     public void onCreate() {
@@ -124,7 +124,7 @@ public class SwitchService extends Service implements ISwitchView {
                                 @Override
                                 public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
                                     qb.where(UnUploadPackageDao.Properties.Upload.eq(false));
-                                    if (!isUploading.getIsUploading()&& qb.list().size() > 0) {
+                                    if (!isUploading.getIsUploading() && qb.list().size() > 0) {
                                         isUploading.setIsUploading(true);
                                         reUpload(qb.list());
                                     }
@@ -164,12 +164,10 @@ public class SwitchService extends Service implements ISwitchView {
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
-                        if (network_state) {
-                            StateRecord();
-                        }
-
+                        StateRecord();
                     }
                 });
+
         Observable.interval(1, 1, TimeUnit.HOURS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
@@ -312,7 +310,7 @@ public class SwitchService extends Service implements ISwitchView {
             e.printStackTrace();
         }
         if (network_state) {
-            CommonRequestModule alarmCeaseM = new CommonRequestModule(alarmCease,AlarmCeaseJson.toString());
+            CommonRequestModule alarmCeaseM = new CommonRequestModule(alarmCease, AlarmCeaseJson.toString());
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(alarmCeaseM))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new MyObserver(unUploadPackageDao, alarmCeaseM));
@@ -334,7 +332,7 @@ public class SwitchService extends Service implements ISwitchView {
             e.printStackTrace();
         }
         if (network_state) {
-            CommonRequestModule closeDoorRecordM = new CommonRequestModule(closeDoorRecord,CloseDoorRecordJson.toString());
+            CommonRequestModule closeDoorRecordM = new CommonRequestModule(closeDoorRecord, CloseDoorRecordJson.toString());
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(closeDoorRecordM))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new MyObserver(unUploadPackageDao, closeDoorRecordM));
@@ -382,16 +380,18 @@ public class SwitchService extends Service implements ISwitchView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        if (network_state) {
+            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new CommonRequestModule(stateRecord, jsonObject.toString())))
+                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new MyObserver());
+        }
 
-        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new CommonRequestModule(stateRecord, jsonObject.toString())))
-                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver());
     }
 
     @Override
     public void onTemHum(int temperature, int humidity) {
         EventBus.getDefault().post(new TemHumEvent(temperature, humidity));
-        if ((Math.abs(temperature - last_mTemperature) > 5 || Math.abs(temperature - last_mTemperature) > 10) && network_state) {
+        if ((Math.abs(temperature - last_mTemperature) > 5 || Math.abs(temperature - last_mTemperature) > 10)) {
             StateRecord();
         }
         last_mTemperature = temperature;
@@ -401,31 +401,31 @@ public class SwitchService extends Service implements ISwitchView {
     private void reUpload(List<UnUploadPackage> list) {
 
         for (final UnUploadPackage unUploadPackage : list) {
-                    RetrofitGenerator.getCommonApi()
-                            .commonFunction(RequestEnvelope.GetRequestEnvelope(
-                                    new CommonRequestModule(unUploadPackage.getMethod(), unUploadPackage.getJsonData())))
-                            .subscribeOn(Schedulers.io()).subscribe(new Observer<ResponseEnvelope>() {
-                        @Override
-                        public void onSubscribe(@NonNull Disposable d) {
+            RetrofitGenerator.getCommonApi()
+                    .commonFunction(RequestEnvelope.GetRequestEnvelope(
+                            new CommonRequestModule(unUploadPackage.getMethod(), unUploadPackage.getJsonData())))
+                    .subscribeOn(Schedulers.io()).subscribe(new Observer<ResponseEnvelope>() {
+                @Override
+                public void onSubscribe(@NonNull Disposable d) {
 
-                        }
+                }
 
-                        @Override
-                        public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
-                            unUploadPackageDao.delete(unUploadPackage);
-                        }
+                @Override
+                public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
+                    unUploadPackageDao.delete(unUploadPackage);
+                }
 
-                        @Override
-                        public void onError(@NonNull Throwable e) {
+                @Override
+                public void onError(@NonNull Throwable e) {
 
-                        }
+                }
 
-                        @Override
-                        public void onComplete() {
+                @Override
+                public void onComplete() {
 
-                        }
-                    });
-            }
+                }
+            });
+        }
 
         isUploading.setIsUploading(false);
     }

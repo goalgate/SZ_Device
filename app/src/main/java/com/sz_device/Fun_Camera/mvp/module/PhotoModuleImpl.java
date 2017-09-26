@@ -32,7 +32,7 @@ public class PhotoModuleImpl implements IPhotoModule {
     static Camera camera;
     public boolean isPreview = false;
     Bitmap bm;
-    private boolean hasDetected = false;
+
     private int realFaceNum = 0;
     IOnSetListener callback;
     private static final String PREFS_NAME = "UserInfo";
@@ -104,7 +104,6 @@ public class PhotoModuleImpl implements IPhotoModule {
     @Override
     public void capture(IOnSetListener listener) {
         this.callback = listener;
-        hasDetected = false;
         if (isPreview) {
             camera.takePicture(new Camera.ShutterCallback() {
                 public void onShutter() {
