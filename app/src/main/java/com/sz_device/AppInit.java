@@ -96,9 +96,7 @@ public class AppInit extends Application {
         daoSession = new DaoMaster(db).newSession();
 
 
-            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
-
-
+        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
                 new OnlyPutKeyModule(downPersonInfo)))
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<ResponseEnvelope>() {
@@ -144,8 +142,6 @@ public class AppInit extends Application {
 
                     }
                 });
-
-
     }
 
     public DaoSession getDaoSession() {

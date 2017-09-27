@@ -44,16 +44,11 @@ public class PhotoModuleImpl implements IPhotoModule {
             camera.setPreviewDisplay(sHolder);
             camera.startPreview();
         } catch (IOException e) {
-            safeCameraOpen(0);
-            try {
-                camera.setPreviewDisplay(sHolder);
-                camera.startPreview();
-            } catch (IOException ex) {
-                ToastUtils.showLong("摄像头出错，请退出程序再打开");
-            }
+            ToastUtils.showLong("摄像头出错，请退出程序再打开");
         }
-
     }
+
+
 
     public void setHolderAndDisplay(final SurfaceHolder sHolder, final boolean display) {
         sHolder.addCallback(new SurfaceHolder.Callback() {
@@ -126,7 +121,7 @@ public class PhotoModuleImpl implements IPhotoModule {
             bm = BitmapFactory.decodeByteArray(data, 0, data.length);
             Matrix matrix = new Matrix();
             matrix.postRotate(180);
-            bm = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(),matrix,true);
+            bm = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix, true);
 
         /*    File file = new File(Environment
                     .getExternalStorageDirectory(), ApplicationName+ new TimeString().getTimeString().toString() + ".jpg");

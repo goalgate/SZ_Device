@@ -33,6 +33,11 @@ import com.sz_device.Fun_Camera.mvp.presenter.PhotoPresenter;
 import com.sz_device.Fun_Camera.mvp.view.IPhotoView;
 import com.sz_device.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Fun_FingerPrint.mvp.view.IFingerPrintView;
+import com.sz_device.OperationState.Check_OperateState;
+import com.sz_device.OperationState.No_one_OperateState;
+import com.sz_device.OperationState.One_man_OperateState;
+import com.sz_device.OperationState.Operation;
+import com.sz_device.OperationState.Two_man_OperateState;
 import com.sz_device.Retrofit.InterfaceApi.CommonApi;
 import com.sz_device.Retrofit.Request.RequestEnvelope;
 import com.sz_device.Retrofit.Request.ResquestModule.CommonRequestModule;
@@ -59,6 +64,7 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -77,6 +83,7 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.checkRecord;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.downPersonInfo;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.openDoorRecord;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.testNet;
 
@@ -96,13 +103,9 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
     Intent intent;
 
-    User checkUser;
-
     User cg_User1 = new User();
 
     User cg_User2 = new User();
-
-    Bitmap checkUser_bitmap;
 
     boolean network_state;
 
@@ -110,11 +113,11 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
     PhotoPresenter pp = PhotoPresenter.getInstance();
 
-    int fingerprintCount = 0;
-
     private AddPersonWindow personWindow;
 
     private OptionWindow optionWindow;
+
+    No_one_OperateState no_one_operateState = new No_one_OperateState();
 
     @BindView(R.id.img_captured)
     ImageView captured;
@@ -144,6 +147,10 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
     UnUploadPackageDao unUploadPackageDao;
 
+    Operation global_Operation;
+
+    String global_user_fpid;
+
     @OnClick(R.id.iv_person_add)
     void addPerson() {
         personWindow = new AddPersonWindow(this);
@@ -171,6 +178,8 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
         fpp.fpInit(this);
         fpp.fpOpen();
+
+
         Observable.interval(0, 1, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
             @Override
             public void accept(@NonNull Long aLong) throws Exception {
@@ -194,68 +203,72 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
                     }
                 });
 
-        inputServerView = new AlertView("服务器设置", null, "取消", new String[]{"确定"}, null, this, AlertView.Style.Alert, new OnItemClickListener() {
-            @Override
-            public void onItemClick(Object o, int position) {
-                if (position == 0) {
-
-                    Pattern pattern = Pattern.compile(Server_URL);
-
-                    url = etName.getText().toString().replaceAll(" ", "");
-
-                    if (!(url.endsWith("/"))) {
-                        url = url + "/";
-                    }
-                    if (!(url.startsWith("http://"))) {
-                        url = "http://" + url;
-                    }
-                    if (pattern.matcher(url).matches()) {
-                        new RetrofitGenerator().createSer(CommonApi.class, url).commonFunction(RequestEnvelope.GetRequestEnvelope(new OnlyPutKeyModule(testNet)))
-                                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Observer<ResponseEnvelope>() {
-                                    @Override
-                                    public void onSubscribe(Disposable d) {
-                                        ToastUtils.showLong("测试连接中请稍后");
-                                    }
-
-                                    @Override
-                                    public void onNext(ResponseEnvelope responseEnvelope) {
-                                        if (responseEnvelope != null) {
-                                            Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.testNetResponse.info,
-                                                    new TypeToken<HashMap<String, String>>() {
-                                                    }.getType());
-                                            if (infoMap.get("result").equals("true")) {
-                                                SPUtils.getInstance(PREFS_NAME).put("server", url);
-                                                ToastUtils.showLong("服务器设置成功");
-                                            } else {
-                                                ToastUtils.showLong("设备出错");
-                                            }
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onError(Throwable e) {
-                                        ToastUtils.showLong("连接服务器失败");
-                                    }
-
-                                    @Override
-                                    public void onComplete() {
-
-                                    }
-                                });
-                    } else {
-                        ToastUtils.showLong("请输入正确的服务器地址");
-                    }
-                }
-            }
-        });
         ViewGroup extView1 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputserver_form, null);
         dev_name = (TextView) extView1.findViewById(R.id.dev_id);
         etName = (EditText) extView1.findViewById(R.id.server_input);
+        inputServerView = new AlertView("服务器设置", null, "取消", new String[]{"确定"}, null, this, AlertView.Style.Alert, new OnItemClickListener() {
+            @Override
+            public void onItemClick(Object o, int position) {
+                inputServerSetting(position);
+            }
+        });
         inputServerView.addExtView(extView1);
 
+        global_Operation = new Operation(new No_one_OperateState());
     }
 
+    private void inputServerSetting(int position) {
+        if (position == 0) {
+
+            Pattern pattern = Pattern.compile(Server_URL);
+
+            url = etName.getText().toString().replaceAll(" ", "");
+
+            if (!(url.endsWith("/"))) {
+                url = url + "/";
+            }
+            if (!(url.startsWith("http://"))) {
+                url = "http://" + url;
+            }
+            if (pattern.matcher(url).matches()) {
+                new RetrofitGenerator().createSer(CommonApi.class, url).commonFunction(RequestEnvelope.GetRequestEnvelope(new OnlyPutKeyModule(testNet)))
+                        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Observer<ResponseEnvelope>() {
+                            @Override
+                            public void onSubscribe(Disposable d) {
+                                ToastUtils.showLong("测试连接中请稍后");
+                            }
+
+                            @Override
+                            public void onNext(ResponseEnvelope responseEnvelope) {
+                                if (responseEnvelope != null) {
+                                    Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.testNetResponse.info,
+                                            new TypeToken<HashMap<String, String>>() {
+                                            }.getType());
+                                    if (infoMap.get("result").equals("true")) {
+                                        SPUtils.getInstance(PREFS_NAME).put("server", url);
+                                        ToastUtils.showLong("服务器设置成功");
+                                    } else {
+                                        ToastUtils.showLong("设备出错");
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+                                ToastUtils.showLong("连接服务器失败");
+                            }
+
+                            @Override
+                            public void onComplete() {
+
+                            }
+                        });
+            } else {
+                ToastUtils.showLong("请输入正确的服务器地址");
+            }
+        }
+    }
 
     void openService() {
         intent = new Intent(IndexActivity.this, SwitchService.class);
@@ -279,7 +292,7 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
         OpenDoorRecord(event.getLegal());
         cg_User1 = new User();
         cg_User2 = new User();
-        fingerprintCount = 0;
+        global_Operation.setState(no_one_operateState);
     }
 
     @Override
@@ -290,7 +303,7 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
         fpp.fpIdentify();
         pp.initCamera();
         pp.setHolderAndDisplay(surfaceView.getHolder(), true);
-        fingerprintCount = 0;
+        global_Operation.setState(no_one_operateState);
         Log.e(TAG, "onResume0");
     }
 
@@ -320,6 +333,7 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
         }
     }
 
+    SPUtils data;
     @Override
     public void onOption(Button view, int type) {
         optionWindow.dismiss();
@@ -329,8 +343,54 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
             inputServerView.show();
         } else {
 
-        }
+            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
+                    new OnlyPutKeyModule(downPersonInfo)))
+                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Observer<ResponseEnvelope>() {
+                        @Override
+                        public void onSubscribe(@NonNull Disposable d) {
 
+                        }
+
+                        @Override
+                        public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
+                            List<String> dataList = responseEnvelope.body.downPersonInfoResponse.Listinfo;
+                            String result = dataList.get(0);
+                            Map<String, String> infoMap = new Gson().fromJson(result,
+                                    new TypeToken<HashMap<String, String>>() {
+                                    }.getType());
+                            if (infoMap.get("result").equals("checkErr")) {
+                                ToastUtils.showLong("设备出错");
+                                return;
+                            } else if (infoMap.get("result").equals("noData")) {
+                                ToastUtils.showLong("找不到相应的数据");
+                                return;
+                            } else if (infoMap.get("result").equals("true")) {
+                                dataList.remove(0);
+                                for (String siminfo : dataList) {
+                                    Map<String, String> simInfoMap = new Gson().fromJson(siminfo,
+                                            new TypeToken<HashMap<String, String>>() {
+                                            }.getType());
+                                    data = SPUtils.getInstance(simInfoMap.get("fp_id"));
+                                    data.put("id", simInfoMap.get("id"));
+                                    data.put("name", simInfoMap.get("name"));
+                                    data.put("type", simInfoMap.get("personType"));
+                                }
+                                ToastUtils.showLong("人员信息更新成功");
+                            }
+                        }
+
+                        @Override
+                        public void onError(@NonNull Throwable e) {
+
+                        }
+
+                        @Override
+                        public void onComplete() {
+
+                        }
+                    });
+        }
     }
 
     @Override
@@ -346,20 +406,18 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
     @Override
     public void onText(String msg) {
-        if(fingerprintCount<=2){
-            if ("请确认指纹是否已登记".equals(msg)) {
-                tv_info.setText("请确认指纹是否已登记,再重试");
-            } else if ("松开手指".equals(msg)) {
-                tv_info.setText(msg);
-            }
+        if ("请确认指纹是否已登记".equals(msg)) {
+            tv_info.setText("请确认指纹是否已登记,再重试");
+        } else if ("松开手指".equals(msg)) {
+            tv_info.setText(msg);
         }
+
     }
 
     @Override
     public void onFpSucc(String msg) {
-        if (fingerprintCount < 2) {
-            QueryPersonInfo(msg.substring(3, msg.length()));
-        }
+        loadMessage(msg.substring(3, msg.length()));
+
     }
 
     private void OpenDoorRecord(boolean leagl) {
@@ -392,7 +450,7 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
             }
         }
         if (network_state) {
-            CommonRequestModule openDoorRecordM = new CommonRequestModule(openDoorRecord,openDoorRecordJson.toString());
+            CommonRequestModule openDoorRecordM = new CommonRequestModule(openDoorRecord, openDoorRecordJson.toString());
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(openDoorRecordM))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new MyObserver(unUploadPackageDao, openDoorRecordM));
@@ -406,14 +464,13 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
     }
 
 
-    private void CheckRecord(Bitmap bmp) {
-
+ /*   private void CheckRecord() {
         final JSONObject checkRecordJson = new JSONObject();
         try {
-            checkRecordJson.put("id", checkUser.getId());
-            checkRecordJson.put("name", checkUser.getName());
+            checkRecordJson.put("id", SPUtils.getInstance(global_user_fpid).getString("id"));
+            checkRecordJson.put("name", SPUtils.getInstance(global_user_fpid).getString("name"));
             checkRecordJson.put("photo", FileUtils.bitmapToBase64(bmp));
-            checkRecordJson.put("personType", checkUser.getType());
+            checkRecordJson.put("personType", SPUtils.getInstance(global_user_fpid).getString("type"));
             checkRecordJson.put("datetime", TimeUtils.getNowString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -466,12 +523,12 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
             unUploadPackageDao.insert(un);
         }
 
-    }
+    }*/
 
-    private void QueryPersonInfo(final String sp) {
+  /*  private void QueryPersonInfo(final String sp) {
         final String spname = sp;
 
-        if(network_state){
+        if (network_state) {
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new QueryPersonInfoModule(SPUtils.getInstance(sp).getString("id"))))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
                 @Override
@@ -501,19 +558,19 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
                 }
             });
-        }else{
+        } else {
             loadMessage(sp);
         }
 
-    }
+    }*/
 
     private void loadMessage(String sp) {
         if (SPUtils.getInstance(sp).getString("type").equals(String.valueOf(1))) {
-            if (fingerprintCount == 0){
+            if (getState(No_one_OperateState.class)) {
+                global_Operation.setState(new One_man_OperateState());
                 pp.capture();
                 cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
                 cg_User1.setId(SPUtils.getInstance(sp).getString("id"));
-                tv_info.setText("管理员" + cg_User1.getName() + "打卡，请继续输入管理员信息");
                 Observable.timer(60, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Observer<Long>() {
@@ -524,7 +581,7 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
                             @Override
                             public void onNext(Long aLong) {
-                                fingerprintCount = 0;
+                                global_Operation.setState(new No_one_OperateState());
                                 cg_User1 = new User();
                                 cg_User2 = new User();
 
@@ -540,10 +597,9 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
                             }
                         });
-            } else if (fingerprintCount == 1) {
+            } else if (getState(Two_man_OperateState.class)) {
                 if (!cg_User1.getName().equals(SPUtils.getInstance(sp).getString("name"))) {
                     pp.capture();
-                    tv_info.setText("管理员" + SPUtils.getInstance(sp).getString("name") + "打卡，双人管理成功");
                     EventBus.getDefault().post(new LegalEvent(true));
                     cg_User2.setName(SPUtils.getInstance(sp).getString("name"));
                     cg_User2.setId(SPUtils.getInstance(sp).getString("id"));
@@ -552,12 +608,10 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
                 }
             }
         } else if (SPUtils.getInstance(sp).getString("type").equals(String.valueOf(2)) || SPUtils.getInstance(sp).getString("type").equals(String.valueOf(3))) {
-            fingerprintCount = 0;
-            checkUser = new User();
-            checkUser.setId(SPUtils.getInstance(sp).getString("id"));
-            checkUser.setName(SPUtils.getInstance(sp).getString("name"));
-            checkUser.setType(SPUtils.getInstance(sp).getString("type"));
-            CheckRecord(checkUser_bitmap);
+            global_user_fpid = sp;
+            global_Operation.setState(new Check_OperateState());
+            pp.capture();
+
         } else {
             tv_info.setText("该人员的身份合法性尚未通过");
         }
@@ -567,14 +621,29 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
 
     @Override
     public void onGetPhoto(Bitmap bmp) {
-        if (fingerprintCount == 0) {
+        if (getState(Check_OperateState.class)) {
+            JSONObject checkRecordJson = new JSONObject();
+            try {
+                checkRecordJson.put("id", SPUtils.getInstance(global_user_fpid).getString("id"));
+                checkRecordJson.put("name", SPUtils.getInstance(global_user_fpid).getString("name"));
+                checkRecordJson.put("photo", FileUtils.bitmapToBase64(bmp));
+                checkRecordJson.put("personType", SPUtils.getInstance(global_user_fpid).getString("type"));
+                checkRecordJson.put("datetime", TimeUtils.getNowString());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            CommonRequestModule checkRecordM = new CommonRequestModule(checkRecord, checkRecordJson.toString());
+            global_Operation.setMessage(unUploadPackageDao, checkRecordM, network_state);
+            global_Operation.doNext();
+        } else if (getState(One_man_OperateState.class)) {
             cg_User1.setPhoto(FileUtils.bitmapToBase64(bmp));
-            fingerprintCount++;
-        }else if(fingerprintCount == 1){
+            tv_info.setText("管理员" + cg_User1.getName() + "打卡,请继续管理员操作");
+            global_Operation.doNext();
+        } else if (getState(Two_man_OperateState.class)) {
             cg_User2.setPhoto(FileUtils.bitmapToBase64(bmp));
-            fingerprintCount++;
+            tv_info.setText("管理员" + cg_User2.getName() + "打卡，双人管理成功");
+            global_Operation.doNext();
         }
-        checkUser_bitmap = bmp;
         Matrix matrix = new Matrix();
         matrix.postScale(0.5f, 0.5f);
         bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
@@ -594,5 +663,13 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
         super.onBackPressed();
     }
 
+
+    private Boolean getState(Class statcClass) {
+        if (global_Operation.getState().getClass().getName().equals(statcClass.getName())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 }
