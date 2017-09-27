@@ -179,7 +179,6 @@ public class IndexActivity extends Activity implements IFingerPrintView, IPhotoV
         fpp.fpInit(this);
         fpp.fpOpen();
 
-
         Observable.interval(0, 1, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
             @Override
             public void accept(@NonNull Long aLong) throws Exception {
