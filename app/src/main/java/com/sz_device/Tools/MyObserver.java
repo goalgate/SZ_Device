@@ -4,7 +4,7 @@ package com.sz_device.Tools;
 import android.text.TextUtils;
 
 import com.sz_device.AppInit;
-import com.sz_device.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
+
 import com.sz_device.Retrofit.Request.ResquestModule.CommonRequestModule;
 import com.sz_device.Retrofit.Request.ResquestModule.IRequestModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;

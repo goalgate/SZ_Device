@@ -5,18 +5,24 @@ import android.content.Intent;
 import android.os.IBinder;
 
 import com.blankj.utilcode.util.NetworkUtils;
-import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
-import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sz_device.AppInit;
-import com.sz_device.EventBus.LegalEvent;
+import com.sz_device.Function.Fun_Switching.mvp.presenter.SwitchPresenter;
+import com.sz_device.Function.Fun_Switching.mvp.view.ISwitchView;
+import com.sz_device.State.DoorState.Door;
+
+import com.sz_device.State.DoorState.State_Close;
+import com.sz_device.State.DoorState.State_Open;
+
 import com.sz_device.EventBus.NetworkEvent;
-import com.sz_device.EventBus.OpenDoorEvent;
+import com.sz_device.EventBus.PassEvent;
 import com.sz_device.EventBus.TemHumEvent;
-import com.sz_device.Fun_Switching.mvp.presenter.SwitchPresenter;
-import com.sz_device.Fun_Switching.mvp.view.ISwitchView;
+
+import com.sz_device.State.LockState.Lock;
+import com.sz_device.State.LockState.State_Lockup;
+import com.sz_device.State.LockState.State_Unlock;
 import com.sz_device.Retrofit.Request.RequestEnvelope;
 import com.sz_device.Retrofit.Request.ResquestModule.CommonRequestModule;
 import com.sz_device.Retrofit.Request.ResquestModule.OnlyPutKeyModule;
@@ -67,7 +73,7 @@ public class SwitchService extends Service implements ISwitchView {
 
     String Last_Value;
 
-    boolean legal = false;
+   /* boolean legal = false;*/
 
     boolean network_state;
 
@@ -81,9 +87,9 @@ public class SwitchService extends Service implements ISwitchView {
 
     Disposable unlock_noOpen;
 
-    boolean first_open = true;
+/*    boolean first_open = true;*/
 
-    boolean alarming = false;
+/*    boolean alarming = false;*/
 
     UnUploadPackageDao unUploadPackageDao;
 
@@ -91,6 +97,9 @@ public class SwitchService extends Service implements ISwitchView {
 
     QueryBuilder qb;
 
+    Door door;
+
+    Lock lock;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -100,6 +109,10 @@ public class SwitchService extends Service implements ISwitchView {
         DaoSession daoSession = AppInit.getInstance().getDaoSession();
         unUploadPackageDao = daoSession.getUnUploadPackageDao();
         qb = unUploadPackageDao.queryBuilder();
+
+        lock = new Lock(new State_Lockup(sp));
+        door = new Door(new State_Close(lock));
+
         Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
             @Override
             public void accept(@NonNull Long aLong) throws Exception {
@@ -181,8 +194,10 @@ public class SwitchService extends Service implements ISwitchView {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onGetLegalEvent(LegalEvent event) {
-        legal = event.getLegal();
+    public void onGetPassEvent(PassEvent event) {
+        lock.setLockState(new State_Unlock(sp));
+        lock.doNext();
+        AlarmCease();
     }
 
     @Override
@@ -201,10 +216,14 @@ public class SwitchService extends Service implements ISwitchView {
         if ((Last_Value == null || Last_Value.equals(""))) {
             if (value.startsWith("AAAAAA")) {
                 Last_Value = value;
-                if (value.equals("AAAAAA000000000000") && legal == false) {
-                    sp.OutD9(true);
+                if (value.equals("AAAAAA000000000000") /*&& legal == false*/) {
+
+                    door.setDoorState(new State_Open(lock));
+                    door.doNext();
                     alarmRecord();
-                    alarming = true;
+                 /*   sp.OutD9(true);
+                    alarmRecord();
+                    alarming = true;*/
                 }
             }
 
@@ -216,7 +235,15 @@ public class SwitchService extends Service implements ISwitchView {
                 if (!value.equals(Last_Value)) {
                     Last_Value = value;
                     if (Last_Value.equals("AAAAAA000000000000")) {
-                        if (legal == false) {
+                        if(getDoorState(State_Close.class)){
+                            door.setDoorState(new State_Open(lock));
+                            door.doNext();
+                            if (getLockState(State_Lockup.class)){
+                                alarmRecord();
+                            }
+                        }
+
+                       /* if (legal == false) {
                             sp.OutD9(true);
                             if (first_open) {
                                 alarmRecord();
@@ -231,7 +258,7 @@ public class SwitchService extends Service implements ISwitchView {
                                 EventBus.getDefault().post(new OpenDoorEvent(true));
                                 first_open = false;
                             }
-                        }
+                        }*/
 
                         if (unlock_noOpen != null) {
                             unlock_noOpen.dispose();
@@ -250,9 +277,11 @@ public class SwitchService extends Service implements ISwitchView {
 
                                     @Override
                                     public void onNext(Long aLong) {
-                                        legal = false;
+                                       /* legal = false;*/
+                                        lock.setLockState(new State_Lockup(sp));
+                                        door.setDoorState(new State_Close(lock));
                                         CloseDoorRecord(closeDoorTime);
-                                        first_open = true;
+
                                     }
 
                                     @Override
@@ -267,15 +296,15 @@ public class SwitchService extends Service implements ISwitchView {
                                 });
                     }
                 }
-                if (legal == true) {
+               /* if (legal == true) {
                     sp.OutD9(false);
                     if (alarming) {
                         AlarmCease();
                         alarming = false;
                     }
 
-                }
-                if (legal == true && value.equals("AAAAAA000000000001")) {
+                }*/
+                if (/*legal == true*/ getLockState(State_Unlock.class)&& value.equals("AAAAAA000000000001")) {
                     Observable.timer(120, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                             .subscribe(new Observer<Long>() {
                                 @Override
@@ -285,7 +314,8 @@ public class SwitchService extends Service implements ISwitchView {
 
                                 @Override
                                 public void onNext(Long aLong) {
-                                    legal = false;
+                                    /*legal = false;*/
+                                    lock.setLockState(new State_Lockup(sp));
                                 }
 
                                 @Override
@@ -426,7 +456,21 @@ public class SwitchService extends Service implements ISwitchView {
                 }
             });
         }
-
         isUploading.setIsUploading(false);
+    }
+
+    private Boolean getDoorState(Class stateClass) {
+        if (door.getDoorState().getClass().getName().equals(stateClass.getName())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    private Boolean getLockState(Class stateClass) {
+        if (lock.getLockState().getClass().getName().equals(stateClass.getName())) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
