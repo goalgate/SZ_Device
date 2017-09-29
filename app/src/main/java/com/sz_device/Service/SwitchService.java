@@ -30,6 +30,7 @@ import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Tools.DaoSession;
 import com.sz_device.Tools.MyObserver;
+import com.sz_device.Tools.SaveObserver;
 import com.sz_device.Tools.UnUploadPackage;
 import com.sz_device.Tools.UnUploadPackageDao;
 import com.sz_device.Tools.UploadValue;
@@ -71,7 +72,7 @@ public class SwitchService extends Service implements ISwitchView {
 
     String Last_Value;
 
-    boolean network_state;
+    boolean network_state = false;
 
     int last_mTemperature = 0;
 
@@ -116,8 +117,6 @@ public class SwitchService extends Service implements ISwitchView {
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
-                        qb.where(UnUploadPackageDao.Properties.Upload.eq(false));
-
                         if (NetworkUtils.isConnected()) {
                             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope
                                     .GetRequestEnvelope(new OnlyPutKeyModule(testNet)))
@@ -128,16 +127,19 @@ public class SwitchService extends Service implements ISwitchView {
 
                                 @Override
                                 public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
-                                    qb.where(UnUploadPackageDao.Properties.Upload.eq(false));
-                                    if (!isUploading.getIsUploading() && qb.list().size() > 0) {
-                                        isUploading.setIsUploading(true);
-                                        reUpload(qb.list());
-                                    }
+
                                     if (responseEnvelope != null) {
                                         Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.testNetResponse.info,
                                                 new TypeToken<HashMap<String, String>>() {
                                                 }.getType());
                                         if (infoMap.get("result").equals("true")) {
+                                            if(!network_state){
+                                                qb.where(UnUploadPackageDao.Properties.Upload.eq(false));
+                                                if (!isUploading.getIsUploading() && qb.list().size() > 0) {
+                                                    isUploading.setIsUploading(true);
+                                                    reUpload(qb.list());
+                                                }
+                                            }
                                             network_state = true;
                                             EventBus.getDefault().post(new NetworkEvent(true, "服务器连接正常"));
                                         } else {
@@ -188,8 +190,11 @@ public class SwitchService extends Service implements ISwitchView {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetPassEvent(PassEvent event) {
         lock.setLockState(new State_Unlock(sp));
+        if(lock.isAlarming()){
+            AlarmCease();
+        }
         lock.doNext();
-        AlarmCease();
+
     }
 
     @Override
@@ -306,7 +311,7 @@ public class SwitchService extends Service implements ISwitchView {
             CommonRequestModule alarmCeaseM = new CommonRequestModule(alarmCease, AlarmCeaseJson.toString());
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(alarmCeaseM))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new MyObserver(unUploadPackageDao, alarmCeaseM));
+                    .subscribe(new SaveObserver(unUploadPackageDao, alarmCeaseM));
         } else {
             UnUploadPackage un = new UnUploadPackage();
             un.setMethod(alarmCease);
@@ -328,7 +333,7 @@ public class SwitchService extends Service implements ISwitchView {
             CommonRequestModule closeDoorRecordM = new CommonRequestModule(closeDoorRecord, CloseDoorRecordJson.toString());
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(closeDoorRecordM))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new MyObserver(unUploadPackageDao, closeDoorRecordM));
+                    .subscribe(new SaveObserver(unUploadPackageDao, closeDoorRecordM));
         } else {
             UnUploadPackage un = new UnUploadPackage();
             un.setMethod(closeDoorRecord);
@@ -352,7 +357,7 @@ public class SwitchService extends Service implements ISwitchView {
             CommonRequestModule alarmRecordM = new CommonRequestModule(alarmRecord, alarmRecordJson.toString());
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(alarmRecordM))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new MyObserver(unUploadPackageDao, alarmRecordM));
+                    .subscribe(new SaveObserver(unUploadPackageDao, alarmRecordM));
         } else {
             UnUploadPackage un = new UnUploadPackage();
             un.setMethod(alarmRecord);

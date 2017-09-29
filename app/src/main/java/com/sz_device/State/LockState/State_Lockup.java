@@ -9,6 +9,8 @@ import com.sz_device.Function.Fun_Switching.mvp.presenter.SwitchPresenter;
 
 public class State_Lockup extends LockState {
 
+    public boolean alarming;
+
     SwitchPresenter sp;
 
     public State_Lockup(SwitchPresenter sp) {
@@ -17,5 +19,13 @@ public class State_Lockup extends LockState {
     @Override
     public void onHandle(Lock lock) {
         sp.OutD9(true);
+        alarming = true;
+    }
+
+
+
+    @Override
+    public boolean isAlarming() {
+        return alarming;
     }
 }

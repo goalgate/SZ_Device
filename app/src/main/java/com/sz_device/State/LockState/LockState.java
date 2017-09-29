@@ -6,5 +6,9 @@ package com.sz_device.State.LockState;
 
 public abstract class LockState {
 
+
+
     public abstract void onHandle(Lock lock);
+
+    public abstract boolean isAlarming() ;
 }

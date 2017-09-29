@@ -34,6 +34,7 @@ import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Tools.FileUtils;
 import com.sz_device.Tools.MyObserver;
+import com.sz_device.Tools.SaveObserver;
 import com.sz_device.Tools.UnUploadPackage;
 import com.sz_device.Tools.UnUploadPackageDao;
 import com.sz_device.Tools.User;
@@ -251,7 +252,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
             CommonRequestModule openDoorRecordM = new CommonRequestModule(openDoorRecord,openDoorRecordJson.toString());
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(openDoorRecordM))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new MyObserver(unUploadPackageDao,openDoorRecordM));
+                    .subscribe(new SaveObserver(unUploadPackageDao,openDoorRecordM));
         }else{
             UnUploadPackage un = new UnUploadPackage();
             un.setMethod(openDoorRecord);

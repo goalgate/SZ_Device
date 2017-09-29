@@ -30,4 +30,8 @@ public class Lock {
     public void doNext(){
         lockState.onHandle(this);
     }
+
+    public boolean isAlarming(){
+        return lockState.isAlarming();
+    }
 }

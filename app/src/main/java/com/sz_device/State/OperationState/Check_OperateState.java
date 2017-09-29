@@ -4,6 +4,7 @@ import com.sz_device.Retrofit.Request.RequestEnvelope;
 import com.sz_device.Retrofit.Request.ResquestModule.IRequestModule;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Tools.MyObserver;
+import com.sz_device.Tools.SaveObserver;
 import com.sz_device.Tools.UnUploadPackage;
 import com.sz_device.Tools.UnUploadPackageDao;
 
@@ -34,7 +35,7 @@ public class Check_OperateState extends OperationState {
         if (network_state) {
             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(checkModule))
                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new MyObserver(unUploadPackageDao,checkModule));
+                    .subscribe(new SaveObserver(unUploadPackageDao,checkModule));
         } else {
 
             UnUploadPackage un = new UnUploadPackage();

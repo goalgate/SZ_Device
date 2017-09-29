@@ -22,18 +22,6 @@ import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.alarmCease;
 
 public class MyObserver implements Observer<ResponseEnvelope> {
 
-    private UnUploadPackageDao unUploadPackageDao;
-
-    private IRequestModule Module;
-
-    public MyObserver() {
-
-    }
-
-    public MyObserver(UnUploadPackageDao unUploadPackageDao ,IRequestModule module) {
-        this.unUploadPackageDao = unUploadPackageDao;
-        this.Module = module;
-    }
 
     @Override
     public void onComplete() {
@@ -42,13 +30,7 @@ public class MyObserver implements Observer<ResponseEnvelope> {
 
     @Override
     public void onError(@NonNull Throwable e) {
-        if (Module!=null){
-            UnUploadPackage un = new UnUploadPackage();
-            un.setMethod(Module.getMethod());
-            un.setJsonData(Module.getJSON());
-            un.setUpload(false);
-            unUploadPackageDao.insert(un);
-        }
+
     }
 
     @Override
