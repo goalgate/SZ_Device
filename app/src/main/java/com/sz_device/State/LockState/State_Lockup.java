@@ -22,8 +22,6 @@ public class State_Lockup extends LockState {
         alarming = true;
     }
 
-
-
     @Override
     public boolean isAlarming() {
         return alarming;

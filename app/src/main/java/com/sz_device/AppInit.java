@@ -95,7 +95,6 @@ public class AppInit extends Application {
         Database db = helper.getWritableDb();
         daoSession = new DaoMaster(db).newSession();
 
-
         RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
                 new OnlyPutKeyModule(downPersonInfo)))
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())

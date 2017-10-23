@@ -11,8 +11,6 @@ public class Lock {
 
     private LockState lockState;
 
-    private SwitchPresenter sp;
-
     public Lock(LockState lockState) {
 
         this.lockState = lockState;

@@ -82,7 +82,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
 
     UnUploadPackageDao unUploadPackageDao;
 
-    FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
+    static FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
 
     @BindView(R.id.iv_finger)
     ImageView img_finger;
@@ -313,7 +313,6 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     protected void onStart() {
         super.onStart();
         fpp.FingerPrintPresenterSetView(this);
-
     }
 
     @Override
