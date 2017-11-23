@@ -1,6 +1,8 @@
 package com.sz_device.Function.Fun_FingerPrint.mvp.module;
 
 import android.app.Activity;
+import android.app.Application;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
@@ -11,6 +13,7 @@ import android.util.Base64;
 
 import com.drv.fingerprint.DevComm;
 import com.drv.fingerprint.IUsbConnState;
+import com.sz_device.AppInit;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,10 +43,10 @@ public class FingerPrintImpl implements IFingerPrint {
 
 
     @Override
-    public void onInit(Activity activity, IFPListener fplistener) {
+    public void onInit( IFPListener fplistener) {
         this.listener = fplistener;
         if (m_usbComm == null) {
-            m_usbComm = new DevComm(activity, m_IConnectionHandler);
+            m_usbComm = new DevComm(AppInit.getContext(), m_IConnectionHandler);
         }
         m_binImage = new byte[1024 * 100];
         m_bmpImage = new byte[1024 * 100];

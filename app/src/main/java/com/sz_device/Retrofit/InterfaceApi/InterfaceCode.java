@@ -18,6 +18,9 @@ public class InterfaceCode{
     public final static int checkRecord = 11;
     public final static int downPersonInfo = 12;
     public final static int downPersonFingerprintInfo = 13;
+    public final static int autoUpdate = 14;
+
+
 
 
 

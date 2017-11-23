@@ -49,4 +49,7 @@ public class ResponseBody {
 
     @Element(name = "downPersonInfoResponse", required = false)
     public ResponseListModel downPersonInfoResponse;
+
+    @Element(name = "autoUpdateResponse", required = false)
+    public ResponseModel autoUpdateResponse;
 }

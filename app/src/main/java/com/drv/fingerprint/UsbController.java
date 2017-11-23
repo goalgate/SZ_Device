@@ -69,11 +69,12 @@ public class UsbController {
 	/**
 	 * Activity is needed for onResult
 	 * 
-	 * @param parentActivity
+	 * @param context
 	 */
-	public UsbController(Activity parentActivity, IUsbConnState connectionHandler, int vid, int pid){
+	public UsbController(/*Activity parentActivity*/Context context, IUsbConnState connectionHandler, int vid, int pid){
         mConnectionHandler = connectionHandler;
-		mApplicationContext = parentActivity.getApplicationContext();
+		/*mApplicationContext = parentActivity.getApplicationContext();*/
+		mApplicationContext = context;
 		mUsbManager = (UsbManager) mApplicationContext.getSystemService(Context.USB_SERVICE);
 		VID = vid;
 		PID = pid;

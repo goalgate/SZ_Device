@@ -11,6 +11,7 @@ import org.simpleframework.xml.Root;
 
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.alarmCease;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.alarmRecord;
+import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.autoUpdate;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.checkOnline;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.checkRecord;
 import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.closeDoorRecord;
@@ -66,6 +67,9 @@ public class RequestBody {
     @Element(name = "inf:downPersonFingerprintInfo", required = false)
     public IRequestModule downPersonFingerprintInfoModule;
 
+    @Element(name = "inf:autoUpdate", required = false)
+    public IRequestModule autoUpdateModule;
+
     public RequestBody(IRequestModule module) {
         switch (module.getMethod()) {
             case testNet:
@@ -107,10 +111,11 @@ public class RequestBody {
             case downPersonFingerprintInfo:
                 downPersonFingerprintInfoModule = module;
                 break;
+            case autoUpdate:
+                autoUpdateModule = module;
+                break;
             default:
                 ToastUtils.showLong("接口方法错误");
-
-
         }
 
     }

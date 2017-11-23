@@ -133,20 +133,20 @@ public class DevComm {
     public byte[]	m_abyPacket2 = new byte[64*1024];
     //--------------------------------------------------//
 
-    private final Context mApplicationContext;
-    private Activity    m_parentAcitivity;
+/*    private final Context mApplicationContext;
+    private Activity    m_parentAcitivity;*/
     private static final int VID = 0x2009;
     private static final int PID = 0x7638;
 
     private UsbController   m_usbBase;
 
-    public DevComm(Activity parentActivity, IUsbConnState usbConnState){
+    public DevComm(Context context, IUsbConnState usbConnState){
     	
     	DebugManage.DeleteLog();
-    	
+    /*
         m_parentAcitivity = parentActivity;
-        mApplicationContext = parentActivity.getApplicationContext();
-        m_usbBase = new UsbController(parentActivity, usbConnState, VID, PID);
+        mApplicationContext = parentActivity.getApplicationContext();*/
+        m_usbBase = new UsbController(context, usbConnState, VID, PID);
     }
 
     public boolean IsInit(){

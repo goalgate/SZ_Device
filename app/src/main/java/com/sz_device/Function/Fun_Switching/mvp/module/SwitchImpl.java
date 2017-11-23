@@ -46,7 +46,7 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
     @Override
     public void onOpen(ISwitchingListener listener) {
         this.listener = listener;
-        setDevName("/dev/ttysWK2");
+        setDevName("/dev/ttyS0");
         open(115200);
     }
 

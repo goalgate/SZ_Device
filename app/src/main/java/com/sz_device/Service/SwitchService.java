@@ -243,7 +243,7 @@ public class SwitchService extends Service implements ISwitchView {
                         if (rx_delay != null) {
                             rx_delay.dispose();
                         }
-                    } else if (Last_Value.equals("AAAAAA000000000001")) {
+                    } else if (Last_Value.equals("AAAAAA000001000000")) {
                         final String closeDoorTime = TimeUtils.getNowString();
                         Observable.timer(20, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                                 .subscribe(new Observer<Long>() {
@@ -273,7 +273,7 @@ public class SwitchService extends Service implements ISwitchView {
                     }
                 }
 
-                if (getLockState(State_Unlock.class)&& value.equals("AAAAAA000000000001")) {
+                if (getLockState(State_Unlock.class)&& value.equals("AAAAAA000001000000")) {
                     Observable.timer(120, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                             .subscribe(new Observer<Long>() {
                                 @Override
