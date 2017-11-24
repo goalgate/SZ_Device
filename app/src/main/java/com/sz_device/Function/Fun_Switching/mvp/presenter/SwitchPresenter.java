@@ -59,5 +59,9 @@ public class SwitchPresenter {
         switchingModule.onOutD9(isOn);
     }
 
+    public void buzz(){
+        switchingModule.onBuzz();
+    }
+
 
 }

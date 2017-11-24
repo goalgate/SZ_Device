@@ -3,6 +3,7 @@ package com.sz_device;
 import android.app.Application;
 import android.content.Context;
 
+
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.blankj.utilcode.util.Utils;
@@ -11,7 +12,6 @@ import com.google.gson.reflect.TypeToken;
 import com.log.Lg;
 import com.squareup.leakcanary.LeakCanary;
 import com.sz_device.Retrofit.Request.RequestEnvelope;
-import com.sz_device.Retrofit.Request.ResquestModule.CommonRequestModule;
 import com.sz_device.Retrofit.Request.ResquestModule.OnlyPutKeyModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
@@ -59,6 +59,9 @@ public class AppInit extends Application {
 
     private DaoSession daoSession;
 
+
+
+
     @Override
     public void onCreate() {
 
@@ -91,9 +94,8 @@ public class AppInit extends Application {
             User_SP.put("jsonKey", DESX.encrypt(jsonKey.toString()));
             User_SP.put("server", "http://192.168.11.165:8080/");
         }
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, "unUploadPackage-db");
-        Database db = helper.getWritableDb();
-        daoSession = new DaoMaster(db).newSession();
+
+        initDatabase();
 
         RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(
                 new OnlyPutKeyModule(downPersonInfo)))
@@ -146,4 +148,11 @@ public class AppInit extends Application {
     public DaoSession getDaoSession() {
         return daoSession;
     }
+
+    private void initDatabase() {
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, "unUploadPackage-db");
+        Database db = helper.getWritableDb();
+        daoSession = new DaoMaster(db).newSession();
+    }
 }
+

@@ -3,6 +3,7 @@ package com.sz_device.Service;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.TimeUtils;
@@ -99,6 +100,9 @@ public class SwitchService extends Service implements ISwitchView {
         EventBus.getDefault().register(this);
         sp.SwitchPresenterSetView(this);
         sp.switch_Open();
+
+        Log.e("Message","ServiceStart");
+
         DaoSession daoSession = AppInit.getInstance().getDaoSession();
         unUploadPackageDao = daoSession.getUnUploadPackageDao();
         qb = unUploadPackageDao.queryBuilder();
@@ -257,7 +261,7 @@ public class SwitchService extends Service implements ISwitchView {
                                         lock.setLockState(new State_Lockup(sp));
                                         door.setDoorState(new State_Close(lock));
                                         CloseDoorRecord(closeDoorTime);
-
+                                        sp.buzz();
                                     }
 
                                     @Override
@@ -341,7 +345,6 @@ public class SwitchService extends Service implements ISwitchView {
             un.setUpload(false);
             unUploadPackageDao.insert(un);
         }
-
     }
 
     private void alarmRecord() {

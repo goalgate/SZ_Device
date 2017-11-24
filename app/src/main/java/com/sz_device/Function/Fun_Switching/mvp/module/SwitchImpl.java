@@ -37,6 +37,7 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
     private byte[] dt_outD8on_ ={ (byte)0xAA,(byte)0xAA,(byte)0xAA,(byte)0x96,0x69, 0x41, 0x31, 0x08, 0x1D};  //D9断电器开命令
     private byte[] dt_outD9off_ ={ (byte)0xAA,(byte)0xAA,(byte)0xAA,(byte)0x96,0x69, 0x20, 0x10, (byte)0x80, (byte)0xF4};  //D9断电器关命令
     private byte[] dt_outD9on_ ={ (byte)0xAA,(byte)0xAA,(byte)0xAA,(byte)0x96,0x69, 0x21, 0x11, (byte)0xD0, 0x34};  //D9断电器开命令
+    private byte[] dt_buzz_ ={ (byte)0xAA,(byte)0xAA,(byte)0xAA,(byte)0x0B,0x0B, 0x02, 0x33, (byte)0x7B, 0x23};  //D9断电器开命令
 
     //接收数据最后时间
     private long lastRevTime_;
@@ -71,6 +72,11 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
         }else{
             sendData(dt_outD9off_);
         }
+    }
+
+    @Override
+    public void onBuzz() {
+        sendData(dt_buzz_);
     }
 
     @Override

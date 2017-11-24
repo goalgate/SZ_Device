@@ -14,6 +14,8 @@ public interface ISwitching {
 
     void onOutD9(boolean status);
 
+    void onBuzz();
+
     interface ISwitchingListener{
 
         void onSwitchingText(String value);

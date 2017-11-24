@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SZ_Device</string>
+    <string name="app_name">深圳采集器</string>
     <string name="dev_id">设备ID号:</string>
     <string name="server_ip">服务器地址:</string>
 
