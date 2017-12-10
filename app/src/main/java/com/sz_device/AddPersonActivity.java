@@ -207,6 +207,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
             e.printStackTrace();
         }
 
+
         CommonRequestModule registerPersonM = new CommonRequestModule(
                 registerPerson, jsonObject.toString());
         RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(registerPersonM)).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
