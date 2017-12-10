@@ -237,7 +237,6 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetOpenDoorEvent(OpenDoorEvent event) {
         OpenDoorRecord(event.getLegal());
-
     }
 
     private void OpenDoorRecord(boolean leagl) {
