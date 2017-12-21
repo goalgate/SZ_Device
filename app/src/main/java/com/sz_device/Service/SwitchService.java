@@ -10,6 +10,8 @@ import com.blankj.utilcode.util.TimeUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sz_device.AppInit;
+
+import com.sz_device.EventBus.LockUpEvent;
 import com.sz_device.Function.Fun_Switching.mvp.presenter.SwitchPresenter;
 import com.sz_device.Function.Fun_Switching.mvp.view.ISwitchView;
 import com.sz_device.State.DoorState.Door;
@@ -131,7 +133,6 @@ public class SwitchService extends Service implements ISwitchView {
 
                                 @Override
                                 public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
-
                                     if (responseEnvelope != null) {
                                         Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.testNetResponse.info,
                                                 new TypeToken<HashMap<String, String>>() {
@@ -145,10 +146,10 @@ public class SwitchService extends Service implements ISwitchView {
                                                 }
                                             }
                                             network_state = true;
-                                            EventBus.getDefault().post(new NetworkEvent(true, "服务器连接正常"));
+                                            EventBus.getDefault().post(new NetworkEvent(true));
                                         } else {
                                             network_state = false;
-                                            EventBus.getDefault().post(new NetworkEvent(false, "设备出错"));
+                                            EventBus.getDefault().post(new NetworkEvent(false));
                                         }
                                     }
                                 }
@@ -156,7 +157,7 @@ public class SwitchService extends Service implements ISwitchView {
                                 @Override
                                 public void onError(@NonNull Throwable e) {
                                     network_state = false;
-                                    EventBus.getDefault().post(new NetworkEvent(false, "服务器连接出错"));
+                                    EventBus.getDefault().post(new NetworkEvent(false));
                                 }
 
                                 @Override
@@ -166,7 +167,7 @@ public class SwitchService extends Service implements ISwitchView {
                             });
                         } else {
                             network_state = false;
-                            EventBus.getDefault().post(new NetworkEvent(false, "请检查网络是否已连接"));
+                            EventBus.getDefault().post(new NetworkEvent(false));
                         }
                     }
                 });
@@ -288,6 +289,7 @@ public class SwitchService extends Service implements ISwitchView {
                                 @Override
                                 public void onNext(Long aLong) {
                                     lock.setLockState(new State_Lockup(sp));
+                                    EventBus.getDefault().post(new LockUpEvent());
                                 }
 
                                 @Override

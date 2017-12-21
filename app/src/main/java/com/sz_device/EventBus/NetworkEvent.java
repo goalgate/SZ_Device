@@ -8,19 +8,12 @@ public class NetworkEvent {
 
     boolean network_state;
 
-    String msg;
-
     public boolean getNetwork_state(){
         return network_state;
     }
 
-    public String getMsg(){
-        return msg;
-    }
-
-    public NetworkEvent(boolean network_state ,String msg){
+    public NetworkEvent(boolean network_state){
         this.network_state = network_state;
-        this.msg = msg;
     }
 
 

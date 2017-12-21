@@ -60,4 +60,6 @@ dependencies {
     compile 'com.bigkoo:alertview:1.0.3'
     compile 'org.greenrobot:greendao:3.2.2'
     compile 'cn.finalteam:okhttpfinal:2.0.7'
+    compile 'com.trello.rxlifecycle2:rxlifecycle:2.2.1'
+    compile 'com.trello.rxlifecycle2:rxlifecycle-components:2.0'
 }

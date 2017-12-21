@@ -24,8 +24,8 @@ public class AddPersonWindow extends PopupWindow implements View.OnClickListener
     private Activity mActivity;
     OptionTypeListener listener;
     Button add;
-    Button delete;
-
+    Button server;
+    Button update;
 
     public AddPersonWindow(Activity activity) {
         mActivity = activity;
@@ -33,13 +33,12 @@ public class AddPersonWindow extends PopupWindow implements View.OnClickListener
         setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mContentView = LayoutInflater.from(activity).inflate(R.layout.window_person, null);
         setContentView(mContentView);
-
-
         add = (Button) mContentView.findViewById(R.id.btn_add);
-        delete = (Button) mContentView.findViewById(R.id.btn_delete);
-
+        server = (Button) mContentView.findViewById(R.id.btn_server);
+        update = (Button) mContentView.findViewById(R.id.btn_update);
         add.setOnClickListener(this);
-        delete.setOnClickListener(this);
+        server.setOnClickListener(this);
+        update.setOnClickListener(this);
 
         setFocusable(true);
         setOutsideTouchable(true);
@@ -86,8 +85,11 @@ public class AddPersonWindow extends PopupWindow implements View.OnClickListener
             case R.id.btn_add :
                 listener.onOptionType(add,1);
                 break;
-            case R.id.btn_delete :
-                listener.onOptionType(delete,2);
+            case R.id.btn_server :
+                listener.onOptionType(server,2);
+                break;
+            case R.id.btn_update :
+                listener.onOptionType(update,3);
                 break;
         }
     }

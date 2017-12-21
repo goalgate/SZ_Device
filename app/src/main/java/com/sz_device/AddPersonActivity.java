@@ -82,7 +82,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
 
     UnUploadPackageDao unUploadPackageDao;
 
-    static FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
+    FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
 
     @BindView(R.id.iv_finger)
     ImageView img_finger;
@@ -276,10 +276,6 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                     // 图片解析成Bitmap对象
                     Bitmap bitmap = BitmapFactory
                             .decodeStream(this.getContentResolver().openInputStream(photoUri));
-                    Matrix matrix = new Matrix();
-                    matrix.postRotate(180);
-                    bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(),
-                            matrix, true);
                     img_camera.setImageBitmap(bitmap); // 将剪裁后照片显示出来
                     registerUser.setPhoto(FileUtils.bitmapToBase64(bitmap));
                 } catch (FileNotFoundException e) {

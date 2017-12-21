@@ -7,6 +7,15 @@
     tools:context=".IndexActivity"
     android:background="@drawable/index_bg">
 
+    <android.gesture.GestureOverlayView
+        android:id="@+id/gestures_overlay"
+        android:layout_width="290dp"
+        android:layout_height="70dp"
+        android:layout_weight="1.0"
+        android:eventsInterceptionEnabled="true"
+        android:gestureStrokeType="multiple">
+    </android.gesture.GestureOverlayView>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -28,28 +37,66 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
-            android:textColor="@color/color_text"
+            android:textColor="@color/primary_light"
             android:textSize="25sp"
             />
+
         <ImageView
-            android:id="@+id/iv_option"
+            android:id="@+id/iv_lock"
             android:layout_width="35dp"
             android:layout_height="35dp"
-            android:src="@drawable/option"
             android:layout_centerVertical="true"
+            android:layout_marginRight="10dp"
             android:layout_toLeftOf="@id/tv_time"
-            android:layout_marginRight="16dp"/>
+            android:src="@drawable/ic_lockup" />
 
         <ImageView
-            android:id="@+id/iv_person_add"
+            android:id="@+id/iv_network"
             android:layout_width="35dp"
             android:layout_height="35dp"
-            android:src="@drawable/person_add"
             android:layout_centerVertical="true"
-            android:layout_toLeftOf="@id/iv_option"
-            android:layout_marginRight="16dp"/>
+            android:layout_marginRight="10dp"
+            android:layout_toLeftOf="@id/iv_lock"
+            android:src="@drawable/non_wifi" />
+
+        <TextView
+            android:id="@+id/tv_temp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:textColor="@color/primary_light"
+            android:layout_toLeftOf="@id/iv_network"
+            android:layout_marginRight="15dp"
+            android:textSize="25sp" />
+
+        <ImageView
+            android:id="@+id/iv_temp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/tv_temp"
+            android:src="@drawable/temperature"
+            />
 
 
+        <TextView
+            android:id="@+id/tv_humid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:textColor="@color/primary_light"
+            android:layout_toLeftOf="@id/iv_temp"
+            android:layout_marginRight="8dp"
+            android:textSize="25sp" />
+
+        <ImageView
+            android:id="@+id/iv_humid"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="8dp"
+            android:layout_toLeftOf="@+id/tv_humid"
+            android:src="@drawable/humidity" />
 
 
     </RelativeLayout>
@@ -83,94 +130,12 @@
             android:orientation="vertical"
             android:layout_toRightOf="@+id/surfaceView">
 
-
-
-            <LinearLayout
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_gravity="center"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/color_info"
-                    android:text="网络："
-                    android:textSize="25sp"/>
-
-
-                <TextView
-                    android:id="@+id/network_state"
-                    android:layout_gravity="center"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/color_info"
-                    android:text="网络连接测试中"
-                    android:textSize="25sp"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_gravity="center"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/color_info"
-                    android:text="温度："
-                    android:textSize="25sp"/>
-
-
-                <TextView
-                    android:id="@+id/tv_temperature"
-                    android:layout_gravity="center"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/color_info"
-                    android:textSize="25sp"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="湿度："
-                    android:textColor="@color/color_info"
-                    android:textSize="25sp" />
-
-                <TextView
-                    android:id="@+id/tv_humidity"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:textColor="@color/color_info"
-                    android:textSize="25sp" />
-            </LinearLayout>
-
-
             <ImageView
                 android:id="@+id/img_captured"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|right"/>
         </LinearLayout>
-
-
-
-
     </RelativeLayout>
 
 
@@ -188,7 +153,7 @@
             android:layout_centerInParent="true"
             android:text="等待用户操作"
             android:textColor="@color/color_info"
-            android:textSize="16sp"/>
+            android:textSize="25sp"/>
 
     </RelativeLayout>
 
