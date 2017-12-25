@@ -1,4 +1,4 @@
-package com.sz_device.Function.Fun_Camera.mvp.view;
+package com.sz_device.Function.Func_Camera.mvp.view;
 
 import android.graphics.Bitmap;
 

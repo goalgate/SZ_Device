@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.log.Lg;
 import com.squareup.leakcanary.LeakCanary;
+import com.sz_device.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.sz_device.Retrofit.Request.RequestEnvelope;
 import com.sz_device.Retrofit.Request.ResquestModule.OnlyPutKeyModule;
 import com.sz_device.Retrofit.Response.ResponseEnvelope;
@@ -59,6 +60,7 @@ public class AppInit extends Application {
 
     private DaoSession daoSession;
 
+    PhotoPresenter pp = PhotoPresenter.getInstance();
 
 
 
@@ -95,6 +97,7 @@ public class AppInit extends Application {
             User_SP.put("server", "http://192.168.11.165:8080/");
         }
 
+        pp.initCamera();
         initDatabase();
 
         RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(

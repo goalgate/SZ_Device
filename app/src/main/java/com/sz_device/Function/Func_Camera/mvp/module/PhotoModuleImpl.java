@@ -1,29 +1,18 @@
-package com.sz_device.Function.Fun_Camera.mvp.module;
+package com.sz_device.Function.Func_Camera.mvp.module;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
-import android.graphics.Matrix;
 import android.hardware.Camera;
-import android.media.FaceDetector;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.widget.Toast;
 
-import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ScreenUtils;
-import com.blankj.utilcode.util.ToastUtils;
 import com.sz_device.AppInit;
 
-import java.io.IOException;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
+import java.io.IOException;
 
 
 /**
@@ -211,8 +200,6 @@ public class PhotoModuleImpl implements IPhotoModule {
     /*    private boolean hasDetected = false;
         private int realFaceNum = 0;*/
     IOnSetListener callback;
-    private static final String PREFS_NAME = "UserInfo";
-
 
     @Override
     public void setDisplay(SurfaceHolder sHolder) {
@@ -221,13 +208,7 @@ public class PhotoModuleImpl implements IPhotoModule {
             camera.setPreviewDisplay(sHolder);
             camera.startPreview();
         } catch (IOException e) {
-            safeCameraOpen(0);
-            try {
-                camera.setPreviewDisplay(sHolder);
-                camera.startPreview();
-            } catch (IOException ex) {
-                Toast.makeText(AppInit.getContext(),"无法获取摄像头权限",Toast.LENGTH_LONG);
-            }
+            e.printStackTrace();
         }
 
     }
@@ -361,6 +342,7 @@ public class PhotoModuleImpl implements IPhotoModule {
         try {
             releaseCameraAndPreview();
             camera = Camera.open(id);
+
         } catch (Exception e) {
             Toast.makeText(AppInit.getContext(),"无法获取摄像头权限",Toast.LENGTH_LONG);
             e.printStackTrace();

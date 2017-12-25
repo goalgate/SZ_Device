@@ -1,11 +1,11 @@
-package com.sz_device.Function.Fun_Camera.mvp.presenter;
+package com.sz_device.Function.Func_Camera.mvp.presenter;
 
 import android.graphics.Bitmap;
 import android.view.SurfaceHolder;
 
-import com.sz_device.Function.Fun_Camera.mvp.module.IPhotoModule;
-import com.sz_device.Function.Fun_Camera.mvp.module.PhotoModuleImpl;
-import com.sz_device.Function.Fun_Camera.mvp.view.IPhotoView;
+import com.sz_device.Function.Func_Camera.mvp.module.IPhotoModule;
+import com.sz_device.Function.Func_Camera.mvp.module.PhotoModuleImpl;
+import com.sz_device.Function.Func_Camera.mvp.view.IPhotoView;
 
 
 /**

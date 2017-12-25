@@ -1,4 +1,4 @@
-package com.sz_device.Function.Fun_Switching.mvp.module;
+package com.sz_device.Function.Func_Switch.mvp.module;
 
 /**
  * Created by zbsz on 2017/8/23.
@@ -14,7 +14,9 @@ public interface ISwitching {
 
     void onOutD9(boolean status);
 
-    void onBuzz();
+    void onBuzz(SwitchImpl.Hex hex);
+
+    void onBuzzOff();
 
     interface ISwitchingListener{
 

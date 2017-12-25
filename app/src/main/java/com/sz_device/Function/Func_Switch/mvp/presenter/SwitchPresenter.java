@@ -1,9 +1,8 @@
-package com.sz_device.Function.Fun_Switching.mvp.presenter;
+package com.sz_device.Function.Func_Switch.mvp.presenter;
 
-
-import com.sz_device.Function.Fun_Switching.mvp.module.ISwitching;
-import com.sz_device.Function.Fun_Switching.mvp.module.SwitchImpl;
-import com.sz_device.Function.Fun_Switching.mvp.view.ISwitchView;
+import com.sz_device.Function.Func_Switch.mvp.module.ISwitching;
+import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
+import com.sz_device.Function.Func_Switch.mvp.view.ISwitchView;
 
 /**
  * Created by zbsz on 2017/8/23.
@@ -59,9 +58,11 @@ public class SwitchPresenter {
         switchingModule.onOutD9(isOn);
     }
 
-    public void buzz(){
-        switchingModule.onBuzz();
+    public void buzz(SwitchImpl.Hex hex){
+        switchingModule.onBuzz(hex);
     }
 
-
+    public void buzzOff(){
+        switchingModule.onBuzzOff();
+    }
 }

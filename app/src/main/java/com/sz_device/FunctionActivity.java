@@ -4,10 +4,11 @@ import android.os.Bundle;
 import android.view.SurfaceView;
 
 import com.blankj.utilcode.util.BarUtils;
-import com.sz_device.Function.Fun_Camera.mvp.presenter.PhotoPresenter;
-import com.sz_device.Function.Fun_Camera.mvp.view.IPhotoView;
+
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Function.Fun_FingerPrint.mvp.view.IFingerPrintView;
+import com.sz_device.Function.Func_Camera.mvp.presenter.PhotoPresenter;
+import com.sz_device.Function.Func_Camera.mvp.view.IPhotoView;
 import com.trello.rxlifecycle2.components.RxActivity;
 
 
@@ -26,7 +27,7 @@ public abstract class FunctionActivity extends RxActivity implements IPhotoView,
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         BarUtils.hideStatusBar(this);
-        pp.initCamera();
+
         fpp.fpInit();
         fpp.fpOpen();
     }

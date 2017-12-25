@@ -1,9 +1,7 @@
 package com.sz_device.State.LockState;
 
 
-import android.support.v7.app.AlertDialog;
-
-import com.sz_device.Function.Fun_Switching.mvp.presenter.SwitchPresenter;
+import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 
 /**
  * Created by zbsz on 2017/9/28.

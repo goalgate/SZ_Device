@@ -12,8 +12,10 @@ import com.google.gson.reflect.TypeToken;
 import com.sz_device.AppInit;
 
 import com.sz_device.EventBus.LockUpEvent;
-import com.sz_device.Function.Fun_Switching.mvp.presenter.SwitchPresenter;
-import com.sz_device.Function.Fun_Switching.mvp.view.ISwitchView;
+
+import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
+import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
+import com.sz_device.Function.Func_Switch.mvp.view.ISwitchView;
 import com.sz_device.State.DoorState.Door;
 
 import com.sz_device.State.DoorState.State_Close;
@@ -262,7 +264,7 @@ public class SwitchService extends Service implements ISwitchView {
                                         lock.setLockState(new State_Lockup(sp));
                                         door.setDoorState(new State_Close(lock));
                                         CloseDoorRecord(closeDoorTime);
-                                        sp.buzz();
+                                        sp.buzz(SwitchImpl.Hex.H2);
                                     }
 
                                     @Override

@@ -154,7 +154,8 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                     @Override
                     public void accept(@NonNull Object o) throws Exception {
                         if (!btn_commit.isClickable()) {
-                            OnlyPutKeyModule getFingerPrintM = new OnlyPutKeyModule(getFingerPrint);
+                            fpp.fpEnroll(String.valueOf(fpp.fpGetEmptyID()));
+                            /*OnlyPutKeyModule getFingerPrintM = new OnlyPutKeyModule(getFingerPrint);
                             RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(getFingerPrintM))
                                     .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                                     .subscribe(new Observer<ResponseEnvelope>() {
@@ -172,7 +173,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                                                 img_finger.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.zw_icon));
                                                 fpp.fpCancel(true);
                                                 registerUser.setFingerprintId(infoMap.get("fingerprintId"));
-                                                fpp.fpEnroll(registerUser.getFingerprintId());
+                                               fpp.fpEnroll(registerUser.getFingerprintId());
                                             } else if (infoMap.get("result").equals("false")) {
 
                                             }
@@ -187,7 +188,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                                         public void onComplete() {
 
                                         }
-                                    });
+                                    });*/
                         }
                     }
                 });

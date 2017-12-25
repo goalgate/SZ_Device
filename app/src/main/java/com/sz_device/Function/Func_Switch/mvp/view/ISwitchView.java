@@ -1,4 +1,4 @@
-package com.sz_device.Function.Fun_Switching.mvp.view;
+package com.sz_device.Function.Func_Switch.mvp.view;
 
 /**
  * Created by zbsz on 2017/8/23.

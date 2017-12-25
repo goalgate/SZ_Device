@@ -1,8 +1,7 @@
-package com.sz_device.Function.Fun_Switching.mvp.module;
+package com.sz_device.Function.Func_Switch.mvp.module;
 
 import android.os.Handler;
 import android.os.Message;
-import android.view.View;
 
 import com.drv.m121.SerialPortCom;
 import com.log.Lg;
@@ -10,11 +9,16 @@ import com.log.Lg;
 import java.util.Calendar;
 import java.util.Timer;
 
+
 /**
  * Created by zbsz on 2017/8/23.
  */
 
 public class SwitchImpl extends SerialPortCom implements ISwitching {
+
+    public enum Hex{
+        H1,H2,H3,H4,H5,H6,H7,H8,H9,HA,HB,HC,HD,HE,HF
+    }
 
     private byte[] buf_ = new byte[2048];
     private int bufCount = 0;
@@ -38,6 +42,7 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
     private byte[] dt_outD9off_ ={ (byte)0xAA,(byte)0xAA,(byte)0xAA,(byte)0x96,0x69, 0x20, 0x10, (byte)0x80, (byte)0xF4};  //D9断电器关命令
     private byte[] dt_outD9on_ ={ (byte)0xAA,(byte)0xAA,(byte)0xAA,(byte)0x96,0x69, 0x21, 0x11, (byte)0xD0, 0x34};  //D9断电器开命令
     private byte[] dt_buzz_ ={ (byte)0xAA,(byte)0xAA,(byte)0xAA,(byte)0x0B,0x0B, 0x02, 0x33, (byte)0x7B, 0x23};  //D9断电器开命令
+    private byte[] dt_buzzOff ={ 0x02,0x02,0x07,0x00,0x10, 0x01,(byte)0xFF,(byte)0xFF, (byte)0xC8,0x00,0x00,(byte)0x99 ,(byte)0x2E};  //D9断电器开命令
 
     //接收数据最后时间
     private long lastRevTime_;
@@ -75,8 +80,68 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
     }
 
     @Override
-    public void onBuzz() {
+    public void onBuzz(Hex hex) {
+
+        switch (hex){
+            case H1:
+                dt_buzz_[5] = 0x01;
+                break;
+            case H2:
+                dt_buzz_[5] = 0x02;
+                break;
+            case H3:
+                dt_buzz_[5] = 0x03;
+                break;
+            case H4:
+                dt_buzz_[5] = 0x04;
+                break;
+            case H5:
+                dt_buzz_[5] = 0x05;
+                break;
+            case H6:
+                dt_buzz_[5] = 0x06;
+                break;
+            case H7:
+                dt_buzz_[5] = 0x07;
+                break;
+            case H8:
+                dt_buzz_[5] = 0x08;
+                break;
+            case H9:
+                dt_buzz_[5] = 0x09;
+                break;
+            case HA:
+                dt_buzz_[5] = 0x0A;
+                break;
+            case HB:
+                dt_buzz_[5] = 0x0B;
+                break;
+            case HC:
+                dt_buzz_[5] = 0x0C;
+                break;
+            case HD:
+                dt_buzz_[5] = 0x0D;
+                break;
+            case HE:
+                dt_buzz_[5] = 0x0E;
+                break;
+            case HF:
+                dt_buzz_[5] = 0x0F;
+                break;
+
+
+
+            default:
+                break;
+
+        }
+
         sendData(dt_buzz_);
+    }
+
+    @Override
+    public void onBuzzOff() {
+        sendData(dt_buzzOff);
     }
 
     @Override

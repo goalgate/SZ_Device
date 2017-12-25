@@ -1,4 +1,4 @@
-package com.sz_device.Function.Fun_Camera.mvp.module;
+package com.sz_device.Function.Func_Camera.mvp.module;
 
 import android.graphics.Bitmap;
 import android.view.SurfaceHolder;
