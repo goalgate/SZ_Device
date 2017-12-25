@@ -316,7 +316,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     protected void onPause() {
         super.onPause();
         fpp.fpCancel(true);
-        fpp.FingerPrintPresenterSetView(null);
+        //fpp.FingerPrintPresenterSetView(null);
         Log.e(TAG, "onPause");
     }
 
