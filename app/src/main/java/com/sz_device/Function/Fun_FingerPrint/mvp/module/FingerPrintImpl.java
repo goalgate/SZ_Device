@@ -692,7 +692,7 @@ public class FingerPrintImpl implements IFingerPrint {
                 str = "Invalid Template No";
                 break;
             case DevComm.ERR_ALL_TMPL_EMPTY:
-                str = "All Templates are Empty";
+                str = "请确认指纹是否已登记";
                 break;
             case DevComm.ERR_INVALID_TMPL_DATA:
                 str = "Invalid Template Data";
