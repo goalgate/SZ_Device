@@ -205,8 +205,10 @@ public class PhotoModuleImpl implements IPhotoModule {
     public void setDisplay(SurfaceHolder sHolder) {
         try {
 /*            isPreview = true;*/
-            camera.setPreviewDisplay(sHolder);
-            camera.startPreview();
+            if(camera!=null){
+                camera.setPreviewDisplay(sHolder);
+                camera.startPreview();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -341,7 +343,7 @@ public class PhotoModuleImpl implements IPhotoModule {
     private void safeCameraOpen(int id) {
         try {
             releaseCameraAndPreview();
-            camera = Camera.open(id);
+            camera = Camera.open();
 
         } catch (Exception e) {
             Toast.makeText(AppInit.getContext(),"无法获取摄像头权限",Toast.LENGTH_LONG);
