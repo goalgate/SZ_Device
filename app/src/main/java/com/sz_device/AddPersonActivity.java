@@ -1,21 +1,25 @@
 package com.sz_device;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.blankj.utilcode.util.ActivityUtils;
+import com.bigkoo.alertview.AlertView;
+import com.bigkoo.alertview.OnItemClickListener;
 import com.blankj.utilcode.util.BarUtils;
 
+import com.blankj.utilcode.util.RegexUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.TimeUtils;
@@ -27,16 +31,8 @@ import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Function.Fun_FingerPrint.mvp.view.IFingerPrintView;
-import com.sz_device.Retrofit.Request.RequestEnvelope;
-import com.sz_device.Retrofit.Request.ResquestModule.CommonRequestModule;
-import com.sz_device.Retrofit.Request.ResquestModule.OnlyPutKeyModule;
-import com.sz_device.Retrofit.Response.ResponseEnvelope;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Tools.FileUtils;
-import com.sz_device.Tools.MyObserver;
-import com.sz_device.Tools.SaveObserver;
-import com.sz_device.Tools.UnUploadPackage;
-import com.sz_device.Tools.UnUploadPackageDao;
 import com.sz_device.Tools.User;
 
 import org.greenrobot.eventbus.EventBus;
@@ -46,6 +42,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -59,10 +56,8 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.ResponseBody;
 
-import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.getFingerPrint;
-import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.openDoorRecord;
-import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.registerPerson;
 
 /**
  * Created by zbsz on 2017/7/31.
@@ -70,25 +65,18 @@ import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.registerPerson;
 
 public class AddPersonActivity extends Activity implements IFingerPrintView {
 
-    Uri photoUri = null;
-
-    User registerUser = new User();
-
-    SPUtils user;
-
-    boolean network_state = false;
-
-    String TAG = "AddPersonActivity";
-
-    UnUploadPackageDao unUploadPackageDao;
+    SPUtils config = SPUtils.getInstance("config");
 
     FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
 
+    boolean commitable;
+
+    User user;
+
+    String fp_id = "0";
+
     @BindView(R.id.iv_finger)
     ImageView img_finger;
-
-    @BindView(R.id.iv_camera_view)
-    ImageView img_camera;
 
     @BindView(R.id.et_finger)
     TextView tv_finger;
@@ -96,47 +84,188 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     @BindView(R.id.btn_commit)
     Button btn_commit;
 
-    @BindView(R.id.et_person_name)
-    TextView tv_person_name;
+    @BindView(R.id.et_idcard)
+    EditText et_idcard;
 
-    @BindView(R.id.et_id_card)
-    TextView tv_id_card;
+    @BindView(R.id.btn_query)
+    Button query;
+    @OnClick(R.id.btn_query)
+    void queryPerson() {
+        if (RegexUtils.isIDCard18(et_idcard.getText().toString())) {
+            final ProgressDialog progressDialog = new ProgressDialog(AddPersonActivity.this);
+            RetrofitGenerator.getQueryPersonInfoApi().queryPersonInfo("queryPersonInfo", config.getString("key"), et_idcard.getText().toString())
+                    .subscribeOn(Schedulers.io())
+                    .unsubscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Observer<ResponseBody>() {
+                        @Override
+                        public void onSubscribe(Disposable d) {
+                            progressDialog.setMessage("数据上传中，请稍候");
+                            progressDialog.show();
+                        }
 
-    @OnClick(R.id.iv_camera_view)
-    void capture() {
-        ToastUtils.showLong("正在打开照相机，请稍等");
-        Intent photoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        photoUri = FileUtils.getOutputMediaFileUri(FileUtils.MEDIA_TYPE_IMAGE);
-        photoIntent.putExtra(MediaStore.EXTRA_FULL_SCREEN, true);
-        photoIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-        photoIntent.putExtra("camerasensortype", 1);// 调用前置摄像头
-        photoIntent.putExtra("autofocus", true); // 自动对焦
-        this.startActivityForResult(photoIntent, 100);
+                        @Override
+                        public void onNext(ResponseBody responseBody) {
+                            try {
+                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
+                                        new TypeToken<HashMap<String, String>>() {
+                                        }.getType());
+                                if (infoMap.get("result").equals("true")) {
+                                    if (infoMap.get("status").equals(String.valueOf(0))) {
+                                        fp_id = infoMap.get("data");
+                                        img_finger.setClickable(false);
+                                        fpp.fpEnroll(fp_id);
+                                        user = new User();
+                                        user.setCardId(et_idcard.getText().toString());
+                                        user.setName(infoMap.get("name"));
+                                        user.setFingerprintId(fp_id);
+                                        user.setCourIds(infoMap.get("courIds"));
+                                        user.setCourType(infoMap.get("courType"));
+                                        query.setClickable(false);
+                                    } else {
+                                        new AlertView("您的身份有误，如有疑问请联系客服处理", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+                                            @Override
+                                            public void onItemClick(Object o, int position) {
+
+                                            }
+                                        }).show();
+                                    }
+                                } else if (infoMap.get("result").equals("matchErr")) {
+                                    new AlertView("系统未能查询到该人员信息，如有疑问请联系客服处理", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+                                        @Override
+                                        public void onItemClick(Object o, int position) {
+
+                                        }
+                                    }).show();
+                                } else {
+                                    new AlertView(infoMap.get("result"), null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+                                        @Override
+                                        public void onItemClick(Object o, int position) {
+
+                                        }
+                                    }).show();
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            progressDialog.dismiss();
+                            new AlertView("无法连接服务器", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+                                @Override
+                                public void onItemClick(Object o, int position) {
+
+                                }
+                            }).show();
+                        }
+
+                        @Override
+                        public void onComplete() {
+                            progressDialog.dismiss();
+                        }
+                    });
+        } else {
+            new AlertView("身份证输入有误，请重试", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+                @Override
+                public void onItemClick(Object o, int position) {
+
+                }
+            }).show();
+        }
+
 
     }
 
     @OnClick(R.id.btn_commit)
     void commit() {
-        if (StringUtils.isEmpty(tv_person_name.getText().toString()) || (StringUtils.isEmpty(tv_id_card.getText().toString()))
-                || photoUri == null) {
-            ToastUtils.showLong("信息不全，无法上传数据");
-        } else {
-            if (network_state) {
-                user = SPUtils.getInstance(registerUser.getFingerprintId());
-                user.put("name", tv_person_name.getText().toString());
-                user.put("id", tv_id_card.getText().toString());
-                user.put("fp_id", registerUser.getFingerprintId());
-                RegisterPerson();
-            } else {
-                ToastUtils.showLong("无法连接服务器，请稍后重试");
-                fpp.fpRemoveTmpl(registerUser.getFingerprintId());
-            }
+        if (commitable) {
+            if (user.getFingerprintId() != null) {
+                final ProgressDialog progressDialog = new ProgressDialog(AddPersonActivity.this);
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("id", user.getCardId());
+                    jsonObject.put("courIds", user.getCourIds());
+                    jsonObject.put("dataType", "1");
+                    jsonObject.put("fingerprintPhoto", user.getFingerprintPhoto());
+                    jsonObject.put("fingerprintId", user.getFingerprintId());
+                    jsonObject.put("fingerprintKey", fpp.fpUpTemlate(user.getFingerprintId()));
+                    jsonObject.put("datetime", TimeUtils.getNowString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                RetrofitGenerator.getFingerLogApi().fingerLog("fingerLog", config.getString("key"), jsonObject.toString())
+                        .subscribeOn(Schedulers.io())
+                        .unsubscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Observer<String>() {
+                            @Override
+                            public void onSubscribe(@NonNull Disposable d) {
+                                progressDialog.setMessage("数据上传中，请稍候");
+                                progressDialog.show();
+                            }
 
+                            @Override
+                            public void onNext(String s) {
+                                if (s.equals("true")) {
+                                    SPUtils user_sp = SPUtils.getInstance(user.getFingerprintId());
+                                    user_sp.put("courIds", user.getCourIds());
+                                    user_sp.put("name", user.getName());
+                                    user_sp.put("cardId", user.getCardId());
+                                    user_sp.put("courType", user.getCourType());
+                                    ToastUtils.showLong("人员插入成功");
+                                    finish();
+                                } else {
+                                    new AlertView("数据插入有错", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+                                        @Override
+                                        public void onItemClick(Object o, int position) {
+
+                                        }
+                                    }).show();
+                                }
+
+
+                            }
+
+                            @Override
+                            public void onError(@NonNull Throwable e) {
+                                progressDialog.dismiss();
+                                new AlertView("无法连接数据库", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+                                    @Override
+                                    public void onItemClick(Object o, int position) {
+
+                                    }
+                                }).show();
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                progressDialog.dismiss();
+                            }
+                        });
+
+            } else {
+                new AlertView("您的操作有误，请重试", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(Object o, int position) {
+
+                    }
+                }).show();
+            }
+        } else {
+            new AlertView("您还有信息未登记，如需退出请按取消", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+                @Override
+                public void onItemClick(Object o, int position) {
+
+                }
+            }).show();
         }
     }
 
     @OnClick(R.id.btn_cancel)
     void cancel() {
+        fpp.fpRemoveTmpl(String.valueOf(fp_id));
         finish();
     }
 
@@ -146,150 +275,22 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
         BarUtils.hideStatusBar(this);
         setContentView(R.layout.activity_add_person);
         ButterKnife.bind(this);
-        EventBus.getDefault().register(this);
-        btn_commit.setClickable(false);
         RxView.clicks(img_finger).throttleFirst(3, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Object>() {
                     @Override
                     public void accept(@NonNull Object o) throws Exception {
-                        if (!btn_commit.isClickable()) {
-                            fpp.fpEnroll(String.valueOf(fpp.fpGetEmptyID()));
-                            /*OnlyPutKeyModule getFingerPrintM = new OnlyPutKeyModule(getFingerPrint);
-                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(getFingerPrintM))
-                                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(new Observer<ResponseEnvelope>() {
-                                        @Override
-                                        public void onSubscribe(@NonNull Disposable d) {
-
-                                        }
-
-                                        @Override
-                                        public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
-                                            Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.getFingerprintIdResponse.info,
-                                                    new TypeToken<HashMap<String, String>>() {
-                                                    }.getType());
-                                            if (infoMap.get("result").equals("true")) {
-                                                img_finger.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.zw_icon));
-                                                fpp.fpCancel(true);
-                                                registerUser.setFingerprintId(infoMap.get("fingerprintId"));
-                                               fpp.fpEnroll(registerUser.getFingerprintId());
-                                            } else if (infoMap.get("result").equals("false")) {
-
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onError(@NonNull Throwable e) {
-                                            ToastUtils.showLong("服务器出错");
-                                        }
-
-                                        @Override
-                                        public void onComplete() {
-
-                                        }
-                                    });*/
-                        }
+                        fpp.fpEnroll(fp_id);
+                        img_finger.setClickable(false);
                     }
                 });
-    }
-
-    private void RegisterPerson() {
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("id", tv_id_card.getText().toString());
-            jsonObject.put("name", tv_person_name.getText().toString());
-            jsonObject.put("photo", registerUser.getPhoto());
-            jsonObject.put("fingerprintPhoto", registerUser.getFingerprintPhoto());
-            jsonObject.put("fingerprintId", registerUser.getFingerprintId());
-            jsonObject.put("fingerprintKey", fpp.fpUpTemlate(registerUser.getFingerprintId()));
-            jsonObject.put("datetime", TimeUtils.getNowString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-
-        CommonRequestModule registerPersonM = new CommonRequestModule(
-                registerPerson, jsonObject.toString());
-        RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(registerPersonM)).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<ResponseEnvelope>() {
-                    @Override
-                    public void accept(@NonNull ResponseEnvelope responseEnvelope) throws Exception {
-                        Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.registerPersonResponse.info,
-                                new TypeToken<HashMap<String, String>>() {
-                                }.getType());
-                        if (infoMap.get("result").equals("true")) {
-                            ToastUtils.showLong("上传成功");
-                            finish();
-                        } else if (infoMap.get("result").equals("false")) {
-                            ToastUtils.showLong("上传失败");
-                        } else if (infoMap.get("result").equals("checkErr")) {
-                            ToastUtils.showLong("上传失败");
-                        }
-                    }
-                });
-    }
-
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onGetNetworkEvent(NetworkEvent event) {
-        network_state = event.getNetwork_state();
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onGetOpenDoorEvent(OpenDoorEvent event) {
-        OpenDoorRecord(event.getLegal());
-    }
-
-    private void OpenDoorRecord(boolean leagl) {
-        JSONObject openDoorRecordJson = new JSONObject();
-        try {
-            openDoorRecordJson.put("datetime", TimeUtils.getNowString());
-            openDoorRecordJson.put("state", "n");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if(network_state){
-            CommonRequestModule openDoorRecordM = new CommonRequestModule(openDoorRecord,openDoorRecordJson.toString());
-            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(openDoorRecordM))
-                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new SaveObserver(unUploadPackageDao,openDoorRecordM));
-        }else{
-            UnUploadPackage un = new UnUploadPackage();
-            un.setMethod(openDoorRecord);
-            un.setJsonData(openDoorRecordJson.toString());
-            un.setUpload(false);
-            unUploadPackageDao.insert(un);
-        }
-
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode != Activity.RESULT_OK) {
-            photoUri = null;
-            ToastUtils.showLong("没有照片，请重新拍照");
-        } else {
-            if (requestCode == 100) {
-                try {
-                    // 图片解析成Bitmap对象
-                    Bitmap bitmap = BitmapFactory
-                            .decodeStream(this.getContentResolver().openInputStream(photoUri));
-                    img_camera.setImageBitmap(bitmap); // 将剪裁后照片显示出来
-                    registerUser.setPhoto(FileUtils.bitmapToBase64(bitmap));
-                } catch (FileNotFoundException e) {
-                    Log.e("SZ_Device信息提示", "文件不存在" + e.toString());
-                }
-            }
-        }
+        img_finger.setClickable(false);
     }
 
     @Override
     public void onSetImg(Bitmap bmp) {
         img_finger.setImageBitmap(bmp);
-        registerUser.setFingerprintPhoto(FileUtils.bitmapToBase64(bmp));
+        user.setFingerprintPhoto(FileUtils.bitmapToBase64(bmp));
     }
 
     @Override
@@ -298,11 +299,10 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
             tv_finger.setText(msg);
         }
         if (msg.endsWith("录入成功")) {
-            btn_commit.setClickable(true);
+            commitable = true;
         }
-        if (msg.equals("指纹模板已存在")) {
-            fpp.fpRemoveTmpl(registerUser.getFingerprintId());
-            fpp.fpEnroll(registerUser.getFingerprintId());
+        if (msg.endsWith("点我重试")) {
+            img_finger.setClickable(true);
         }
     }
 
@@ -317,8 +317,46 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
         super.onPause();
         fpp.fpCancel(true);
         //fpp.FingerPrintPresenterSetView(null);
-        Log.e(TAG, "onPause");
     }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onGetOpenDoorEvent(OpenDoorEvent event) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("datetime", TimeUtils.getNowString());
+            jsonObject.put("state", "n");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        RetrofitGenerator.getOpenDoorRecordApi().openDoorRecord("openDoorRecord",config.getString("key"), jsonObject.toString())
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<ResponseBody>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@NonNull ResponseBody responseBody) {
+
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+
+    }
+
 
     @Override
     public void onBackPressed() {
@@ -331,15 +369,21 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onResume() {
+        super.onResume();
+        commitable = false;
 
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        EventBus.getDefault().unregister(this);
     }
 }
 

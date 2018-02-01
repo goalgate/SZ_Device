@@ -1,6 +1,5 @@
 package com.drv.fingerprint;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.SystemClock;
 
@@ -138,7 +137,7 @@ public class DevComm {
     private static final int VID = 0x2009;
     private static final int PID = 0x7638;
 
-    private UsbController   m_usbBase;
+    private UsbController m_usbBase;
 
     public DevComm(Context context, IUsbConnState usbConnState){
     	

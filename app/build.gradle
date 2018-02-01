@@ -32,7 +32,6 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
@@ -42,19 +41,18 @@ dependencies {
     compile 'io.reactivex.rxjava2:rxjava:2.0.8'
     compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
     compile 'com.blankj:utilcode:1.7.1'
-    compile "com.jakewharton.rxbinding2:rxbinding:2.0.0"
+    compile 'com.jakewharton.rxbinding2:rxbinding:2.0.0'
     compile 'org.greenrobot:eventbus:3.0.0'
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
     testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
     compile "com.squareup.retrofit2:retrofit:$retrofitVersion"
     compile "com.squareup.retrofit2:converter-gson:$retrofitVersion"
-    compile("com.squareup.retrofit2:converter-simplexml:$retrofitVersion")
-            {
-                exclude module: 'stax'
-                exclude module: 'stax-api'
-                exclude module: 'xpp3'
-            }
+    compile("com.squareup.retrofit2:converter-simplexml:$retrofitVersion") {
+        exclude module: 'stax'
+        exclude module: 'stax-api'
+        exclude module: 'xpp3'
+    }
     compile "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
     compile "com.trello.rxlifecycle2:rxlifecycle:$retrofitVersion"
     compile 'com.bigkoo:alertview:1.0.3'
@@ -62,4 +60,7 @@ dependencies {
     compile 'cn.finalteam:okhttpfinal:2.0.7'
     compile 'com.trello.rxlifecycle2:rxlifecycle:2.2.1'
     compile 'com.trello.rxlifecycle2:rxlifecycle-components:2.0'
+    compile files('libs/rk3128api.jar')
+    compile files('libs/BASE64.jar')
+    compile 'cn.yipianfengye.android:zxing-library:2.2'
 }

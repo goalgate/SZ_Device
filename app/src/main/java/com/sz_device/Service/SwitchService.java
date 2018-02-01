@@ -5,40 +5,31 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.blankj.utilcode.util.NetworkUtils;
+import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
+
+import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sz_device.AppInit;
-
 import com.sz_device.EventBus.LockUpEvent;
 
+import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.sz_device.Function.Func_Switch.mvp.view.ISwitchView;
+import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.State.DoorState.Door;
 
 import com.sz_device.State.DoorState.State_Close;
 import com.sz_device.State.DoorState.State_Open;
 
-import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.PassEvent;
 import com.sz_device.EventBus.TemHumEvent;
 
 import com.sz_device.State.LockState.Lock;
 import com.sz_device.State.LockState.State_Lockup;
 import com.sz_device.State.LockState.State_Unlock;
-import com.sz_device.Retrofit.Request.RequestEnvelope;
-import com.sz_device.Retrofit.Request.ResquestModule.CommonRequestModule;
-import com.sz_device.Retrofit.Request.ResquestModule.OnlyPutKeyModule;
-import com.sz_device.Retrofit.Response.ResponseEnvelope;
-import com.sz_device.Retrofit.RetrofitGenerator;
-import com.sz_device.Tools.DaoSession;
-import com.sz_device.Tools.MyObserver;
-import com.sz_device.Tools.SaveObserver;
-import com.sz_device.Tools.UnUploadPackage;
-import com.sz_device.Tools.UnUploadPackageDao;
-import com.sz_device.Tools.UploadValue;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -47,9 +38,14 @@ import org.greenrobot.greendao.query.QueryBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -59,13 +55,8 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.ResponseBody;
 
-import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.alarmCease;
-import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.alarmRecord;
-import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.checkOnline;
-import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.closeDoorRecord;
-import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.stateRecord;
-import static com.sz_device.Retrofit.InterfaceApi.InterfaceCode.testNet;
 
 /**
  * Created by zbsz on 2017/8/28.
@@ -75,9 +66,9 @@ public class SwitchService extends Service implements ISwitchView {
 
     SwitchPresenter sp = SwitchPresenter.getInstance();
 
-    String Last_Value;
+    private SPUtils config = SPUtils.getInstance("config");
 
-    boolean network_state = false;
+    String Last_Value;
 
     int last_mTemperature = 0;
 
@@ -89,91 +80,33 @@ public class SwitchService extends Service implements ISwitchView {
 
     Disposable unlock_noOpen;
 
-    UnUploadPackageDao unUploadPackageDao;
-
-    UploadValue isUploading = new UploadValue();
-
-    QueryBuilder qb;
-
     Door door;
 
     Lock lock;
+
     @Override
     public void onCreate() {
         super.onCreate();
         EventBus.getDefault().register(this);
         sp.SwitchPresenterSetView(this);
         sp.switch_Open();
-
-        Log.e("Message","ServiceStart");
-
-        DaoSession daoSession = AppInit.getInstance().getDaoSession();
-        unUploadPackageDao = daoSession.getUnUploadPackageDao();
-        qb = unUploadPackageDao.queryBuilder();
-
+        Log.e("Message", "ServiceStart");
         lock = new Lock(new State_Lockup(sp));
         door = new Door(new State_Close(lock));
-
+        reboot();
         Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
             @Override
             public void accept(@NonNull Long aLong) throws Exception {
                 sp.readHum();
             }
         });
-
         Observable.interval(0, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
-                        if (NetworkUtils.isConnected()) {
-                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope
-                                    .GetRequestEnvelope(new OnlyPutKeyModule(testNet)))
-                                    .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseEnvelope>() {
-                                @Override
-                                public void onSubscribe(@NonNull Disposable d) {
-                                }
-
-                                @Override
-                                public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
-                                    if (responseEnvelope != null) {
-                                        Map<String, String> infoMap = new Gson().fromJson(responseEnvelope.body.testNetResponse.info,
-                                                new TypeToken<HashMap<String, String>>() {
-                                                }.getType());
-                                        if (infoMap.get("result").equals("true")) {
-                                            if(!network_state){
-                                                qb.where(UnUploadPackageDao.Properties.Upload.eq(false));
-                                                if (!isUploading.getIsUploading() && qb.list().size() > 0) {
-                                                    isUploading.setIsUploading(true);
-                                                    reUpload(qb.list());
-                                                }
-                                            }
-                                            network_state = true;
-                                            EventBus.getDefault().post(new NetworkEvent(true));
-                                        } else {
-                                            network_state = false;
-                                            EventBus.getDefault().post(new NetworkEvent(false));
-                                        }
-                                    }
-                                }
-
-                                @Override
-                                public void onError(@NonNull Throwable e) {
-                                    network_state = false;
-                                    EventBus.getDefault().post(new NetworkEvent(false));
-                                }
-
-                                @Override
-                                public void onComplete() {
-
-                                }
-                            });
-                        } else {
-                            network_state = false;
-                            EventBus.getDefault().post(new NetworkEvent(false));
-                        }
+                        testNet();
                     }
                 });
-
         Observable.interval(10, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
@@ -182,25 +115,35 @@ public class SwitchService extends Service implements ISwitchView {
                     }
                 });
 
-        Observable.interval(1, 1, TimeUnit.HOURS).observeOn(Schedulers.io())
-                .subscribe(new Consumer<Long>() {
-                    @Override
-                    public void accept(@NonNull Long aLong) throws Exception {
-                        if (network_state) {
-                            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new OnlyPutKeyModule(checkOnline)))
-                                    .subscribeOn(Schedulers.io()).subscribe(new MyObserver());
-                        }
-                    }
-                });
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetPassEvent(PassEvent event) {
         lock.setLockState(new State_Unlock(sp));
-        if(lock.isAlarming()){
-            AlarmCease();
-        }
         lock.doNext();
+        Observable.timer(120, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
+                .subscribe(new Observer<Long>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        unlock_noOpen = d;
+                    }
+
+                    @Override
+                    public void onNext(Long aLong) {
+                        lock.setLockState(new State_Lockup(sp));
+                        sp.buzz(SwitchImpl.Hex.H2);
+                        EventBus.getDefault().post(new LockUpEvent());
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                    }
+                });
 
     }
 
@@ -220,17 +163,13 @@ public class SwitchService extends Service implements ISwitchView {
         if ((Last_Value == null || Last_Value.equals(""))) {
             if (value.startsWith("AAAAAA")) {
                 Last_Value = value;
-                if (value.equals("AAAAAA000000000000") /*&& legal == false*/) {
+                if (value.equals("AAAAAA000000000000")) {
                     door.setDoorState(new State_Open(lock));
                     door.doNext();
                     alarmRecord();
                 }
             }
-
         } else {
-            if (value.startsWith("BBBBBB") && value.endsWith("C1EF")) {
-                THSwitchValue = value;
-            }
             if (value.startsWith("AAAAAA")) {
                 if (!value.equals(Last_Value)) {
                     Last_Value = value;
@@ -242,15 +181,13 @@ public class SwitchService extends Service implements ISwitchView {
                                 alarmRecord();
                             }
                         }
-
-
                         if (unlock_noOpen != null) {
                             unlock_noOpen.dispose();
                         }
                         if (rx_delay != null) {
                             rx_delay.dispose();
                         }
-                    } else if (Last_Value.equals("AAAAAA000001000000")) {
+                    } else if (Last_Value.equals("AAAAAA000001000000")&&getLockState(State_Unlock.class)) {
                         final String closeDoorTime = TimeUtils.getNowString();
                         Observable.timer(20, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                                 .subscribe(new Observer<Long>() {
@@ -263,8 +200,9 @@ public class SwitchService extends Service implements ISwitchView {
                                     public void onNext(Long aLong) {
                                         lock.setLockState(new State_Lockup(sp));
                                         door.setDoorState(new State_Close(lock));
-                                        CloseDoorRecord(closeDoorTime);
                                         sp.buzz(SwitchImpl.Hex.H2);
+                                        CloseDoorRecord(closeDoorTime);
+                                        EventBus.getDefault().post(new LockUpEvent());
                                     }
 
                                     @Override
@@ -279,118 +217,12 @@ public class SwitchService extends Service implements ISwitchView {
                                 });
                     }
                 }
-
-                if (getLockState(State_Unlock.class)&& value.equals("AAAAAA000001000000")) {
-                    Observable.timer(120, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
-                            .subscribe(new Observer<Long>() {
-                                @Override
-                                public void onSubscribe(Disposable d) {
-                                    unlock_noOpen = d;
-                                }
-
-                                @Override
-                                public void onNext(Long aLong) {
-                                    lock.setLockState(new State_Lockup(sp));
-                                    EventBus.getDefault().post(new LockUpEvent());
-                                }
-
-                                @Override
-                                public void onError(Throwable e) {
-
-                                }
-
-                                @Override
-                                public void onComplete() {
-                                }
-                            });
+            }else{
+                if (value.startsWith("BBBBBB") && value.endsWith("C1EF")) {
+                    THSwitchValue = value;
                 }
             }
         }
-    }
-
-    private void AlarmCease() {
-        final JSONObject AlarmCeaseJson = new JSONObject();
-        try {
-            AlarmCeaseJson.put("datetime", TimeUtils.getNowString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        if (network_state) {
-            CommonRequestModule alarmCeaseM = new CommonRequestModule(alarmCease, AlarmCeaseJson.toString());
-            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(alarmCeaseM))
-                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new SaveObserver(unUploadPackageDao, alarmCeaseM));
-        } else {
-            UnUploadPackage un = new UnUploadPackage();
-            un.setMethod(alarmCease);
-            un.setJsonData(AlarmCeaseJson.toString());
-            un.setUpload(false);
-            unUploadPackageDao.insert(un);
-        }
-
-    }
-
-    private void CloseDoorRecord(String time) {
-        JSONObject CloseDoorRecordJson = new JSONObject();
-        try {
-            CloseDoorRecordJson.put("datetime", time);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        if (network_state) {
-            CommonRequestModule closeDoorRecordM = new CommonRequestModule(closeDoorRecord, CloseDoorRecordJson.toString());
-            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(closeDoorRecordM))
-                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new SaveObserver(unUploadPackageDao, closeDoorRecordM));
-        } else {
-            UnUploadPackage un = new UnUploadPackage();
-            un.setMethod(closeDoorRecord);
-            un.setJsonData(CloseDoorRecordJson.toString());
-            un.setUpload(false);
-            unUploadPackageDao.insert(un);
-        }
-    }
-
-    private void alarmRecord() {
-        JSONObject alarmRecordJson = new JSONObject();
-        try {
-            alarmRecordJson.put("datetime", TimeUtils.getNowString());
-            alarmRecordJson.put("alarmType", String.valueOf(1));
-            alarmRecordJson.put("alarmValue", String.valueOf(0));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        if (network_state) {
-            CommonRequestModule alarmRecordM = new CommonRequestModule(alarmRecord, alarmRecordJson.toString());
-            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(alarmRecordM))
-                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new SaveObserver(unUploadPackageDao, alarmRecordM));
-        } else {
-            UnUploadPackage un = new UnUploadPackage();
-            un.setMethod(alarmRecord);
-            un.setJsonData(alarmRecordJson.toString());
-            un.setUpload(false);
-            unUploadPackageDao.insert(un);
-        }
-
-    }
-
-    private void StateRecord() {
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("datetime", TimeUtils.getNowString());
-            jsonObject.put("switching", THSwitchValue);
-            jsonObject.put("temperature", last_mTemperature);
-            jsonObject.put("humidity", last_mHumidity);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        if (network_state) {
-            RetrofitGenerator.getCommonApi().commonFunction(RequestEnvelope.GetRequestEnvelope(new CommonRequestModule(stateRecord, jsonObject.toString())))
-                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new MyObserver());
-        }
-
     }
 
     @Override
@@ -403,37 +235,6 @@ public class SwitchService extends Service implements ISwitchView {
         last_mHumidity = humidity;
     }
 
-    private void reUpload(List<UnUploadPackage> list) {
-
-        for (final UnUploadPackage unUploadPackage : list) {
-            RetrofitGenerator.getCommonApi()
-                    .commonFunction(RequestEnvelope.GetRequestEnvelope(
-                            new CommonRequestModule(unUploadPackage.getMethod(), unUploadPackage.getJsonData())))
-                    .subscribeOn(Schedulers.io()).subscribe(new Observer<ResponseEnvelope>() {
-                @Override
-                public void onSubscribe(@NonNull Disposable d) {
-
-                }
-
-                @Override
-                public void onNext(@NonNull ResponseEnvelope responseEnvelope) {
-                    unUploadPackageDao.delete(unUploadPackage);
-                }
-
-                @Override
-                public void onError(@NonNull Throwable e) {
-
-                }
-
-                @Override
-                public void onComplete() {
-
-                }
-            });
-        }
-        isUploading.setIsUploading(false);
-    }
-
     private Boolean getDoorState(Class stateClass) {
         if (door.getDoorState().getClass().getName().equals(stateClass.getName())) {
             return true;
@@ -441,11 +242,175 @@ public class SwitchService extends Service implements ISwitchView {
             return false;
         }
     }
+
     private Boolean getLockState(Class stateClass) {
         if (lock.getLockState().getClass().getName().equals(stateClass.getName())) {
             return true;
         } else {
             return false;
+        }
+    }
+
+
+    private void CloseDoorRecord(String time) {
+        JSONObject CloseDoorRecordJson = new JSONObject();
+        try {
+            CloseDoorRecordJson.put("datetime", time);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        RetrofitGenerator.getCloseDoorRecordApi().closeDoorRecord("closeDoorRecord",config.getString("key"),CloseDoorRecordJson.toString())
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<ResponseBody>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@NonNull ResponseBody responseBody) {
+
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+
+    }
+
+    private void alarmRecord() {
+        JSONObject alarmRecordJson = new JSONObject();
+        try {
+            alarmRecordJson.put("datetime", TimeUtils.getNowString());
+            alarmRecordJson.put("alarmType", String.valueOf(1));
+            alarmRecordJson.put("alarmValue", String.valueOf(0));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        RetrofitGenerator.getAlarmRecordApi().alarmRecord("alarmRecord",config.getString("key"), alarmRecordJson.toString())
+                .subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseBody>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(@NonNull ResponseBody responseBody) {
+
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+    }
+
+    private void StateRecord() {
+       JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("datetime", TimeUtils.getNowString());
+            jsonObject.put("switching", THSwitchValue);
+            jsonObject.put("temperature", last_mTemperature);
+            jsonObject.put("humidity", last_mHumidity);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        RetrofitGenerator.stateRecordApi().stateRecord("stateRecord",config.getString("key"),jsonObject.toString())
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    private void testNet() {
+        RetrofitGenerator.getTestNetApi().testNet("testNet", config.getString("key"))
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        if (s.equals("true")) {
+                            EventBus.getDefault().post(new NetworkEvent(true));
+                        } else {
+                            EventBus.getDefault().post(new NetworkEvent(false));
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+    private void reboot(){
+        long daySpan = 24 * 60 * 60 * 1000 * 2;
+        // 规定的每天时间，某时刻运行
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '3:00:00'");
+        // 首次运行时间
+        try{
+            Date startTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
+            if(System.currentTimeMillis() > startTime.getTime())
+                startTime = new Date(startTime.getTime() + daySpan);
+            Timer t = new Timer();
+            TimerTask task = new TimerTask(){
+                @Override
+                public void run() {
+                    // 要执行的代码
+                    AppInit.getMyManager().reboot();
+                }
+            };
+            t.scheduleAtFixedRate(task, startTime,daySpan);
+        }catch (ParseException e){
+            e.printStackTrace();
         }
     }
 }

@@ -15,7 +15,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-
 // android:sharedUserId="android.uid.system"
 //身份证读取类
 public class CardInfo extends SerialPortCom {

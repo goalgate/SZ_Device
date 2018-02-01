@@ -12,10 +12,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import android_serialport_api.SerialPort;
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.annotations.NonNull;
 
 /**
  * android:sharedUserId="android.uid.system"

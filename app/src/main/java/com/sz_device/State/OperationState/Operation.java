@@ -1,7 +1,5 @@
 package com.sz_device.State.OperationState;
 
-import com.sz_device.Retrofit.Request.ResquestModule.IRequestModule;
-import com.sz_device.Tools.UnUploadPackageDao;
 
 /**
  * Created by zbsz on 2017/9/26.
@@ -23,13 +21,11 @@ public class Operation {
         this.state = state;
     }
 
-
-    public void setMessage(UnUploadPackageDao unUploadPackageDao, IRequestModule module, Boolean network_state){
-        state.setMessage(unUploadPackageDao,module, network_state);
+    public void doNext(Callback_Operation callback_operation){
+        state.onHandle(this,callback_operation);
     }
 
-
-    public void doNext(){
-        state.onHandle(this);
+    public interface Callback_Operation{
+        void uploadCallback();
     }
 }

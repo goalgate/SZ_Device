@@ -5,5 +5,5 @@ package com.drv.fingerprint;
  */
 
 public interface IFingerprintState {
-    void onFingerprintState(int itype,int value);
+    void onFingerprintState(int itype, int value);
 }
