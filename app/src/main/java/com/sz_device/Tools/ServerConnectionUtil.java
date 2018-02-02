@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -42,9 +43,51 @@ public class ServerConnectionUtil {
         }.start();
     }
 
+    public void post(final String baseUrl, final Callback callback) {
+        new Thread() {
+            @Override
+            public void run() {
+                final String response = sendPost(baseUrl);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onResponse(response);
+                    }
+                });
+            }
+        }.start();
+    }
 
+    private String sendPost(String baseUrl) {
+        String result = null;
+        try {
+            URL url = new URL(baseUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(TIME_OUT);
+            conn.setConnectTimeout(TIME_OUT);
+            conn.setDoInput(true);  //允许输入流
+            conn.setDoOutput(true); //允许输出流
+            conn.setUseCaches(false);  //不允许使用缓存
+            conn.setRequestMethod("POST");  //请求方式
+            conn.setRequestProperty("Charset", CHARSET);  //设置编码
+            conn.setRequestProperty("connection", "keep-alive");
+            conn.setRequestProperty("Content-Type", CONTENT_TYPE + ";boundary=" + BOUNDARY);
+            if (200 == conn.getResponseCode()) {
+                in = new BufferedReader(
+                        new InputStreamReader(conn.getInputStream()));
+                String line;
+                while ((line = in.readLine()) != null) {
+                    result = line;
+                }
+            } else {
+                result = null;
+            }
 
-
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
     private String sendDownload(String baseUrl) {
         String result = null;
         OutputStream os= null;

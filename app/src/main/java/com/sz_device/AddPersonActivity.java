@@ -231,7 +231,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                             @Override
                             public void onError(@NonNull Throwable e) {
                                 progressDialog.dismiss();
-                                new AlertView("无法连接数据库", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+                                new AlertView("无法连接服务器", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                                     @Override
                                     public void onItemClick(Object o, int position) {
 
@@ -333,14 +333,14 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<ResponseBody>() {
+                .subscribe(new Observer<String>() {
                     @Override
                     public void onSubscribe(@NonNull Disposable d) {
 
                     }
 
                     @Override
-                    public void onNext(@NonNull ResponseBody responseBody) {
+                    public void onNext(String s) {
 
                     }
 

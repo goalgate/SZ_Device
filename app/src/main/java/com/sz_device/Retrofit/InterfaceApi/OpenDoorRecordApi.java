@@ -11,5 +11,5 @@ import retrofit2.http.Query;
 
 public interface OpenDoorRecordApi {
     @POST("cjy_updata")
-    Observable<ResponseBody> openDoorRecord(@Query("dataType") String dataType,@Query("key") String key, @Query("jsonData") String jsonData);
+    Observable<String> openDoorRecord(@Query("dataType") String dataType,@Query("key") String key, @Query("jsonData") String jsonData);
 }
