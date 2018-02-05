@@ -34,6 +34,8 @@ public class SplashActivity extends RxActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        fpp.fpInit();
+        fpp.fpOpen();
         Observable.timer(3, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(SplashActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
@@ -45,8 +47,7 @@ public class SplashActivity extends RxActivity {
 
                     @Override
                     public void onNext(@NonNull Long aLong) {
-                        fpp.fpInit();
-                        fpp.fpOpen();
+
                         if (config.getBoolean("firstStart", true)) {
                             JSONObject jsonKey = new JSONObject();
                             try {

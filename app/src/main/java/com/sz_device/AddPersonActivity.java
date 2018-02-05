@@ -91,9 +91,9 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     Button query;
     @OnClick(R.id.btn_query)
     void queryPerson() {
-        if (RegexUtils.isIDCard18(et_idcard.getText().toString())) {
+        if (RegexUtils.isIDCard18(et_idcard.getText().toString())||RegexUtils.isIDCard15(et_idcard.getText().toString())) {
             final ProgressDialog progressDialog = new ProgressDialog(AddPersonActivity.this);
-            RetrofitGenerator.getQueryPersonInfoApi().queryPersonInfo("queryPersonInfo", config.getString("key"), et_idcard.getText().toString())
+            RetrofitGenerator.getQueryPersonInfoApi().queryPersonInfo("queryPersonInfo", config.getString("key"), et_idcard.getText().toString().toUpperCase())
                     .subscribeOn(Schedulers.io())
                     .unsubscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -121,6 +121,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                                         user.setFingerprintId(fp_id);
                                         user.setCourIds(infoMap.get("courIds"));
                                         user.setCourType(infoMap.get("courType"));
+                                        query.setText(infoMap.get("name")+",欢迎您！");
                                         query.setClickable(false);
                                     } else {
                                         new AlertView("您的身份有误，如有疑问请联系客服处理", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
@@ -130,7 +131,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                                             }
                                         }).show();
                                     }
-                                } else if (infoMap.get("result").equals("matchErr")) {
+                                } else if (infoMap.get("result").equals("false")) {
                                     new AlertView("系统未能查询到该人员信息，如有疑问请联系客服处理", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                                         @Override
                                         public void onItemClick(Object o, int position) {
@@ -188,6 +189,8 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                     jsonObject.put("id", user.getCardId());
                     jsonObject.put("courIds", user.getCourIds());
                     jsonObject.put("dataType", "1");
+                    jsonObject.put("name",user.getName());
+                    jsonObject.put("courType",user.getCourType());
                     jsonObject.put("fingerprintPhoto", user.getFingerprintPhoto());
                     jsonObject.put("fingerprintId", user.getFingerprintId());
                     jsonObject.put("fingerprintKey", fpp.fpUpTemlate(user.getFingerprintId()));
