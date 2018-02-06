@@ -34,8 +34,7 @@ public class SplashActivity extends RxActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-        fpp.fpInit();
-        fpp.fpOpen();
+
         Observable.timer(3, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(SplashActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
@@ -47,7 +46,8 @@ public class SplashActivity extends RxActivity {
 
                     @Override
                     public void onNext(@NonNull Long aLong) {
-
+                        fpp.fpInit();
+                        fpp.fpOpen();
                         if (config.getBoolean("firstStart", true)) {
                             JSONObject jsonKey = new JSONObject();
                             try {
@@ -60,12 +60,34 @@ public class SplashActivity extends RxActivity {
                             config.put("daid", new NetInfo().getMacId());
                             config.put("key", DESX.encrypt(jsonKey.toString()));
                             config.put("ServerId","http://192.168.11.140:7001/");
-                            ActivityUtils.startActivity(getPackageName(),getPackageName()+".IndexActivity");
-                            SplashActivity.this.finish();
-                        }else{
-                            ActivityUtils.startActivity(getPackageName(),getPackageName()+".IndexActivity");
-                            SplashActivity.this.finish();
                         }
+                        Observable.timer(3, TimeUnit.SECONDS)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .compose(SplashActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
+                                .subscribe(new Observer<Long>() {
+                                    @Override
+                                    public void onSubscribe(@NonNull Disposable d) {
+
+                                    }
+
+                                    @Override
+                                    public void onNext(@NonNull Long aLong) {
+                                        ActivityUtils.startActivity(getPackageName(),getPackageName()+".IndexActivity");
+                                        SplashActivity.this.finish();
+                                    }
+
+                                    @Override
+                                    public void onError(@NonNull Throwable e) {
+
+                                    }
+
+                                    @Override
+                                    public void onComplete() {
+
+
+                                    }
+                                });
+
                     }
 
                     @Override
