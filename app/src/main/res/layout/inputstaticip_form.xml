@@ -20,12 +20,43 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <CheckBox
-                android:id="@+id/ip_checkBox"
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="是否使用静态IP地址"
-                android:textSize="12pt" />
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/ip_checkBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="是否使用静态IP地址"
+                    android:textSize="14pt" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                <TextView
+                    android:id="@+id/now_ip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="当前IP地址:"
+                    android:textColor="@color/black"
+                    android:layout_marginLeft="15dp"
+                    android:textSize="7pt" />
+                    <TextView
+                        android:id="@+id/now_mac"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="当前MAC地址:"
+                        android:textColor="@color/black"
+                        android:layout_marginLeft="15dp"
+                        android:textSize="7pt" />
+                </LinearLayout>
+
+
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -44,17 +75,17 @@
                     android:id="@+id/static_ip"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:hint="请输入IP地址:"
                     android:enabled="false"
+                    android:hint="请输入IP地址:"
                     android:inputType="text"
                     android:textSize="10pt" />
 
             </LinearLayout>
 
             <LinearLayout
-                android:layout_marginTop="10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -68,16 +99,16 @@
                     android:id="@+id/static_gateway"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:hint="请输入网关:"
                     android:enabled="false"
+                    android:hint="请输入网关:"
                     android:inputType="text"
                     android:textSize="10pt" />
             </LinearLayout>
 
             <LinearLayout
-                android:layout_marginTop="10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -91,16 +122,16 @@
                     android:id="@+id/static_mask"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:hint="请输入子网掩码:"
                     android:enabled="false"
+                    android:hint="请输入子网掩码:"
                     android:inputType="text"
                     android:textSize="10pt" />
             </LinearLayout>
 
             <LinearLayout
-                android:layout_marginTop="10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -114,16 +145,16 @@
                     android:id="@+id/static_DNS1"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:hint="请输入dns1:"
                     android:enabled="false"
+                    android:hint="请输入dns1:"
                     android:inputType="text"
                     android:textSize="10pt" />
             </LinearLayout>
 
             <LinearLayout
-                android:layout_marginTop="10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -137,8 +168,8 @@
                     android:id="@+id/static_DNS2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="请输入dns2:"
                     android:enabled="false"
+                    android:hint="请输入dns2:"
                     android:inputType="text"
                     android:textSize="10pt" />
             </LinearLayout>

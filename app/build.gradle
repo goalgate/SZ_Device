@@ -8,7 +8,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0"
+        versionName "1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -60,7 +60,8 @@ dependencies {
     compile 'cn.finalteam:okhttpfinal:2.0.7'
     compile 'com.trello.rxlifecycle2:rxlifecycle:2.2.1'
     compile 'com.trello.rxlifecycle2:rxlifecycle-components:2.0'
-    compile files('libs/rk3128api.jar')
+/*    compile files('libs/rk3128api.jar')*/
     compile files('libs/BASE64.jar')
     compile 'cn.yipianfengye.android:zxing-library:2.2'
+    compile files('libs/rkapi.jar')
 }

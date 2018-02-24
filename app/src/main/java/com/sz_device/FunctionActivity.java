@@ -9,6 +9,8 @@ import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter
 import com.sz_device.Function.Fun_FingerPrint.mvp.view.IFingerPrintView;
 import com.sz_device.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.sz_device.Function.Func_Camera.mvp.view.IPhotoView;
+import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
+import com.sz_device.Function.Func_ICCard.mvp.view.IIDCardView;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.trello.rxlifecycle2.components.RxActivity;
 
@@ -24,11 +26,13 @@ import io.reactivex.functions.Consumer;
  * Created by zbsz on 2017/11/27.
  */
 
-public abstract class FunctionActivity extends RxActivity implements IPhotoView,IFingerPrintView {
+public abstract class FunctionActivity extends RxActivity implements IIDCardView,IPhotoView,IFingerPrintView {
 
     public FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
 
     public PhotoPresenter pp = PhotoPresenter.getInstance();
+
+    public IDCardPresenter idp = IDCardPresenter.getInstance();
 
     public SurfaceView surfaceView;
     @Override
@@ -36,6 +40,7 @@ public abstract class FunctionActivity extends RxActivity implements IPhotoView,
         super.onCreate(savedInstanceState);
         BarUtils.hideStatusBar(this);
         pp.initCamera();
+        idp.idCardOpen();
 
     }
 
@@ -68,7 +73,8 @@ public abstract class FunctionActivity extends RxActivity implements IPhotoView,
                         fpp.fpIdentify();
                     }
                 });
-
+        idp.IDCardPresenterSetView(this);
+        idp.readCard();
     }
 
     @Override
@@ -77,7 +83,7 @@ public abstract class FunctionActivity extends RxActivity implements IPhotoView,
         fpp.fpCancel(true);
         fpp.FingerPrintPresenterSetView(null);
         pp.PhotoPresenterSetView(null);
-
+        idp.stopReadCard();
     }
 
     @Override
@@ -85,5 +91,6 @@ public abstract class FunctionActivity extends RxActivity implements IPhotoView,
         super.onDestroy();
         fpp.fpClose();
         pp.close_Camera();
+        idp.idCardClose();
     }
 }

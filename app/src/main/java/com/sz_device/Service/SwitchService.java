@@ -94,6 +94,9 @@ public class SwitchService extends Service implements ISwitchView {
         lock = new Lock(new State_Lockup(sp));
         door = new Door(new State_Close(lock));
         reboot();
+
+        AppInit.getMyManager().setWatchDogEnable(1);
+
         Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
             @Override
             public void accept(@NonNull Long aLong) throws Exception {
@@ -189,7 +192,7 @@ public class SwitchService extends Service implements ISwitchView {
                         }
                     } else if (Last_Value.equals("AAAAAA000001000000")&&getLockState(State_Unlock.class)) {
                         final String closeDoorTime = TimeUtils.getNowString();
-                        Observable.timer(20, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
+                        Observable.timer(10, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                                 .subscribe(new Observer<Long>() {
                                     @Override
                                     public void onSubscribe(Disposable d) {
