@@ -488,7 +488,7 @@ public class CardInfoRk123x extends SerialPortCom {
         lastRevTime_ = System.currentTimeMillis();    //记录最后一次串口接收数据的时间
         checkCount_ = 0;
 
-        Lg.v("onRead",byteToStr(buf,len)+"_"+cmd_ic_type);
+     /*   Lg.v("onRead",byteToStr(buf,len)+"_"+cmd_ic_type);*/
         int btr = len;
 
         byte[] by = new byte[btr];

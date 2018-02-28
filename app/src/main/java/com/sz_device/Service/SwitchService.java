@@ -91,13 +91,11 @@ public class SwitchService extends Service implements ISwitchView {
         sp.SwitchPresenterSetView(this);
         sp.switch_Open();
         Log.e("Message", "ServiceStart");
-        lock = new Lock(new State_Lockup(sp));
-        door = new Door(new State_Close(lock));
+        lock = Lock.getInstance(new State_Lockup(sp));
+        door = Door.getInstance(new State_Close(lock));
         reboot();
-
-        AppInit.getMyManager().setWatchDogEnable(1);
-
-        Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
+        Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Long>() {
             @Override
             public void accept(@NonNull Long aLong) throws Exception {
                 sp.readHum();

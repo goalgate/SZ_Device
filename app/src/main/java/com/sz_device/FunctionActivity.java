@@ -83,6 +83,7 @@ public abstract class FunctionActivity extends RxActivity implements IIDCardView
         fpp.fpCancel(true);
         fpp.FingerPrintPresenterSetView(null);
         pp.PhotoPresenterSetView(null);
+        idp.IDCardPresenterSetView(null);
         idp.stopReadCard();
     }
 
