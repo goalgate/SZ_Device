@@ -96,11 +96,11 @@ public class SwitchService extends Service implements ISwitchView {
         reboot();
         Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Long>() {
-            @Override
-            public void accept(@NonNull Long aLong) throws Exception {
-                sp.readHum();
-            }
-        });
+                    @Override
+                    public void accept(@NonNull Long aLong) throws Exception {
+                        sp.readHum();
+                    }
+                });
         Observable.interval(0, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
@@ -175,10 +175,10 @@ public class SwitchService extends Service implements ISwitchView {
                 if (!value.equals(Last_Value)) {
                     Last_Value = value;
                     if (Last_Value.equals("AAAAAA000000000000")) {
-                        if(getDoorState(State_Close.class)){
+                        if (getDoorState(State_Close.class)) {
                             door.setDoorState(new State_Open(lock));
                             door.doNext();
-                            if (getLockState(State_Lockup.class)){
+                            if (getLockState(State_Lockup.class)) {
                                 alarmRecord();
                             }
                         }
@@ -188,37 +188,40 @@ public class SwitchService extends Service implements ISwitchView {
                         if (rx_delay != null) {
                             rx_delay.dispose();
                         }
-                    } else if (Last_Value.equals("AAAAAA000001000000")&&getLockState(State_Unlock.class)) {
-                        final String closeDoorTime = TimeUtils.getNowString();
-                        Observable.timer(10, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
-                                .subscribe(new Observer<Long>() {
-                                    @Override
-                                    public void onSubscribe(Disposable d) {
-                                        rx_delay = d;
-                                    }
+                    } else if (Last_Value.equals("AAAAAA000001000000")) {
+                        door.setDoorState(new State_Close(lock));
+                        if (getLockState(State_Unlock.class)){
+                            final String closeDoorTime = TimeUtils.getNowString();
+                            Observable.timer(10, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
+                                    .subscribe(new Observer<Long>() {
+                                        @Override
+                                        public void onSubscribe(Disposable d) {
+                                            rx_delay = d;
+                                        }
 
-                                    @Override
-                                    public void onNext(Long aLong) {
-                                        lock.setLockState(new State_Lockup(sp));
-                                        door.setDoorState(new State_Close(lock));
-                                        sp.buzz(SwitchImpl.Hex.H2);
-                                        CloseDoorRecord(closeDoorTime);
-                                        EventBus.getDefault().post(new LockUpEvent());
-                                    }
+                                        @Override
+                                        public void onNext(Long aLong) {
+                                            lock.setLockState(new State_Lockup(sp));
+                                            //door.setDoorState(new State_Close(lock));
+                                            sp.buzz(SwitchImpl.Hex.H2);
+                                            CloseDoorRecord(closeDoorTime);
+                                            EventBus.getDefault().post(new LockUpEvent());
+                                        }
 
-                                    @Override
-                                    public void onError(Throwable e) {
+                                        @Override
+                                        public void onError(Throwable e) {
 
-                                    }
+                                        }
 
-                                    @Override
-                                    public void onComplete() {
+                                        @Override
+                                        public void onComplete() {
 
-                                    }
-                                });
+                                        }
+                                    });
+                        }
                     }
                 }
-            }else{
+            } else {
                 if (value.startsWith("BBBBBB") && value.endsWith("C1EF")) {
                     THSwitchValue = value;
                 }
@@ -261,7 +264,7 @@ public class SwitchService extends Service implements ISwitchView {
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getCloseDoorRecordApi().closeDoorRecord("closeDoorRecord",config.getString("key"),CloseDoorRecordJson.toString())
+        RetrofitGenerator.getCloseDoorRecordApi().closeDoorRecord("closeDoorRecord", config.getString("key"), CloseDoorRecordJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -299,7 +302,7 @@ public class SwitchService extends Service implements ISwitchView {
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getAlarmRecordApi().alarmRecord("alarmRecord",config.getString("key"), alarmRecordJson.toString())
+        RetrofitGenerator.getAlarmRecordApi().alarmRecord("alarmRecord", config.getString("key"), alarmRecordJson.toString())
                 .subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseBody>() {
             @Override
@@ -325,7 +328,7 @@ public class SwitchService extends Service implements ISwitchView {
     }
 
     private void StateRecord() {
-       JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("datetime", TimeUtils.getNowString());
             jsonObject.put("switching", THSwitchValue);
@@ -334,7 +337,7 @@ public class SwitchService extends Service implements ISwitchView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.stateRecordApi().stateRecord("stateRecord",config.getString("key"),jsonObject.toString())
+        RetrofitGenerator.stateRecordApi().stateRecord("stateRecord", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -392,25 +395,26 @@ public class SwitchService extends Service implements ISwitchView {
                     }
                 });
     }
-    private void reboot(){
+
+    private void reboot() {
         long daySpan = 24 * 60 * 60 * 1000 * 2;
         // 规定的每天时间，某时刻运行
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '3:00:00'");
         // 首次运行时间
-        try{
-            Date startTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
-            if(System.currentTimeMillis() > startTime.getTime())
+        try {
+            Date startTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
+            if (System.currentTimeMillis() > startTime.getTime())
                 startTime = new Date(startTime.getTime() + daySpan);
             Timer t = new Timer();
-            TimerTask task = new TimerTask(){
+            TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
                     // 要执行的代码
                     AppInit.getMyManager().reboot();
                 }
             };
-            t.scheduleAtFixedRate(task, startTime,daySpan);
-        }catch (ParseException e){
+            t.scheduleAtFixedRate(task, startTime, daySpan);
+        } catch (ParseException e) {
             e.printStackTrace();
         }
     }

@@ -5,8 +5,8 @@ package com.sz_device.Tools;
  */
 
 public class PersonType {
-    public static String KuGuan = "1"; //真正是113
-    public static String XunJian = "20170810105138116";
+    public static String KuGuan = "1";
+    public static String XunJian = "2";
     public static String Gongan = "3";
 
 }

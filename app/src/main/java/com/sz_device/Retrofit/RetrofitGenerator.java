@@ -13,6 +13,7 @@ import com.sz_device.Retrofit.InterfaceApi.OpenDoorRecordApi;
 import com.sz_device.Retrofit.InterfaceApi.QueryPersonInfoApi;
 import com.sz_device.Retrofit.InterfaceApi.SaveVisitApi;
 import com.sz_device.Retrofit.InterfaceApi.SearchFingerApi;
+import com.sz_device.Retrofit.InterfaceApi.SearchICKBdApi;
 import com.sz_device.Retrofit.InterfaceApi.StateRecordApi;
 import com.sz_device.Retrofit.InterfaceApi.TestNetApi;
 
@@ -112,6 +113,7 @@ public class RetrofitGenerator {
     private static TestNetApi testNetApi;
     private static SaveVisitApi saveVisitApi;
     private static DeleteFingerApi deleteFingerApi;
+    private static SearchICKBdApi searchICKBdApi;
     private static OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder();
     private static Gson gson = new GsonBuilder()
             .setLenient()
@@ -209,5 +211,10 @@ public class RetrofitGenerator {
         }
         return deleteFingerApi;
     }
-
+    public static SearchICKBdApi getSearchICKBdApi () {
+        if (searchICKBdApi== null) {
+            searchICKBdApi = createService(SearchICKBdApi.class);
+        }
+        return searchICKBdApi;
+    }
 }
