@@ -204,6 +204,9 @@ public class SwitchService extends Service implements ISwitchView {
                                             lock.setLockState(new State_Lockup(sp));
                                             //door.setDoorState(new State_Close(lock));
                                             sp.buzz(SwitchImpl.Hex.H2);
+                                            if(unlock_noOpen!=null){
+                                                unlock_noOpen.dispose();
+                                            }
                                             CloseDoorRecord(closeDoorTime);
                                             EventBus.getDefault().post(new LockUpEvent());
                                         }

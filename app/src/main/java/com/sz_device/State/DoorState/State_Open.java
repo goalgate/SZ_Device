@@ -23,7 +23,7 @@ public class State_Open extends DoorState {
     @Override
     public void onHandle(Door door) {
         if (lock.getLockState().getClass().getName().equals(State_Lockup.class.getName())) {
-            EventBus.getDefault().post(new  OpenDoorEvent(false));
+            EventBus.getDefault().post(new OpenDoorEvent(false));
             lock.doNext();
         } else if (lock.getLockState().getClass().getName().equals(State_Unlock.class.getName())) {
             EventBus.getDefault().post(new OpenDoorEvent(true));
