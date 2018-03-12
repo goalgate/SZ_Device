@@ -27,6 +27,7 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.view.RxView;
+import com.log.Lg;
 import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
@@ -233,6 +234,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
 
                             @Override
                             public void onError(@NonNull Throwable e) {
+                                e.printStackTrace();
                                 progressDialog.dismiss();
                                 new AlertView("无法连接服务器", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                                     @Override
