@@ -14,7 +14,10 @@ import retrofit2.http.Query;
  */
 
 public interface CheckRecordApi {
+/*
     @Headers({"Content-Type: multipart/form-data"})//类似于方法名
+*/
+    @FormUrlEncoded
     @POST("cjy_updata")
-    Observable<String> checkRecord(@Query("dataType") String dataType, @Query("key") String key, @Query("jsonData") String jsonData);
+    Observable<String> checkRecord(@Field("dataType") String dataType, @Field("key") String key, @Field("jsonData") String jsonData);
 }

@@ -2,6 +2,8 @@ package com.sz_device.Retrofit.InterfaceApi;
 
 import io.reactivex.Observable;
 import okhttp3.ResponseBody;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
@@ -11,7 +13,8 @@ import retrofit2.http.Query;
  */
 
 public interface GetTimeApi {
-    @Headers({"Content-Type: multipart/form-data"})//类似于方法名
+
+    @FormUrlEncoded
     @POST("cjy_updata")
-    Observable<String> getTime(@Query("dataType") String dataType,@Query("key") String key);
+    Observable<String> getTime(@Field("dataType") String dataType, @Field("key") String key);
 }

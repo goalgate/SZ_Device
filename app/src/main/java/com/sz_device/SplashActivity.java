@@ -59,7 +59,7 @@ public class SplashActivity extends RxActivity {
                             config.put("firstStart", false);
                             config.put("daid", new NetInfo().getMacId());
                             config.put("key", DESX.encrypt(jsonKey.toString()));
-                            config.put("ServerId","http://jdwp.szxhdz.com/");
+                            config.put("ServerId","http://192.168.11.140:7001/");
                         }
                         Observable.timer(3, TimeUnit.SECONDS)
                                 .observeOn(AndroidSchedulers.mainThread())
