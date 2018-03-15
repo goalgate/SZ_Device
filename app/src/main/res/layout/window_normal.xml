@@ -23,7 +23,7 @@
                 android:layout_marginTop="10dp"
                 android:text="设     置"
                 android:textColor="@color/black"
-                android:textSize="15sp" />
+                android:textSize="18sp" />
 
             <Button
                 android:id="@+id/btn_add"

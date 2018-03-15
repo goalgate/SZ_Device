@@ -92,7 +92,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     Button query;
     @OnClick(R.id.btn_query)
     void queryPerson() {
-        if (RegexUtils.isIDCard18(et_idcard.getText().toString())||RegexUtils.isIDCard15(et_idcard.getText().toString())) {
+        if (RegexUtils.isIDCard18(et_idcard.getText().toString())||RegexUtils.isIDCard15(et_idcard.getText().toString())||test(et_idcard.getText().toString().substring(0,1))) {
             final ProgressDialog progressDialog = new ProgressDialog(AddPersonActivity.this);
             RetrofitGenerator.getQueryPersonInfoApi().queryPersonInfo("queryPersonInfo", config.getString("key"), et_idcard.getText().toString().toUpperCase())
                     .subscribeOn(Schedulers.io())
@@ -390,6 +390,18 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     protected void onDestroy() {
         super.onDestroy();
     }
+
+    public static boolean test(String   s)
+    {
+        char c = s.charAt(0);
+        int i =(int)c;
+        if((i>=65&&i<=90)||(i>=97&&i<=122)) {
+            return   true;
+        } else {
+            return   false;
+        }
+    }
+
 }
 
 
