@@ -389,6 +389,7 @@ public class SwitchService extends Service implements ISwitchView {
 
                     @Override
                     public void onError(Throwable e) {
+                        EventBus.getDefault().post(new NetworkEvent(false));
 
                     }
 
@@ -400,7 +401,7 @@ public class SwitchService extends Service implements ISwitchView {
     }
 
     private void reboot() {
-        long daySpan = 24 * 60 * 60 * 1000 * 2;
+        long daySpan = 24 * 60 * 60 * 1000 ;
         // 规定的每天时间，某时刻运行
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '3:00:00'");
         // 首次运行时间

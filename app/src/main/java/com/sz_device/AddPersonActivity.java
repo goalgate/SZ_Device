@@ -92,7 +92,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     Button query;
     @OnClick(R.id.btn_query)
     void queryPerson() {
-        if (RegexUtils.isIDCard18(et_idcard.getText().toString())||RegexUtils.isIDCard15(et_idcard.getText().toString())||test(et_idcard.getText().toString().substring(0,1))) {
+//        if (RegexUtils.isIDCard18(et_idcard.getText().toString())||RegexUtils.isIDCard15(et_idcard.getText().toString())||test(et_idcard.getText().toString().substring(0,1))) {
             final ProgressDialog progressDialog = new ProgressDialog(AddPersonActivity.this);
             RetrofitGenerator.getQueryPersonInfoApi().queryPersonInfo("queryPersonInfo", config.getString("key"), et_idcard.getText().toString().toUpperCase())
                     .subscribeOn(Schedulers.io())
@@ -168,14 +168,14 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                             progressDialog.dismiss();
                         }
                     });
-        } else {
-            new AlertView("身份证输入有误，请重试", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
-                @Override
-                public void onItemClick(Object o, int position) {
-
-                }
-            }).show();
-        }
+//        } else {
+//            new AlertView("身份证输入有误，请重试", null, null, new String[]{"确定"}, null, AddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+//                @Override
+//                public void onItemClick(Object o, int position) {
+//
+//                }
+//            }).show();
+//        }
 
 
     }
