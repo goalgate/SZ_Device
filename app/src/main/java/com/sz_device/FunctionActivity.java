@@ -94,4 +94,5 @@ public abstract class FunctionActivity extends RxActivity implements IIDCardView
         pp.close_Camera();
         idp.idCardClose();
     }
+
 }

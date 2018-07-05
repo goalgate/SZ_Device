@@ -1,5 +1,6 @@
 package com.sz_device.Service;
 
+import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -11,13 +12,16 @@ import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.log.Lg;
 import com.sz_device.AppInit;
 import com.sz_device.EventBus.LockUpEvent;
 
 import com.sz_device.EventBus.NetworkEvent;
+import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.sz_device.Function.Func_Switch.mvp.view.ISwitchView;
+import com.sz_device.IndexActivity;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.State.DoorState.Door;
 
@@ -35,6 +39,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.greenrobot.greendao.query.QueryBuilder;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -93,7 +98,14 @@ public class SwitchService extends Service implements ISwitchView {
         Log.e("Message", "ServiceStart");
         lock = Lock.getInstance(new State_Lockup(sp));
         door = Door.getInstance(new State_Close(lock));
-        reboot();
+        Observable.timer(10,TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Long>() {
+                    @Override
+                    public void accept(@NonNull Long aLong) throws Exception {
+                        reboot();
+                    }
+                });
+
         Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Long>() {
                     @Override
@@ -403,23 +415,81 @@ public class SwitchService extends Service implements ISwitchView {
     private void reboot() {
         long daySpan = 24 * 60 * 60 * 1000 ;
         // 规定的每天时间，某时刻运行
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '3:00:00'");
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '03:00:00'");
         // 首次运行时间
         try {
             Date startTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
             if (System.currentTimeMillis() > startTime.getTime())
                 startTime = new Date(startTime.getTime() + daySpan);
-            Timer t = new Timer();
+            final Timer t = new Timer();
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
                     // 要执行的代码
-                    AppInit.getMyManager().reboot();
+                    Lg.d("message","equipment");
+                    FingerPrintPresenter.getInstance().fpCancel(true);
+                    equipment_sync(config.getString("daid"));
+
                 }
             };
             t.scheduleAtFixedRate(task, startTime, daySpan);
         } catch (ParseException e) {
             e.printStackTrace();
         }
+    }
+
+    private void equipment_sync(String old_devid) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("oldDaid", old_devid);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        RetrofitGenerator.getSearchFingerApi().searchFinger("searchFinger", config.getString("key"), jsonObject.toString())
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<ResponseBody>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(ResponseBody responseBody) {
+                        try {
+                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
+                            if (jsonObject.getString("result").equals("true")) {
+                                JSONArray jsonArray = jsonObject.getJSONArray("data");
+                                if (null != jsonArray && jsonArray.length() != 0) {
+                                    for (int i = 0; i < jsonArray.length(); i++) {
+                                        JSONObject item = jsonArray.getJSONObject(i);
+                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
+                                        FingerPrintPresenter.getInstance().fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
+                                        user_sp.put("courIds", item.getString("personIds"));
+                                        user_sp.put("name", item.getString("name"));
+                                        user_sp.put("cardId", item.getString("idcard"));
+                                        user_sp.put("courType", item.getString("courType"));
+                                    }
+                                }
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+                        AppInit.getMyManager().reboot();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        AppInit.getMyManager().reboot();
+                    }
+                });
     }
 }

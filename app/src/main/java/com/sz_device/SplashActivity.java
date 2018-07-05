@@ -53,11 +53,14 @@ public class SplashActivity extends RxActivity {
                             try {
                                 jsonKey.put("daid", new NetInfo().getMacId());
                                 jsonKey.put("check", DESX.encrypt(new NetInfo().getMacId()));
+//                                jsonKey.put("daid", "066153-190147-150089");
+//                                jsonKey.put("check", DESX.encrypt("066153-190147-150089"));
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
                             config.put("firstStart", false);
                             config.put("daid", new NetInfo().getMacId());
+//                            config.put("daid", "066153-190147-150089");
                             config.put("key", DESX.encrypt(jsonKey.toString()));
                             config.put("ServerId","http://jdwp.szxhdz.com/");
                         }
