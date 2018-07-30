@@ -117,7 +117,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                                         img_finger.setClickable(false);
                                         fpp.fpEnroll(fp_id);
                                         user = new User();
-                                        user.setCardId(et_idcard.getText().toString());
+                                        user.setCardId(et_idcard.getText().toString().toUpperCase());
                                         user.setName(infoMap.get("name"));
                                         user.setFingerprintId(fp_id);
                                         user.setCourIds(infoMap.get("courIds"));
