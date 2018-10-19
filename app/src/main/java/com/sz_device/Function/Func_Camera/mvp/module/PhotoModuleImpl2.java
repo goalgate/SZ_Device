@@ -3,29 +3,29 @@ package com.sz_device.Function.Func_Camera.mvp.module;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.widget.Toast;
 
-import com.blankj.utilcode.util.ScreenUtils;
 import com.sz_device.AppInit;
 
-
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-/**
- * Created by zbsz on 2017/5/19.
- */
-
-public class PhotoModuleImpl implements IPhotoModule {
+public class PhotoModuleImpl2 implements IPhotoModule, Camera.PreviewCallback {
     final static String ApplicationName = "PhotoModule_";
     static Camera camera;
     Bitmap bm;
     IOnSetListener callback;
 
     @Override
-    public void setDisplay(SurfaceHolder sHolder) {
+    public void setDisplay(final SurfaceHolder sHolder) {
         try {
             if (camera != null) {
                 camera.setPreviewDisplay(sHolder);
@@ -50,17 +50,15 @@ public class PhotoModuleImpl implements IPhotoModule {
                 if (camera != null) {
                     Camera.Parameters parameters = camera.getParameters();
                     // 设置预览照片时每秒显示多少帧的最小值和最大值
-
-                    parameters.setPreviewSize(ScreenUtils.getScreenWidth(), ScreenUtils.getScreenHeight());
-
                     parameters.setPreviewFpsRange(45, 50);
                     // 设置图片格式
                     parameters.setPictureFormat(ImageFormat.JPEG);
                     // 设置JPG照片的质量
-                    parameters.set("jpeg-quality", 85);
+                    parameters.set("jpeg-quality", 100);
+                    camera.setPreviewCallback(PhotoModuleImpl2.this);
+                    camera.setParameters(parameters);
                     // 通过SurfaceView显示取景画面
                     setDisplay(holder);
-
                 }
             }
 
@@ -69,6 +67,7 @@ public class PhotoModuleImpl implements IPhotoModule {
                 // 如果camera不为null ,释放摄像头
                 if (camera != null) {
                     /*        if (isPreview) */
+                    camera.setPreviewCallback(null);
                     camera.stopPreview();
                     camera.release();
                     camera = null;
@@ -83,18 +82,20 @@ public class PhotoModuleImpl implements IPhotoModule {
     @Override
     public void capture(IOnSetListener listener) {
         this.callback = listener;
-        /*        hasDetected = false;*/
-        /*      if (isPreview) {*/
-        camera.takePicture(new Camera.ShutterCallback() {
-            public void onShutter() {
-                // 按下快门瞬间会执行此处代码
-            }
-        }, new Camera.PictureCallback() {
-            public void onPictureTaken(byte[] data, Camera c) {
-                // 此处代码可以决定是否需要保存原始照片信息
-            }
-        }, myJpegCallback);
-        /*      }*/
+        if(camera!=null){
+            camera.takePicture(new Camera.ShutterCallback() {
+                public void onShutter() {
+                    // 按下快门瞬间会执行此处代码
+                }
+            }, new Camera.PictureCallback() {
+                public void onPictureTaken(byte[] data, Camera c) {
+                    // 此处代码可以决定是否需要保存原始照片信息
+                }
+            }, myJpegCallback);
+        }else{
+            callback.onBtnText("摄像头打开失败，无法拍照");
+        }
+
     }
 
     Camera.PictureCallback myJpegCallback = new Camera.PictureCallback() {
@@ -110,7 +111,6 @@ public class PhotoModuleImpl implements IPhotoModule {
     @Override
     public void initCamera() {
         safeCameraOpen(0);
-
     }
 
     private void safeCameraOpen(int id) {
@@ -124,22 +124,75 @@ public class PhotoModuleImpl implements IPhotoModule {
 
     }
 
-    private void releaseCameraAndPreview() {
-        if (camera != null) {
-            camera.release();
-            camera = null;
-        }
-
-    }
-
     @Override
     public void closeCamera() {
         releaseCameraAndPreview();
     }
 
-    @Override
-    public void getOneShut(IOnSetListener iOnSetListener) {
 
+    private void releaseCameraAndPreview() {
+        if (camera != null) {
+            camera.release();
+        }
     }
-}
+    @Override
+    public void getOneShut(IOnSetListener listener) {
+        this.callback = listener;
+        mfaceTask = new FaceTask(global_bytes);
+        mfaceTask.execute((Void)null);
+    }
+    public class FaceTask extends AsyncTask<Void, Void, Void> {
 
+        private byte[] mData;
+        //构造函数
+        FaceTask(byte[] data){
+            this.mData = data;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            // TODO Auto-generated method stub
+            Camera.Size size = camera.getParameters().getPreviewSize(); //获取预览大小
+            final int w = size.width;  //宽度
+            final int h = size.height;
+            final YuvImage image = new YuvImage(mData, ImageFormat.NV21, w, h, null);
+            ByteArrayOutputStream os = new ByteArrayOutputStream(mData.length);
+            if(!image.compressToJpeg(new Rect(0, 0, w, h), 100, os)){
+                return null;
+            }
+            byte[] tmp = os.toByteArray();
+            Bitmap bmp = BitmapFactory.decodeByteArray(tmp, 0,tmp.length);
+            bm = bmp;
+            handler.sendEmptyMessage(0x12);
+            return null;
+        }
+    }
+
+    FaceTask mfaceTask;
+    byte[] global_bytes;
+    @Override
+    public void onPreviewFrame(byte[] data, Camera camera) {
+        if (null != mfaceTask) {
+            switch (mfaceTask.getStatus()) {
+                case RUNNING:
+                    return;
+                case PENDING:
+                    mfaceTask.cancel(false);
+                    break;
+            }
+        }
+        global_bytes = data;
+    }
+
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case 0x12:
+                    callback.onGetPhoto(bm);
+                    break;
+            }
+        }
+    };
+}

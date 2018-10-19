@@ -36,6 +36,7 @@ public interface IPhotoModule {
 
     void closeCamera();
 
+    void getOneShut(IOnSetListener iOnSetListener);
     interface IOnSetListener {
         void onBtnText(String msg);//按完按钮后的回调接口
 

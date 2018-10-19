@@ -5,6 +5,10 @@ package com.sz_device.State.DoorState;
  */
 
 public abstract class DoorState {
+
+    public interface doorStateCallback{
+        void onback();
+    }
     public abstract void onHandle(Door door);
 
 

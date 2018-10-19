@@ -12,7 +12,6 @@ public class Lock {
 
     private LockState lockState;
 
-
     private static Lock instance = null;
 
     public static Lock getInstance(){

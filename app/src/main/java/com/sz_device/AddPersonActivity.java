@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.view.RxView;
 import com.log.Lg;
+import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
@@ -35,6 +36,7 @@ import com.sz_device.Function.Fun_FingerPrint.mvp.view.IFingerPrintView;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Tools.FileUtils;
 import com.sz_device.Tools.User;
+import com.sz_device.greendao.DaoSession;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -94,7 +96,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     void queryPerson() {
 //        if (RegexUtils.isIDCard18(et_idcard.getText().toString())||RegexUtils.isIDCard15(et_idcard.getText().toString())||test(et_idcard.getText().toString().substring(0,1))) {
             final ProgressDialog progressDialog = new ProgressDialog(AddPersonActivity.this);
-            RetrofitGenerator.getQueryPersonInfoApi().queryPersonInfo("queryPersonInfo", config.getString("key"), et_idcard.getText().toString().toUpperCase())
+            RetrofitGenerator.getConnectApi().queryPersonInfo("queryPersonInfo", config.getString("key"), et_idcard.getText().toString().toUpperCase())
                     .subscribeOn(Schedulers.io())
                     .unsubscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -199,7 +201,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                RetrofitGenerator.getFingerLogApi().fingerLog("fingerLog", config.getString("key"), jsonObject.toString())
+                RetrofitGenerator.getConnectApi().withDataRs("fingerLog", config.getString("key"), jsonObject.toString())
                         .subscribeOn(Schedulers.io())
                         .unsubscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -325,43 +327,44 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     }
 
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onGetOpenDoorEvent(OpenDoorEvent event) {
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("datetime", TimeUtils.getNowString());
-            jsonObject.put("state", "n");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        RetrofitGenerator.getOpenDoorRecordApi().openDoorRecord("openDoorRecord",config.getString("key"), jsonObject.toString())
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(String s) {
-
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
-
-    }
-
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    public void onGetOpenDoorEvent(OpenDoorEvent event) {
+//        final JSONObject OpenDoorjson = new JSONObject();
+//        try {
+//            OpenDoorjson.put("datetime", TimeUtils.getNowString());
+//            OpenDoorjson.put("state", "n");
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//        RetrofitGenerator.getConnectApi().withDataRs("openDoorRecord",config.getString("key"), OpenDoorjson.toString())
+//                .subscribeOn(Schedulers.io())
+//                .unsubscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new Observer<String>() {
+//                    @Override
+//                    public void onSubscribe(@NonNull Disposable d) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onNext(String s) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onError(@NonNull Throwable e) {
+//                        mdaoSession.insert(new ReUploadBean(null,"openDoorRecord", OpenDoorjson.toString()));
+//
+//                    }
+//
+//                    @Override
+//                    public void onComplete() {
+//
+//                    }
+//                });
+//
+//    }
+//
 
     @Override
     public void onBackPressed() {

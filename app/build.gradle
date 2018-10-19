@@ -8,7 +8,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
-        versionName "2.1"
+        versionName "2.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -25,6 +25,13 @@ android {
     }
     productFlavors {
     }
+}
+greendao {
+    schemaVersion 1//数据库版本号
+    daoPackage 'com.sz_device.greendao'//设置DaoMaster、DaoSession、Dao包名
+    targetGenDir 'src/main/java'//设置DaoMaster、DaoSession、Dao目录
+    //targetGenDirTest：设置生成单元测试目录
+    //generateTests：设置自动生成单元测试用例
 }
 def retrofitVersion = '2.2.0'
 dependencies {
@@ -64,4 +71,7 @@ dependencies {
     compile files('libs/BASE64.jar')
     compile 'cn.yipianfengye.android:zxing-library:2.2'
     compile files('libs/rkapi.jar')
+    compile 'org.greenrobot:greendao:3.2.2'
+    compile 'org.greenrobot:greendao-generator:3.2.2'
+    compile 'net.zetetic:android-database-sqlcipher:3.5.2'
 }

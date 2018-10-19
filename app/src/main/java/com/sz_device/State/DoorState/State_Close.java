@@ -7,11 +7,7 @@ import com.sz_device.State.LockState.Lock;
  */
 
 public class State_Close extends DoorState {
-    Lock lock;
 
-    public State_Close(Lock lock) {
-        this.lock = lock;
-    }
 
     @Override
     public void onHandle(Door door) {
