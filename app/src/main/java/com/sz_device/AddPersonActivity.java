@@ -74,6 +74,8 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
 
     boolean commitable;
 
+    DaoSession mdaoSession = AppInit.getInstance().getDaoSession();
+
     User user;
 
     String fp_id = "0";
@@ -327,44 +329,44 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
     }
 
 
-//    @Subscribe(threadMode = ThreadMode.MAIN)
-//    public void onGetOpenDoorEvent(OpenDoorEvent event) {
-//        final JSONObject OpenDoorjson = new JSONObject();
-//        try {
-//            OpenDoorjson.put("datetime", TimeUtils.getNowString());
-//            OpenDoorjson.put("state", "n");
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//        RetrofitGenerator.getConnectApi().withDataRs("openDoorRecord",config.getString("key"), OpenDoorjson.toString())
-//                .subscribeOn(Schedulers.io())
-//                .unsubscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Observer<String>() {
-//                    @Override
-//                    public void onSubscribe(@NonNull Disposable d) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onNext(String s) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onError(@NonNull Throwable e) {
-//                        mdaoSession.insert(new ReUploadBean(null,"openDoorRecord", OpenDoorjson.toString()));
-//
-//                    }
-//
-//                    @Override
-//                    public void onComplete() {
-//
-//                    }
-//                });
-//
-//    }
-//
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onGetOpenDoorEvent(OpenDoorEvent event) {
+        final JSONObject OpenDoorjson = new JSONObject();
+        try {
+            OpenDoorjson.put("datetime", TimeUtils.getNowString());
+            OpenDoorjson.put("state", "n");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        RetrofitGenerator.getConnectApi().withDataRs("openDoorRecord",config.getString("key"), OpenDoorjson.toString())
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+                        mdaoSession.insert(new ReUploadBean(null,"openDoorRecord", OpenDoorjson.toString()));
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+
+    }
+
 
     @Override
     public void onBackPressed() {

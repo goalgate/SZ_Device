@@ -59,6 +59,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -134,7 +135,7 @@ public class SwitchService extends Service implements ISwitchView {
                         testNet();
                     }
                 });
-        Observable.interval(10, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
+        Observable.interval(10, 3600, TimeUnit.SECONDS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
@@ -299,6 +300,7 @@ public class SwitchService extends Service implements ISwitchView {
                                         }
                                     });
                         } else {
+                            CloseDoorRecord(TimeUtils.getNowString());
                             door.setDoorState(new State_Close());
                         }
                     }
@@ -416,6 +418,11 @@ public class SwitchService extends Service implements ISwitchView {
             jsonObject.put("switching", THSwitchValue);
             jsonObject.put("temperature", last_mTemperature);
             jsonObject.put("humidity", last_mHumidity);
+            if (getDoorState(State_Open.class)) {
+                jsonObject.put("state", "0");
+            } else {
+                jsonObject.put("state", "1");
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -480,15 +487,49 @@ public class SwitchService extends Service implements ISwitchView {
     }
 
     private void reboot() {
-        long daySpan = 24 * 60 * 60 * 1000;
-// 规定的每天时间，某时刻运行
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '03:00:00'");
+//        long daySpan = 24 * 60 * 60 * 1000;
+//// 规定的每天时间，某时刻运行
+//        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '03:00:00'");
+//        // 首次运行时间
+//        try {
+//            Date startTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
+//            if (System.currentTimeMillis() > startTime.getTime()){
+//                startTime = new Date(startTime.getTime() + daySpan);
+//            }else if(startTime.getHours() == new Date().getHours()){
+//                startTime = new Date(startTime.getTime() + daySpan);
+//            }
+//            final Timer t = new Timer();
+//            TimerTask task = new TimerTask() {
+//                @Override
+//                public void run() {
+//                    // 要执行的代码
+//                    Lg.d("message", "equipment");
+//                    FingerPrintPresenter.getInstance().fpCancel(true);
+//                    equipment_sync(config.getString("daid"));
+//
+//                }
+//            };
+//            t.scheduleAtFixedRate(task, startTime, daySpan);
+//        } catch (ParseException e) {
+//            e.printStackTrace();
+//        }
+
+        long daySpan = 24 * 60 * 60 * 1000 * 1;
+        // 规定的每天时间，某时刻运行
+        int randomTime = new Random().nextInt(50) + 10;
+        String pattern = "yyyy-MM-dd '03:" + randomTime + ":00'";
+        final SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+        Log.e("rebootTime", pattern);
         // 首次运行时间
         try {
             Date startTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
-            if (System.currentTimeMillis() > startTime.getTime())
+            if (System.currentTimeMillis() > startTime.getTime()) {
                 startTime = new Date(startTime.getTime() + daySpan);
-            final Timer t = new Timer();
+            } else if (startTime.getHours() == new Date().getHours()) {
+                startTime = new Date(startTime.getTime() + daySpan);
+            }
+            Log.e("startTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(startTime));
+            Timer t = new Timer();
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
@@ -496,7 +537,6 @@ public class SwitchService extends Service implements ISwitchView {
                     Lg.d("message", "equipment");
                     FingerPrintPresenter.getInstance().fpCancel(true);
                     equipment_sync(config.getString("daid"));
-
                 }
             };
             t.scheduleAtFixedRate(task, startTime, daySpan);

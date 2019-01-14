@@ -30,6 +30,7 @@ import io.reactivex.functions.Consumer;
 public class SplashActivity extends RxActivity {
     public FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
     private SPUtils config = SPUtils.getInstance("config");
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,16 +54,18 @@ public class SplashActivity extends RxActivity {
                             try {
                                 jsonKey.put("daid", new NetInfo().getMacId());
                                 jsonKey.put("check", DESX.encrypt(new NetInfo().getMacId()));
-//                                jsonKey.put("daid", "066153-190147-150089");
-//                                jsonKey.put("check", DESX.encrypt("066153-190147-150089"));
+                                //jsonKey.put("daid", "054231-123179-163237");
+                                //jsonKey.put("check", DESX.encrypt("054231-123179-163237"));
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
                             config.put("firstStart", false);
                             config.put("daid", new NetInfo().getMacId());
-//                            config.put("daid", "066153-190147-150089");
+                             //config.put("daid", "054231-123179-163237");
                             config.put("key", DESX.encrypt(jsonKey.toString()));
-                            config.put("ServerId","http://jdwp.szxhdz.com/");
+                            // config.put("ServerId","http://jdwp.szxhdz.com/");
+                            config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
+                            //config.put("ServerId","http://124.172.232.89:8050/gdda/");
                         }
                         Observable.timer(3, TimeUnit.SECONDS)
                                 .observeOn(AndroidSchedulers.mainThread())
@@ -75,7 +78,7 @@ public class SplashActivity extends RxActivity {
 
                                     @Override
                                     public void onNext(@NonNull Long aLong) {
-                                        ActivityUtils.startActivity(getPackageName(),getPackageName()+".IndexActivity");
+                                        ActivityUtils.startActivity(getPackageName(), getPackageName() + ".IndexActivity");
                                         SplashActivity.this.finish();
                                     }
 

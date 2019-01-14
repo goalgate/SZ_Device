@@ -7,6 +7,10 @@ import android.database.sqlite.SQLiteDatabase;
 import com.blankj.utilcode.util.Utils;
 import com.log.Lg;
 import com.squareup.leakcanary.LeakCanary;
+import com.sz_device.Config.BaseConfig;
+import com.sz_device.Config.JMZH_Config;
+import com.sz_device.Config.LN_Config;
+import com.sz_device.Config.SZ_Config;
 import com.sz_device.greendao.DaoMaster;
 import com.sz_device.greendao.DaoSession;
 import com.ys.myapi.MyManager;
@@ -24,12 +28,18 @@ public class AppInit extends Application {
 
     private DaoMaster mDaoMaster;
 
+    private static BaseConfig config;
+
     private DaoSession mDaoSession;
 
     protected static AppInit instance;
 
     public static AppInit getInstance() {
         return instance;
+    }
+
+    public static BaseConfig getInstrumentConfig(){
+        return config;
     }
 
     protected static MyManager manager;
@@ -56,6 +66,8 @@ public class AppInit extends Application {
         LeakCanary.install(this);
 
         instance = this;
+
+        config = new SZ_Config();
 
         manager = MyManager.getInstance(this);
 
