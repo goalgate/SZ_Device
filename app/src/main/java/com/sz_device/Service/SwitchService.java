@@ -536,6 +536,7 @@ public class SwitchService extends Service implements ISwitchView {
                     // 要执行的代码
                     Lg.d("message", "equipment");
                     FingerPrintPresenter.getInstance().fpCancel(true);
+                    FingerPrintPresenter.getInstance().fpRemoveAll();
                     equipment_sync(config.getString("daid"));
                 }
             };

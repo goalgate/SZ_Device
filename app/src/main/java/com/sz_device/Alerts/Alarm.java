@@ -57,8 +57,8 @@ public class Alarm {
         if (!networkState) {
             if (!networkIsKnown) {
                 SwitchPresenter.getInstance().buzz(SwitchImpl.Hex.H6);
-                alarmText.setText("设备服务器连接失败，请检查网络，点击确定可继续使用");
-                callback.onTextBack("设备服务器连接失败，请检查网络，点击确定可继续使用");
+                alarmText.setText("设备服务器连接失败,请检查网络,点击确定可继续使用");
+                callback.onTextBack("设备服务器连接失败,请检查网络,点击确定可继续使用");
                 alert.show();
             } else {
                 callback.onIsKnown();
@@ -91,11 +91,11 @@ public class Alarm {
     public void doorAlarm(doorCallback callback) {
         if (Door.getInstance().getDoorState().getClass().getName().equals(State_Open.class.getName())) {
             if (Lock.getInstance().getLockState().getClass().getName().equals(State_Unlock.class.getName())) {
-                alarmText.setText("门磁已打开，如需撤防请先闭合门磁");
-                callback.onTextBack("门磁已打开，如需撤防请先闭合门磁");
+                alarmText.setText("门磁已打开,如需撤防请先闭合门磁");
+                callback.onTextBack("门磁已打开,如需撤防请先闭合门磁");
             } else {
-                alarmText.setText("仓库已设防，但门磁未闭合，请检查门磁状态");
-                callback.onTextBack("仓库已设防，但门磁未闭合，请检查门磁状态");
+                alarmText.setText("仓库已设防,但门磁未闭合,请检查门磁状态");
+                callback.onTextBack("仓库已设防,但门磁未闭合,请检查门磁状态");
             }
             SwitchPresenter.getInstance().buzz(SwitchImpl.Hex.H6);
             alert.show();

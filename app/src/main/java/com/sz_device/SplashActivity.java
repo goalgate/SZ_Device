@@ -78,7 +78,7 @@ public class SplashActivity extends RxActivity {
 
                                     @Override
                                     public void onNext(@NonNull Long aLong) {
-                                        ActivityUtils.startActivity(getPackageName(), getPackageName() + ".IndexActivity");
+                                        ActivityUtils.startActivity(getPackageName(), getPackageName() + ".New_IndexActivity");
                                         SplashActivity.this.finish();
                                     }
 
