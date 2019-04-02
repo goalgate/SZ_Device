@@ -5,4 +5,7 @@
     <string name="ip_id">设备IP号:</string>
     <string name="dev_id_hint">默认为原机ID</string>
     <string name="server_ip_hint">请设置服务器地址</string>
+
+    <string name="nameHint">人员姓名：</string>
+    <string name="cardHint">人员身份证：</string>
 </resources>

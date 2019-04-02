@@ -229,6 +229,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
     @BindView(R.id.gestures_overlay)
     GestureOverlayView gestures;
     GestureLibrary mGestureLib;
+
     private void setGestures() {
         gestures.setGestureStrokeType(GestureOverlayView.GESTURE_STROKE_TYPE_MULTIPLE);
         gestures.setGestureVisible(false);
@@ -321,6 +322,12 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                         tv_time.setText(formatter.format(new Date(System.currentTimeMillis())));
                     }
                 });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Alarm.getInstance(this).release();
     }
 
     @Override
@@ -426,6 +433,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
 
                     @Override
                     public void onTextBack(String msg) {
+                        Alarm.getInstance(WYYActivity.this).setKnown(true);
                         tv_info.setText(msg);
                     }
                 });
@@ -504,10 +512,9 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
             Observable.timer(60, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                     .compose(this.<Long>bindUntilEvent(ActivityEvent.PAUSE))
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new MyObserver<Long>(this) {
+                    .subscribe(new Observer<Long>() {
                         @Override
                         public void onSubscribe(Disposable d) {
-                            super.onSubscribe(d);
                             checkChange = d;
                         }
 
@@ -569,6 +576,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
 
                         @Override
                         public void onTextBack(String msg) {
+                            Alarm.getInstance(WYYActivity.this).setKnown(true);
                             tv_info.setText(msg);
                         }
                     });
@@ -592,10 +600,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new MyObserver<ResponseBody>(this) {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
 
-                    }
 
                     @Override
                     public void onNext(ResponseBody responseBody) {
@@ -703,7 +708,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver<String>(this,true) {
+                .subscribe(new MyObserver<String>(this, true) {
                     @Override
                     public void onNext(String s) {
                         if (s.equals("true")) {
@@ -843,7 +848,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver<ResponseBody>(this,true) {
+                .subscribe(new MyObserver<ResponseBody>(this, true) {
 
                     @Override
                     public void onNext(ResponseBody responseBody) {
@@ -880,28 +885,30 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
 //                        }
                         try {
                             JSONArray jsonArray = new JSONArray(responseBody.string().toString());
-                                if (null != jsonArray && jsonArray.length() != 0) {
-                                    for (int i = 0; i < jsonArray.length(); i++) {
-                                        JSONObject item = jsonArray.getJSONObject(i);
-                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
-                                        fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
-                                        user_sp.put("courIds", item.getString("courIds"));
-                                        user_sp.put("name", item.getString("name"));
-                                        user_sp.put("cardId", item.getString("cardId"));
-                                        user_sp.put("courType", item.getString("courType"));
-                                    }
-                                    JSONObject jsonKey = new JSONObject();
-                                    jsonKey.put("daid", old_devid);
-                                    jsonKey.put("check", DESX.encrypt(old_devid));
-                                    config.put("daid", old_devid);
-                                    config.put("key", DESX.encrypt(jsonKey.toString()));
-                                    ToastUtils.showLong("设备数据更新成功");
-                                } else {
-                                    ToastUtils.showLong("该设备号无人员数据");
+                            if (null != jsonArray && jsonArray.length() != 0) {
+                                for (int i = 0; i < jsonArray.length(); i++) {
+                                    JSONObject item = jsonArray.getJSONObject(i);
+                                    SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
+                                    fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
+                                    user_sp.put("courIds", item.getString("courIds"));
+                                    user_sp.put("name", item.getString("name"));
+                                    user_sp.put("cardId", item.getString("cardId"));
+                                    user_sp.put("courType", item.getString("courType"));
                                 }
+                                JSONObject jsonKey = new JSONObject();
+                                jsonKey.put("daid", old_devid);
+                                jsonKey.put("check", DESX.encrypt(old_devid));
+                                config.put("daid", old_devid);
+                                config.put("key", DESX.encrypt(jsonKey.toString()));
+                                ToastUtils.showLong("设备数据更新成功");
+                            } else {
+                                ToastUtils.showLong("该设备号无人员数据");
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (Exception e){
                             e.printStackTrace();
                         }
                     }
@@ -909,7 +916,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                     @Override
                     public void onError(@NonNull Throwable e) {
                         super.onError(e);
-                        tv_info.setText("无法连接到服务器");
+                        //tv_info.setText("无法连接到服务器");
                         fpp.fpIdentify();
                     }
 

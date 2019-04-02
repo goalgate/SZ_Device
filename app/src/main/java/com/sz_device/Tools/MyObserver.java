@@ -7,6 +7,7 @@ import android.view.Gravity;
 
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
+import com.sz_device.Alerts.Alarm;
 import com.sz_device.WYYAddPersonActivity;
 
 import java.util.concurrent.TimeUnit;
@@ -40,7 +41,7 @@ public class MyObserver<T> implements Observer<T>{
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.getWindow().getAttributes().gravity = Gravity.CENTER;
         progressDialog.setMessage("数据上传中，请稍候");
-        delay = true;
+        this.delay = delay;
     }
 
     @Override
@@ -56,23 +57,17 @@ public class MyObserver<T> implements Observer<T>{
     @Override
     public void onError(Throwable e) {
         progressDialog.dismiss();
-        final AlertView alertView = new AlertView("无法连接服务器", null, null, new String[]{"确定"}, null, context, AlertView.Style.Alert, new OnItemClickListener() {
-            @Override
-            public void onItemClick(Object o, int position) {
-
-            }
-        });
         if(delay){
             Observable.timer(1,TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Consumer<Long>() {
                         @Override
                         public void accept(Long aLong) throws Exception {
-                            alertView.show();
+                            Alarm.getInstance(context).messageAlarm("无法连接服务器");
                         }
                     });
         }else {
-            alertView.show();
+            Alarm.getInstance(context).messageAlarm("无法连接服务器");
         }
 
     }

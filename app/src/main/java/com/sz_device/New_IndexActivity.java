@@ -440,6 +440,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onTextBack(String msg) {
+                        Alarm.getInstance(New_IndexActivity.this).setKnown(true);
                         tv_info.setText(msg);
                     }
                 });
@@ -582,10 +583,10 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                         @Override
                         public void onTextBack(String msg) {
+                            Alarm.getInstance(New_IndexActivity.this).setKnown(true);
                             tv_info.setText(msg);
                         }
                     });
-
                 }
             });
 

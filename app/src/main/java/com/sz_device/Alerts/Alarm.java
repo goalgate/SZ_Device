@@ -46,7 +46,7 @@ public class Alarm {
         alert = new AlertView("", null, null, new String[]{"确定"}, null, context, AlertView.Style.Alert, new OnItemClickListener() {
             @Override
             public void onItemClick(Object o, int position) {
-                networkIsKnown = true;
+
             }
         });
         alert.addExtView(alarmView);
@@ -102,6 +102,9 @@ public class Alarm {
         } else {
             callback.onSucc();
         }
+    }
 
+    public void release(){
+        instance = null;
     }
 }
