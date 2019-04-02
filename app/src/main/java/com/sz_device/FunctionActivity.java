@@ -74,7 +74,7 @@ public abstract class FunctionActivity extends RxActivity implements IIDCardView
                     }
                 });
         idp.IDCardPresenterSetView(this);
-        idp.readCard();
+        AppInit.getInstrumentConfig().readCard();
     }
 
     @Override
@@ -84,7 +84,7 @@ public abstract class FunctionActivity extends RxActivity implements IIDCardView
         fpp.FingerPrintPresenterSetView(null);
         pp.PhotoPresenterSetView(null);
         idp.IDCardPresenterSetView(null);
-        idp.stopReadCard();
+        AppInit.getInstrumentConfig().stopReadCard();
     }
 
     @Override

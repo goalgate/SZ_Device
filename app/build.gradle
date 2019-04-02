@@ -8,7 +8,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
-        versionName "2.3"
+        versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -16,6 +16,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
     }
     sourceSets {
         main {
@@ -26,6 +30,7 @@ android {
     productFlavors {
     }
 }
+
 greendao {
     schemaVersion 1//数据库版本号
     daoPackage 'com.sz_device.greendao'//设置DaoMaster、DaoSession、Dao包名

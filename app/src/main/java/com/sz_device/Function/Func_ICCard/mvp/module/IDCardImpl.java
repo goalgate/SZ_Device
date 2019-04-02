@@ -37,7 +37,6 @@ public class IDCardImpl implements IIDCard {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
@@ -48,6 +47,16 @@ public class IDCardImpl implements IIDCard {
     @Override
     public void onStopReadCard() {
         cardInfo.stopReadIC();
+    }
+
+    @Override
+    public void onReadIDCard() {
+        cardInfo.readCard();
+    }
+
+    @Override
+    public void onStopReadIDCard() {
+        cardInfo.stopReadCard();
     }
 
 

@@ -54,18 +54,13 @@ public class SplashActivity extends RxActivity {
                             try {
                                 jsonKey.put("daid", new NetInfo().getMacId());
                                 jsonKey.put("check", DESX.encrypt(new NetInfo().getMacId()));
-                                //jsonKey.put("daid", "054231-123179-163237");
-                                //jsonKey.put("check", DESX.encrypt("054231-123179-163237"));
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
                             config.put("firstStart", false);
                             config.put("daid", new NetInfo().getMacId());
-                             //config.put("daid", "054231-123179-163237");
                             config.put("key", DESX.encrypt(jsonKey.toString()));
-                            // config.put("ServerId","http://jdwp.szxhdz.com/");
                             config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
-                            //config.put("ServerId","http://124.172.232.89:8050/gdda/");
                         }
                         Observable.timer(3, TimeUnit.SECONDS)
                                 .observeOn(AndroidSchedulers.mainThread())
@@ -78,7 +73,7 @@ public class SplashActivity extends RxActivity {
 
                                     @Override
                                     public void onNext(@NonNull Long aLong) {
-                                        ActivityUtils.startActivity(getPackageName(), getPackageName() + ".New_IndexActivity");
+                                        ActivityUtils.startActivity(getPackageName(), getPackageName() + AppInit.getInstrumentConfig().getActivity());
                                         SplashActivity.this.finish();
                                     }
 

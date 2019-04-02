@@ -25,20 +25,16 @@ import android.widget.TextView;
 
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
-
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
-
 import com.blankj.utilcode.util.ToastUtils;
-import com.cvr.device.IDCardInfo;
 import com.drv.card.CardInfoRk123x;
 import com.drv.card.ICardInfo;
 import com.jakewharton.rxbinding2.widget.RxTextView;
-
-
+import com.sz_device.Alerts.Alarm;
 import com.sz_device.Alerts.Alert_IP;
 import com.sz_device.Alerts.Alert_Message;
 import com.sz_device.Alerts.Alert_Password;
@@ -50,18 +46,18 @@ import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.EventBus.PassEvent;
 import com.sz_device.EventBus.TemHumEvent;
-
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.sz_device.Retrofit.RetrofitGenerator;
+import com.sz_device.Service.SwitchService;
+import com.sz_device.Service.WYYService;
 import com.sz_device.State.OperationState.Door_Open_OperateState;
 import com.sz_device.State.OperationState.No_one_OperateState;
 import com.sz_device.State.OperationState.One_man_OperateState;
 import com.sz_device.State.OperationState.Operation;
 import com.sz_device.State.OperationState.Two_man_OperateState;
-import com.sz_device.Service.SwitchService;
-import com.sz_device.Alerts.Alarm;
 import com.sz_device.Tools.DESX;
 import com.sz_device.Tools.FileUtils;
+import com.sz_device.Tools.MyObserver;
 import com.sz_device.Tools.PersonType;
 import com.sz_device.Tools.ServerConnectionUtil;
 import com.sz_device.Tools.User;
@@ -69,7 +65,6 @@ import com.sz_device.UI.NormalWindow;
 import com.sz_device.UI.SuperWindow;
 import com.sz_device.greendao.DaoSession;
 import com.trello.rxlifecycle2.android.ActivityEvent;
-
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -99,13 +94,7 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
-
-/**
- * Created by zbsz on 2017/8/25.
- */
-
-
-public class New_IndexActivity extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
+public class WYYActivity extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -180,7 +169,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         EventBus.getDefault().register(this);
         openService();
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-
         disposableTips = RxTextView.textChanges(tv_info)
                 .debounce(60, TimeUnit.SECONDS)
                 .switchMap(new Function<CharSequence, ObservableSource<String>>() {
@@ -208,15 +196,15 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         alert_password.PasswordViewInit(new Alert_Password.Callback() {
             @Override
             public void normal_call() {
-                normalWindow = new NormalWindow(New_IndexActivity.this);
-                normalWindow.setOptionTypeListener(New_IndexActivity.this);
+                normalWindow = new NormalWindow(WYYActivity.this);
+                normalWindow.setOptionTypeListener(WYYActivity.this);
                 normalWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
 
             @Override
             public void super_call() {
-                superWindow = new SuperWindow(New_IndexActivity.this);
-                superWindow.setOptionTypeListener(New_IndexActivity.this);
+                superWindow = new SuperWindow(WYYActivity.this);
+                superWindow.setOptionTypeListener(WYYActivity.this);
                 superWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
         });
@@ -241,7 +229,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     @BindView(R.id.gestures_overlay)
     GestureOverlayView gestures;
     GestureLibrary mGestureLib;
-
     private void setGestures() {
         gestures.setGestureStrokeType(GestureOverlayView.GESTURE_STROKE_TYPE_MULTIPLE);
         gestures.setGestureVisible(false);
@@ -267,9 +254,8 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         }
     }
 
-
     void openService() {
-        intent = new Intent(New_IndexActivity.this, SwitchService.class);
+        intent = new Intent(WYYActivity.this, WYYService.class);
         startService(intent);
     }
 
@@ -350,13 +336,13 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     public void onSuperOptionType(Button view, int type) {
         superWindow.dismiss();
         if (type == 1) {
-            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".AddPersonActivity");
+            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".WYYAddPersonActivity");
         } else if (type == 2) {
             alert_server.show();
         } else if (type == 3) {
             ViewGroup extView2 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputdevid_form, null);
             final EditText et_devid = (EditText) extView2.findViewById(R.id.devid_input);
-            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, New_IndexActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, WYYActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
@@ -376,7 +362,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
             ViewGroup deleteView = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.delete_person_form, null);
             final EditText et_idcard = (EditText) deleteView.findViewById(R.id.idcard_input);
             final EditText et_finger = (EditText) deleteView.findViewById(R.id.et_finger);
-            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, New_IndexActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, WYYActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
@@ -395,7 +381,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     public void onOptionType(Button view, int type) {
         normalWindow.dismiss();
         if (type == 1) {
-            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".AddPersonActivity");
+            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".WYYAddPersonActivity");
         } else if (type == 2) {
             alert_ip.show();
         }
@@ -432,7 +418,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
             @Override
             public void onSucc() {
-                Alarm.getInstance(New_IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                Alarm.getInstance(WYYActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
                     @Override
                     public void onIsKnown() {
                         loadMessage(msg.substring(3, msg.length()));
@@ -518,9 +504,10 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
             Observable.timer(60, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                     .compose(this.<Long>bindUntilEvent(ActivityEvent.PAUSE))
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Observer<Long>() {
+                    .subscribe(new MyObserver<Long>(this) {
                         @Override
                         public void onSubscribe(Disposable d) {
+                            super.onSubscribe(d);
                             checkChange = d;
                         }
 
@@ -564,7 +551,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     @Override
     public void onsetCardInfo(final ICardInfo cardInfo) {
         if (alert_message.Showing()) {
-            alert_message.setICCardText("IC卡号：" + cardInfo.getUid());
+            alert_message.setICCardText("身份证号：" + cardInfo.cardId());
         } else {
             Alarm.getInstance(this).doorAlarm(new Alarm.doorCallback() {
                 @Override
@@ -574,7 +561,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                 @Override
                 public void onSucc() {
-                    Alarm.getInstance(New_IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                    Alarm.getInstance(WYYActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
                         @Override
                         public void onIsKnown() {
                             iccard_operation(cardInfo);
@@ -600,11 +587,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getConnectApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getWyyConnectApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<ResponseBody>() {
+                .subscribe(new MyObserver<ResponseBody>(this) {
                     @Override
                     public void onSubscribe(@NonNull Disposable d) {
 
@@ -654,15 +641,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     }
 
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        tv_info.setText("服务器连接失败，无法辨别IC卡的有效性");
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
                 });
     }
 
@@ -686,7 +664,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     }
 
     private void syncTime() {
-        RetrofitGenerator.getConnectApi().noData("getTime", config.getString("key"))
+        RetrofitGenerator.getWyyConnectApi().noData("getTime", config.getString("key"))
                 .subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io()).subscribe(new Observer<String>() {
             @Override
@@ -721,21 +699,13 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        final ProgressDialog progressDialog = new ProgressDialog(New_IndexActivity.this);
-        RetrofitGenerator.getConnectApi().withDataRs("deleteFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getWyyConnectApi().withDataRs("deleteFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        progressDialog.setMessage("数据上传中，请稍候");
-                        progressDialog.show();
-                    }
-
+                .subscribe(new MyObserver<String>(this,true) {
                     @Override
                     public void onNext(String s) {
-                        progressDialog.dismiss();
                         if (s.equals("true")) {
                             fpp.fpCancel(true);
                             Observable.timer(2, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
@@ -756,16 +726,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             ToastUtils.showLong("数据库出错");
                         }
                     }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        progressDialog.dismiss();
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
                 });
     }
 
@@ -781,18 +741,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
             e.printStackTrace();
         }
 
-        final ProgressDialog progressDialog = new ProgressDialog(New_IndexActivity.this);
-        RetrofitGenerator.getConnectApi().withDataRs("checkRecord", config.getString("key"), checkRecordJson.toString())
+        RetrofitGenerator.getWyyConnectApi().withDataRs("checkRecord", config.getString("key"), checkRecordJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        progressDialog.setMessage("数据上传中，请稍候");
-                        progressDialog.show();
-                    }
-
+                .subscribe(new MyObserver<String>(this) {
                     @Override
                     public void onNext(String s) {
                         if (s.equals("true")) {
@@ -813,15 +766,14 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onError(@NonNull Throwable e) {
-                        progressDialog.dismiss();
-                        tv_info.setText("无法连接到服务器");
+                        super.onError(e);
                         mdaoSession.insert(new ReUploadBean(null, "checkRecord", checkRecordJson.toString()));
 
                     }
 
                     @Override
                     public void onComplete() {
-                        progressDialog.dismiss();
+                        super.onComplete();
                         cg_User1 = new User();
                         cg_User2 = new User();
                         if (!getState(Two_man_OperateState.class) || !getState(Door_Open_OperateState.class)) {
@@ -840,17 +792,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        final ProgressDialog progressDialog = new ProgressDialog(New_IndexActivity.this);
-        RetrofitGenerator.getConnectApi().withDataRs("saveVisit", config.getString("key"), unknownPeopleJson.toString())
+        RetrofitGenerator.getWyyConnectApi().withDataRs("saveVisit", config.getString("key"), unknownPeopleJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        progressDialog.setMessage("数据上传中，请稍候");
-                        progressDialog.show();
-                    }
+                .subscribe(new MyObserver<String>(this) {
 
                     @Override
                     public void onNext(String s) {
@@ -872,8 +818,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onError(@NonNull Throwable e) {
-                        progressDialog.dismiss();
-                        tv_info.setText("无法连接到服务器");
+                        super.onError(e);
                         unknownUser = new User();
                         pp.setDisplay(surfaceView.getHolder());
                         mdaoSession.insert(new ReUploadBean(null, "saveVisit", unknownPeopleJson.toString()));
@@ -881,7 +826,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onComplete() {
-                        progressDialog.dismiss();
+                        super.onComplete();
                         pp.setDisplay(surfaceView.getHolder());
                     }
                 });
@@ -894,50 +839,66 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        final ProgressDialog progressDialog = new ProgressDialog(New_IndexActivity.this);
-        RetrofitGenerator.getConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getWyyConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<ResponseBody>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        progressDialog.setMessage("设备同步中，请稍候");
-                        progressDialog.show();
-                    }
+                .subscribe(new MyObserver<ResponseBody>(this,true) {
 
                     @Override
                     public void onNext(ResponseBody responseBody) {
+//                        try {
+//                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
+//                            if (("true").equals(jsonObject.getString("result"))) {
+//                                JSONArray jsonArray = jsonObject.getJSONArray("data");
+//                                if (null != jsonArray && jsonArray.length() != 0) {
+//                                    for (int i = 0; i < jsonArray.length(); i++) {
+//                                        JSONObject item = jsonArray.getJSONObject(i);
+//                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
+//                                        fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
+//                                        user_sp.put("courIds", item.getString("personIds"));
+//                                        user_sp.put("name", item.getString("name"));
+//                                        user_sp.put("cardId", item.getString("idcard"));
+//                                        user_sp.put("courType", item.getString("courType"));
+//                                    }
+//                                    JSONObject jsonKey = new JSONObject();
+//                                    jsonKey.put("daid", old_devid);
+//                                    jsonKey.put("check", DESX.encrypt(old_devid));
+//                                    config.put("daid", old_devid);
+//                                    config.put("key", DESX.encrypt(jsonKey.toString()));
+//                                    ToastUtils.showLong("设备数据更新成功");
+//                                } else {
+//                                    ToastUtils.showLong("该设备号无人员数据");
+//                                }
+//                            } else {
+//                                ToastUtils.showLong("设备号有误");
+//                            }
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
                         try {
-                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
-                            if (("true").equals(jsonObject.getString("result"))) {
-                                JSONArray jsonArray = jsonObject.getJSONArray("data");
+                            JSONArray jsonArray = new JSONArray(responseBody.string().toString());
                                 if (null != jsonArray && jsonArray.length() != 0) {
                                     for (int i = 0; i < jsonArray.length(); i++) {
                                         JSONObject item = jsonArray.getJSONObject(i);
                                         SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
                                         fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
-                                        user_sp.put("courIds", item.getString("personIds"));
+                                        user_sp.put("courIds", item.getString("courIds"));
                                         user_sp.put("name", item.getString("name"));
-                                        user_sp.put("cardId", item.getString("idcard"));
+                                        user_sp.put("cardId", item.getString("cardId"));
                                         user_sp.put("courType", item.getString("courType"));
                                     }
                                     JSONObject jsonKey = new JSONObject();
-                                    try {
-                                        jsonKey.put("daid", old_devid);
-                                        jsonKey.put("check", DESX.encrypt(old_devid));
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
+                                    jsonKey.put("daid", old_devid);
+                                    jsonKey.put("check", DESX.encrypt(old_devid));
                                     config.put("daid", old_devid);
                                     config.put("key", DESX.encrypt(jsonKey.toString()));
                                     ToastUtils.showLong("设备数据更新成功");
                                 } else {
                                     ToastUtils.showLong("该设备号无人员数据");
                                 }
-                            } else {
-                                ToastUtils.showLong("设备号有误");
-                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
@@ -947,14 +908,14 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onError(@NonNull Throwable e) {
-                        progressDialog.dismiss();
+                        super.onError(e);
                         tv_info.setText("无法连接到服务器");
                         fpp.fpIdentify();
                     }
 
                     @Override
                     public void onComplete() {
-                        progressDialog.dismiss();
+                        super.onComplete();
                         fpp.fpIdentify();
                     }
                 });
@@ -986,18 +947,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                 e.printStackTrace();
             }
         }
-        final ProgressDialog progressDialog = new ProgressDialog(New_IndexActivity.this);
-        RetrofitGenerator.getConnectApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorJson.toString())
+        RetrofitGenerator.getWyyConnectApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        progressDialog.setMessage("数据上传中，请稍候");
-                        progressDialog.show();
-                    }
-
+                .subscribe(new MyObserver<String>(this) {
                     @Override
                     public void onNext(String s) {
                         if (s.equals("true")) {
@@ -1022,19 +976,16 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onError(@NonNull Throwable e) {
-                        e.printStackTrace();
-                        progressDialog.dismiss();
-                        tv_info.setText("无法连接到服务器");
+                        super.onError(e);
                         mdaoSession.insert(new ReUploadBean(null, "openDoorRecord", OpenDoorJson.toString()));
                     }
 
                     @Override
                     public void onComplete() {
-                        progressDialog.dismiss();
+                        super.onComplete();
                         cg_User1 = new User();
                         cg_User2 = new User();
                     }
                 });
     }
 }
-

@@ -7,5 +7,10 @@ public abstract class BaseConfig {
 
     public abstract String getVer();
 
+    public abstract String getActivity();
+
+    public abstract void readCard();
+
+    public abstract void stopReadCard();
 
 }

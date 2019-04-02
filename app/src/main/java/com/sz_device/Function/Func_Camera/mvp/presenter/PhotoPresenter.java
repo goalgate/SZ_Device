@@ -17,11 +17,14 @@ public class PhotoPresenter {
 
     private IPhotoView view;
 
-    private static PhotoPresenter instance=null;
-    private PhotoPresenter(){}
+    private static PhotoPresenter instance = null;
+
+    private PhotoPresenter() {
+    }
+
     public static PhotoPresenter getInstance() {
-        if(instance==null)
-            instance=new PhotoPresenter();
+        if (instance == null)
+            instance = new PhotoPresenter();
         return instance;
     }
 
@@ -31,21 +34,21 @@ public class PhotoPresenter {
 
     IPhotoModule photoModule = new PhotoModuleImpl2();
 
-    public void initCamera(){
+    public void initCamera() {
         photoModule.initCamera();
     }
 
-    public void setParameter(SurfaceHolder surfaceHolder){
+    public void setParameter(SurfaceHolder surfaceHolder) {
         photoModule.setParameter(surfaceHolder);
     }
 
 
-    public void setDisplay(SurfaceHolder surfaceHolder){
+    public void setDisplay(SurfaceHolder surfaceHolder) {
         photoModule.setDisplay(surfaceHolder);
     }
 
-    public void capture(){
-        photoModule.capture(new IPhotoModule.IOnSetListener(){
+    public void capture() {
+        photoModule.capture(new IPhotoModule.IOnSetListener() {
             @Override
             public void onBtnText(String msg) {
                 view.onCaremaText(msg);
@@ -57,21 +60,24 @@ public class PhotoPresenter {
             }
         });
     }
-    public void close_Camera(){
+
+    public void close_Camera() {
         photoModule.closeCamera();
     }
 
-    public void screenshots (){photoModule.getOneShut(new IPhotoModule.IOnSetListener() {
-        @Override
-        public void onBtnText(String msg) {
-            view.onCaremaText(msg);
-        }
+    public void screenshots() {
+        photoModule.getOneShut(new IPhotoModule.IOnSetListener() {
+            @Override
+            public void onBtnText(String msg) {
+                view.onCaremaText(msg);
+            }
 
-        @Override
-        public void onGetPhoto(Bitmap bmp) {
-            view.onGetPhoto(bmp);
-        }
-    });}
+            @Override
+            public void onGetPhoto(Bitmap bmp) {
+                view.onGetPhoto(bmp);
+            }
+        });
+    }
 
 
 }

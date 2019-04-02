@@ -15,6 +15,7 @@ import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.sz_device.AppInit;
+import com.sz_device.Config.WYY_Config;
 import com.sz_device.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.sz_device.R;
 import com.sz_device.Retrofit.InterfaceApi.ConnectApi;
@@ -36,7 +37,6 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Alert_Server {
-
 
     private Context context;
 
@@ -67,38 +67,74 @@ public class Alert_Server {
                 } else {
                     url = etName.getText().toString();
                 }
-                RetrofitGenerator.getConnectApi(url).noData("testNet", config.getString("key"))
-                        .subscribeOn(Schedulers.io())
-                        .unsubscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Observer<String>() {
-                            @Override
-                            public void onSubscribe(@NonNull Disposable d) {
+                if(AppInit.getInstrumentConfig().getClass().getName().equals(WYY_Config.class.getName())){
+                    RetrofitGenerator.getWyyConnectApi(url).noData("testNet", config.getString("key"))
+                            .subscribeOn(Schedulers.io())
+                            .unsubscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<String>() {
+                                @Override
+                                public void onSubscribe(@NonNull Disposable d) {
 
-                            }
-
-                            @Override
-                            public void onNext(String s) {
-                                if (s.equals("true")) {
-                                    config.put("ServerId", url);
-                                    ToastUtils.showLong("连接服务器成功");
-                                    callback.setNetworkBmp();
-                                    //iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
-                                } else {
-                                    ToastUtils.showLong("连接服务器失败");
                                 }
-                            }
 
-                            @Override
-                            public void onError(@NonNull Throwable e) {
-                                ToastUtils.showLong("服务器连接失败");
-                            }
+                                @Override
+                                public void onNext(String s) {
+                                    if (s.equals("true")) {
+                                        config.put("ServerId", url);
+                                        ToastUtils.showLong("连接服务器成功");
+                                        callback.setNetworkBmp();
+                                        //iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
+                                    } else {
+                                        ToastUtils.showLong("连接服务器失败");
+                                    }
+                                }
 
-                            @Override
-                            public void onComplete() {
+                                @Override
+                                public void onError(@NonNull Throwable e) {
+                                    ToastUtils.showLong("服务器连接失败");
+                                }
 
-                            }
-                        });
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
+                }else {
+                    RetrofitGenerator.getConnectApi(url).noData("testNet", config.getString("key"))
+                            .subscribeOn(Schedulers.io())
+                            .unsubscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<String>() {
+                                @Override
+                                public void onSubscribe(@NonNull Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(String s) {
+                                    if (s.equals("true")) {
+                                        config.put("ServerId", url);
+                                        ToastUtils.showLong("连接服务器成功");
+                                        callback.setNetworkBmp();
+                                        //iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
+                                    } else {
+                                        ToastUtils.showLong("连接服务器失败");
+                                    }
+                                }
+
+                                @Override
+                                public void onError(@NonNull Throwable e) {
+                                    ToastUtils.showLong("服务器连接失败");
+                                }
+
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
+                }
+
             }
         });
         inputServerView = new AlertView("服务器设置", null, "取消", new String[]{"确定"}, null, this.context, AlertView.Style.Alert, new OnItemClickListener() {
@@ -169,5 +205,5 @@ public class Alert_Server {
         void setNetworkBmp();
     }
 
-    ;
+
 }

@@ -184,6 +184,17 @@
                             android:textColor="#fff"
                             android:textSize="18px"
                             android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_krq"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="354dp"
+                            android:layout_marginTop="10dp"
+                            android:text="——"
+                            android:textColor="#fff"
+                            android:textSize="18px"
+                            android:textStyle="bold" />
                     </FrameLayout>
                 </FrameLayout>
             </LinearLayout>

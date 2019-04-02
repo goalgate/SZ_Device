@@ -4,6 +4,7 @@ package com.sz_device.Function.Func_ICCard.mvp.view;
 import android.graphics.Bitmap;
 
 import com.drv.card.CardInfoRk123x;
+import com.drv.card.ICardInfo;
 
 
 /**
@@ -11,7 +12,7 @@ import com.drv.card.CardInfoRk123x;
  */
 
 public interface IIDCardView {
-    void onsetCardInfo(CardInfoRk123x cardInfo);
+    void onsetCardInfo(ICardInfo cardInfo);
 
     void onsetCardImg(Bitmap bmp);
 }

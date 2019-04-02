@@ -15,10 +15,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-
 // android:sharedUserId="android.uid.system"
 //身份证读取类
-public class CardInfoRk123x extends SerialPortCom {
+public class CardInfoRk123x extends SerialPortCom implements ICardInfo {
     private final int t_name = 1;
     private final int t_sex = 2;
     private final int t_nation = 3;
@@ -37,6 +36,9 @@ public class CardInfoRk123x extends SerialPortCom {
     public String getVer() {
         return ver;
     }
+
+    private String sam_="";
+
 
     //姓名
     private String name_ = "";
@@ -87,6 +89,9 @@ public class CardInfoRk123x extends SerialPortCom {
     private byte[] dt_check =new byte[]{ 0x02,0x02,0x11,0x00,0x05,0x03,0x02, 0x00, 0x11, 0x03,(byte)0xAA, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, (byte)0xB9, 0x03,(byte)0x7F,0x77,0x55 };
     private byte[] dt_check_ =new byte[]{0x02, 0x02, 0x01, 0x00,(byte)0x91,(byte)0xE1,(byte)0xAC};
 
+    //读取SAM编号
+    private byte[] dt_sam={0x02,0x02,0x0c,0x00,0x05,0x03,(byte)0xAA,(byte)0xAA,(byte)0xAA,(byte)0x96,0x69,0x00,0x03,0x12,(byte)0xFF,(byte)0xEE,0x10,(byte)0x8A,0x55};
+
 
 
     //检测是否有身份证
@@ -122,6 +127,7 @@ public class CardInfoRk123x extends SerialPortCom {
     private final int ct_isCer = 2;
     private final int ct_selectCer = 3;
     private final int ct_readCer = 4;
+    private final int ct_sam=20;
     private Timer terCheck = new Timer(); //检测是否读完
 
 
@@ -479,6 +485,87 @@ public class CardInfoRk123x extends SerialPortCom {
         return false;
     }
 
+    public String formatStr(String str, int len)
+    {
+        String s="";
+        if(str.length()==len)
+        {
+            s=str;
+        }
+        else if(str.length()<len)
+        {
+            for(int i=str.length();i<len;i++)
+            {
+                s='0'+s;
+            }
+            s=s+str;
+        }else if (str.length()>len)
+        {
+            s=str.substring(str.length()-len);
+
+        }
+
+        return s;
+
+
+    }
+
+    public void readSam()
+    {
+        sendData(ct_sam,dt_sam);
+    }
+
+
+    public String intToStr(byte[] bs, int pos, int len)
+    {
+        String s="";
+        if(bs.length<(pos+len))
+        {
+            return "";
+        }else
+        {
+            long ii=0;long ix=1;
+            try {
+                for (int i = pos; i < pos + len; i++) {
+                    ii += (bs[i]&0xff) * ix;
+                    ix *= 256;
+                }
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }
+            s=""+ii;
+        }
+        return s;
+    }
+
+    private void getSam_()
+    {
+
+        sam_=formatStr(intToStr(buf_,10+5,1),2)+formatStr(intToStr(buf_,12+5,1),2)+"-"+intToStr(buf_,14+5,4)+
+                "-"+formatStr(intToStr(buf_,18+5,4),10)+"-"+formatStr(intToStr(buf_,22+5,4),10);
+
+        /*
+        String s="";
+        for(int i=0;i<36;i++)
+        {
+           if(i==0)
+           {
+               s=byteToHex(buf_[0]);
+           }else
+           {
+               s+=" "+byteToHex(buf_[i]);
+           }
+        }
+       sam_=s;
+       */
+
+    }
+
+    public String getSam()
+    {
+        return sam_;
+    }
+
 
     //接收数据
     public void onRead(int fd,int len,byte[] buf)
@@ -488,7 +575,7 @@ public class CardInfoRk123x extends SerialPortCom {
         lastRevTime_ = System.currentTimeMillis();    //记录最后一次串口接收数据的时间
         checkCount_ = 0;
 
-     /*   Lg.v("onRead",byteToStr(buf,len)+"_"+cmd_ic_type);*/
+        Lg.v("onRead",byteToStr(buf,len)+"_"+cmd_ic_type);
         int btr = len;
 
         byte[] by = new byte[btr];
@@ -540,7 +627,7 @@ public class CardInfoRk123x extends SerialPortCom {
         return s.toUpperCase();
     }
 
-    public String byteToStr(byte[] bs,int len)
+    public String byteToStr(byte[] bs, int len)
     {
         if(bs.length>=len)
         {
@@ -641,6 +728,13 @@ public class CardInfoRk123x extends SerialPortCom {
                         dataInfo(ct_readCer, info_true);
                     }
                     isCheck_ = false;
+                }
+            }else if (cmdType == ct_sam)
+            {
+                if(bc>=34)
+                {
+                    getSam_();
+                    dataInfo(ct_sam, info_true);
                 }
             }
         }

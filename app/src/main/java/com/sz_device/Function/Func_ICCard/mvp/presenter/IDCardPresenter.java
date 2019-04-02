@@ -3,6 +3,7 @@ package com.sz_device.Function.Func_ICCard.mvp.presenter;
 import android.graphics.Bitmap;
 
 import com.drv.card.CardInfoRk123x;
+import com.drv.card.ICardInfo;
 import com.sz_device.Function.Func_ICCard.mvp.module.IDCardImpl;
 import com.sz_device.Function.Func_ICCard.mvp.module.IIDCard;
 import com.sz_device.Function.Func_ICCard.mvp.view.IIDCardView;
@@ -40,7 +41,7 @@ public class IDCardPresenter {
             }
 
             @Override
-            public void onSetInfo(CardInfoRk123x cardInfo) {
+            public void onSetInfo(ICardInfo cardInfo) {
                 view.onsetCardInfo(cardInfo);
             }
         });
@@ -52,6 +53,14 @@ public class IDCardPresenter {
 
     public void stopReadCard() {
         idCardModule.onStopReadCard();
+    }
+
+    public void readIDCard() {
+        idCardModule.onReadIDCard();
+    }
+
+    public void stopReadIDCard() {
+        idCardModule.onStopReadIDCard();
     }
 
     public void idCardClose(){
