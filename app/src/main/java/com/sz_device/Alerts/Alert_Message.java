@@ -84,7 +84,7 @@ public class Alert_Message {
         } else {
             msg_network.setText("连接网络失败，请检查网线连接状态");
         }
-        msg_iccard.setText("请放置IC卡进行判断");
+        msg_iccard.setText("请放置卡片进行判断");
         if (Door.getInstance().getDoorState().getClass().getName().equals(State_Open.class.getName())) {
             msg_doorState.setText("仓库门处于开启状态");
         } else {
