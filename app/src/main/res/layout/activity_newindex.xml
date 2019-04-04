@@ -170,7 +170,7 @@
                             android:layout_marginLeft="62dp"
                             android:layout_marginTop="10dp"
                             android:text="25℃"
-                            android:textColor="#fff"
+                            android:textColor="@color/white"
                             android:textSize="18px"
                             android:textStyle="bold" />
 
@@ -181,7 +181,7 @@
                             android:layout_marginLeft="208dp"
                             android:layout_marginTop="10dp"
                             android:text="25％"
-                            android:textColor="#fff"
+                            android:textColor="@color/white"
                             android:textSize="18px"
                             android:textStyle="bold" />
 
@@ -192,7 +192,7 @@
                             android:layout_marginLeft="354dp"
                             android:layout_marginTop="10dp"
                             android:text="——"
-                            android:textColor="#fff"
+                            android:textColor="@color/white"
                             android:textSize="18px"
                             android:textStyle="bold" />
                     </FrameLayout>

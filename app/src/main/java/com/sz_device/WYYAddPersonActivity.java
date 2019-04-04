@@ -356,7 +356,6 @@ public class WYYAddPersonActivity extends Activity implements IFingerPrintView, 
                 try {
                     jsonObject.put("id", user.getCardId());
                     jsonObject.put("courIds", user.getCourIds());
-                    jsonObject.put("dataType", "1");
                     jsonObject.put("name", user.getName());
                     jsonObject.put("courType", user.getCourType());
                     jsonObject.put("fingerprintPhoto", user.getFingerprintPhoto());
@@ -379,15 +378,20 @@ public class WYYAddPersonActivity extends Activity implements IFingerPrintView, 
                                     user_sp.put("name", user.getName());
                                     user_sp.put("cardId", user.getCardId());
                                     user_sp.put("courType", user.getCourType());
+
+                                    SPUtils user_id = SPUtils.getInstance(user.getCardId());
+                                    user_id.put("courIds", user.getCourIds());
+                                    user_id.put("name", user.getName());
+                                    user_id.put("fingerprintId", user.getFingerprintId());
+                                    user_id.put("courType", user.getCourType());
+
                                     ToastUtils.showLong("人员插入成功");
                                     cancel();
                                 } else {
                                     Alarm.getInstance(WYYAddPersonActivity.this).messageAlarm("数据插入有错");
                                 }
                             }
-
                         });
-
             } else {
                 Alarm.getInstance(WYYAddPersonActivity.this).messageAlarm("您的操作有误，请重试");
             }
@@ -414,6 +418,7 @@ public class WYYAddPersonActivity extends Activity implements IFingerPrintView, 
                     img_finger.setClickable(false);
                     tv_finger.setText("请刷身份证以获得指纹编号");
                     img_finger.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.zw_icon));
+                    //fpp.fpRemoveAll();
                 } else {
                     finish();
                 }

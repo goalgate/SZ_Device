@@ -33,6 +33,8 @@ import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.drv.card.CardInfoRk123x;
 import com.drv.card.ICardInfo;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.sz_device.Alerts.Alarm;
 import com.sz_device.Alerts.Alert_IP;
@@ -78,6 +80,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -443,8 +447,6 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
     }
 
     private void loadMessage(String sp) {
-        SPUtils spss = SPUtils.getInstance(sp);
-        Log.e("sdsgfgfg", spss.getString("courType"));
         if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.KuGuan)) {
             if (getState(No_one_OperateState.class)) {
                 global_Operation.setState(new One_man_OperateState());
@@ -542,7 +544,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                 tv_info.setText(String.format("管理员%s打卡成功,指纹ID:%s\n设备已撤防", cg_User2.getName(), cg_User2.getFingerprintId()));
                 //tv_info.setText("管理员" + cg_User2.getName() + "打卡，双人管理成功,指纹ID为" + cg_User2.getFingerprintId());
             } else {
-                tv_info.setText("管理员" + cg_User2.getName() + "打卡，双人管理成功");
+                tv_info.setText("管理员" + cg_User2.getName() + "打卡,双人管理成功,\n请开启仓门");
             }
             cg_User2.setPhoto(FileUtils.bitmapToBase64(bmp));
             global_Operation.doNext(new Operation.Callback_Operation() {
@@ -587,66 +589,163 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
         }
     }
 
-    private void iccard_operation(ICardInfo cardInfo) {
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("ickBh", cardInfo.getUid());
-        } catch (JSONException e) {
-            e.printStackTrace();
+    private void iccard_operation(final ICardInfo cardInfo) {
+        SPUtils sp = SPUtils.getInstance(cardInfo.cardId());
+        if (sp.getString("courType").equals(PersonType.KuGuan)) {
+            if (getState(No_one_OperateState.class)) {
+                global_Operation.setState(new One_man_OperateState());
+                cg_User1.setCourIds(sp.getString("courIds"));
+                cg_User1.setName(sp.getString("name"));
+                cg_User1.setCardId(cardInfo.cardId());
+                pp.capture();
+            } else if (getState(Two_man_OperateState.class)) {
+                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                    cg_User2.setCourIds(sp.getString("courIds"));
+                    cg_User2.setName(sp.getString("name"));
+                    cg_User2.setCardId(cardInfo.cardId());
+                    pp.capture();
+                    EventBus.getDefault().post(new PassEvent());
+                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                } else {
+                    tv_info.setText("请不要连续输入相同的管理员信息");
+                }
+            } else if (getState(Door_Open_OperateState.class)) {
+                tv_info.setText("仓库门已解锁");
+            }
+        } else if (sp.getString("courType").equals(PersonType.XunJian)) {
+            if (checkChange != null) {
+                checkChange.dispose();
+            }
+            cg_User1.setCourIds(sp.getString("courIds"));
+            cg_User1.setName(sp.getString("name"));
+            cg_User1.setCardId(cardInfo.cardId());
+            checkRecord(String.valueOf(2));
+        } else {
+            RetrofitGenerator.getWyyConnectApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId())
+                    .subscribeOn(Schedulers.io())
+                    .unsubscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new MyObserver<ResponseBody>(this) {
+                        @Override
+                        public void onNext(ResponseBody responseBody) {
+                            try {
+                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
+                                        new TypeToken<HashMap<String, String>>() {
+                                        }.getType());
+                                if (infoMap.size() > 0) {
+                                    if (infoMap.get("status").equals(String.valueOf(0))) {
+                                        if (infoMap.get("courType").equals(PersonType.KuGuan)) {
+                                            if (getState(No_one_OperateState.class)) {
+                                                global_Operation.setState(new One_man_OperateState());
+
+                                                cg_User1.setCourIds(infoMap.get("courIds"));
+                                                cg_User1.setName(infoMap.get("name"));
+                                                cg_User1.setCardId(cardInfo.cardId());
+                                                pp.capture();
+                                            } else if (getState(Two_man_OperateState.class)) {
+                                                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                                                    cg_User2.setCourIds(infoMap.get("courIds"));
+                                                    cg_User2.setName(infoMap.get("name"));
+                                                    cg_User2.setCardId(cardInfo.cardId());
+                                                    pp.capture();
+                                                    EventBus.getDefault().post(new PassEvent());
+                                                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                                                } else {
+                                                    tv_info.setText("请不要连续输入相同的管理员信息");
+                                                }
+                                            } else if (getState(Door_Open_OperateState.class)) {
+                                                tv_info.setText("仓库门已解锁");
+                                            }
+                                        } else if (infoMap.get("courType").equals(PersonType.XunJian)) {
+                                            if (checkChange != null) {
+                                                checkChange.dispose();
+                                            }
+                                            cg_User1.setCourIds(infoMap.get("courIds"));
+                                            cg_User1.setName(infoMap.get("name"));
+                                            cg_User1.setCardId(cardInfo.cardId());
+                                            checkRecord(String.valueOf(2));
+                                        }
+                                    } else {
+                                        unknownUser.setName(cardInfo.name());
+                                        unknownUser.setCardId(cardInfo.cardId());
+                                        pp.capture();
+                                    }
+                                } else {
+                                    unknownUser.setName(cardInfo.name());
+                                    unknownUser.setCardId(cardInfo.cardId());
+                                    pp.capture();
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (NullPointerException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+
+//            unknownUser.setFingerprintId(sp);
+
         }
 
-        RetrofitGenerator.getWyyConnectApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver<ResponseBody>(this) {
-
-
-                    @Override
-                    public void onNext(ResponseBody responseBody) {
-                        try {
-                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
-                            if (jsonObject.getString("result").equals("true")) {
-                                JSONObject jsonArray = jsonObject.getJSONObject("data");
-                                if (Integer.parseInt(jsonArray.getString("courType")) == 2) {
-                                    cg_User1.setCourIds(jsonArray.getString("courIds"));
-                                    cg_User1.setCardId(jsonArray.getString("idcard"));
-                                    cg_User1.setName(jsonArray.getString("name"));
-                                    checkRecord(jsonArray.getString("courType"));
-                                } else if (Integer.parseInt(jsonArray.getString("courType")) == 1) {
-                                    if (getState(No_one_OperateState.class)) {
-                                        global_Operation.setState(new One_man_OperateState());
-                                        pp.capture();
-                                        cg_User1.setCourIds(jsonArray.getString("courIds"));
-                                        cg_User1.setName(jsonArray.getString("name"));
-                                        cg_User1.setCardId(jsonArray.getString("idcard"));
-                                    } else if (getState(Two_man_OperateState.class)) {
-                                        if (!jsonArray.getString("idcard").equals(cg_User1.getCardId())) {
-                                            cg_User2.setCourIds(jsonArray.getString("courIds"));
-                                            cg_User2.setName(jsonArray.getString("name"));
-                                            cg_User2.setCardId(jsonArray.getString("idcard"));
-                                            pp.capture();
-                                            EventBus.getDefault().post(new PassEvent());
-                                            iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-                                        } else {
-                                            tv_info.setText("请不要连续输入相同的管理员信息");
-                                        }
-                                    } else if (getState(Door_Open_OperateState.class)) {
-                                        tv_info.setText("仓库门已解锁");
-                                    }
-                                }
-                            } else {
-                                tv_info.setText("您的IC卡没有登记备案，请更换IC卡重试");
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (JSONException exception) {
-                            exception.printStackTrace();
-                        }
-
-                    }
-
-                });
+//        JSONObject jsonObject = new JSONObject();
+//        try {
+//            jsonObject.put("ickBh", cardInfo.getUid());
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//
+//        RetrofitGenerator.getWyyConnectApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
+//                .subscribeOn(Schedulers.io())
+//                .unsubscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new MyObserver<ResponseBody>(this) {
+//
+//
+//                    @Override
+//                    public void onNext(ResponseBody responseBody) {
+//                        try {
+//                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
+//                            if (jsonObject.getString("result").equals("true")) {
+//                                JSONObject jsonArray = jsonObject.getJSONObject("data");
+//                                if (Integer.parseInt(jsonArray.getString("courType")) == 2) {
+//                                    cg_User1.setCourIds(jsonArray.getString("courIds"));
+//                                    cg_User1.setCardId(jsonArray.getString("idcard"));
+//                                    cg_User1.setName(jsonArray.getString("name"));
+//                                    checkRecord(jsonArray.getString("courType"));
+//                                } else if (Integer.parseInt(jsonArray.getString("courType")) == 1) {
+//                                    if (getState(No_one_OperateState.class)) {
+//                                        global_Operation.setState(new One_man_OperateState());
+//                                        pp.capture();
+//                                        cg_User1.setCourIds(jsonArray.getString("courIds"));
+//                                        cg_User1.setName(jsonArray.getString("name"));
+//                                        cg_User1.setCardId(jsonArray.getString("idcard"));
+//                                    } else if (getState(Two_man_OperateState.class)) {
+//                                        if (!jsonArray.getString("idcard").equals(cg_User1.getCardId())) {
+//                                            cg_User2.setCourIds(jsonArray.getString("courIds"));
+//                                            cg_User2.setName(jsonArray.getString("name"));
+//                                            cg_User2.setCardId(jsonArray.getString("idcard"));
+//                                            pp.capture();
+//                                            EventBus.getDefault().post(new PassEvent());
+//                                            iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+//                                        } else {
+//                                            tv_info.setText("请不要连续输入相同的管理员信息");
+//                                        }
+//                                    } else if (getState(Door_Open_OperateState.class)) {
+//                                        tv_info.setText("仓库门已解锁");
+//                                    }
+//                                }
+//                            } else {
+//                                tv_info.setText("您的IC卡没有登记备案，请更换IC卡重试");
+//                            }
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        } catch (JSONException exception) {
+//                            exception.printStackTrace();
+//                        }
+//
+//                    }
+//
+//                });
     }
 
 
@@ -655,10 +754,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
 
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
+
 
     private Boolean getState(Class stateClass) {
         if (global_Operation.getState().getClass().getName().equals(stateClass.getName())) {
@@ -809,7 +905,12 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                             global_Operation.setState(new No_one_OperateState());
                         }
                         if (s.equals("true")) {
-                            tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功,指纹号为" + unknownUser.getFingerprintId());
+                            if(unknownUser.getFingerprintId()!=null){
+                                tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功,指纹号为" + unknownUser.getFingerprintId());
+                            }else{
+                                tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功");
+
+                            }
                         } else if (s.equals("false")) {
                             tv_info.setText("访问人上传失败");
                         } else if (s.equals("dataErr")) {
@@ -894,6 +995,12 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                                     user_sp.put("name", item.getString("name"));
                                     user_sp.put("cardId", item.getString("cardId"));
                                     user_sp.put("courType", item.getString("courType"));
+
+                                    SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+                                    user_id.put("courIds", item.getString("courIds"));
+                                    user_id.put("name", item.getString("name"));
+                                    user_id.put("fingerprintId", item.getString("pfpIds"));
+                                    user_id.put("courType", item.getString("courType"));
                                 }
                                 JSONObject jsonKey = new JSONObject();
                                 jsonKey.put("daid", old_devid);

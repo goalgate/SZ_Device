@@ -1,6 +1,5 @@
 package com.sz_device;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.gesture.Gesture;
 import android.gesture.GestureLibraries;
@@ -31,14 +30,9 @@ import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
-
 import com.blankj.utilcode.util.ToastUtils;
-import com.cvr.device.IDCardInfo;
-import com.drv.card.CardInfoRk123x;
 import com.drv.card.ICardInfo;
 import com.jakewharton.rxbinding2.widget.RxTextView;
-
-
 import com.sz_device.Alerts.Alert_IP;
 import com.sz_device.Alerts.Alert_Message;
 import com.sz_device.Alerts.Alert_Password;
@@ -50,7 +44,6 @@ import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.EventBus.PassEvent;
 import com.sz_device.EventBus.TemHumEvent;
-
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.State.OperationState.Door_Open_OperateState;
@@ -62,6 +55,7 @@ import com.sz_device.Service.SwitchService;
 import com.sz_device.Alerts.Alarm;
 import com.sz_device.Tools.DESX;
 import com.sz_device.Tools.FileUtils;
+import com.sz_device.Tools.MyObserver;
 import com.sz_device.Tools.PersonType;
 import com.sz_device.Tools.ServerConnectionUtil;
 import com.sz_device.Tools.User;
@@ -69,22 +63,18 @@ import com.sz_device.UI.NormalWindow;
 import com.sz_device.UI.SuperWindow;
 import com.sz_device.greendao.DaoSession;
 import com.trello.rxlifecycle2.android.ActivityEvent;
-
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -335,6 +325,12 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                         tv_time.setText(formatter.format(new Date(System.currentTimeMillis())));
                     }
                 });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Alarm.getInstance(this).release();
     }
 
     @Override
@@ -605,7 +601,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<ResponseBody>() {
+                .subscribe(new MyObserver<ResponseBody>(this) {
                     @Override
                     public void onSubscribe(@NonNull Disposable d) {
 
@@ -657,13 +653,10 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onError(@NonNull Throwable e) {
+                        super.onError(e);
                         tv_info.setText("服务器连接失败，无法辨别IC卡的有效性");
                     }
 
-                    @Override
-                    public void onComplete() {
-
-                    }
                 });
     }
 
@@ -722,21 +715,14 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        final ProgressDialog progressDialog = new ProgressDialog(New_IndexActivity.this);
         RetrofitGenerator.getConnectApi().withDataRs("deleteFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        progressDialog.setMessage("数据上传中，请稍候");
-                        progressDialog.show();
-                    }
+                .subscribe(new MyObserver<String>(this,true) {
 
                     @Override
                     public void onNext(String s) {
-                        progressDialog.dismiss();
                         if (s.equals("true")) {
                             fpp.fpCancel(true);
                             Observable.timer(2, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
@@ -758,15 +744,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                         }
                     }
 
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        progressDialog.dismiss();
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
                 });
     }
 
@@ -781,18 +758,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        final ProgressDialog progressDialog = new ProgressDialog(New_IndexActivity.this);
         RetrofitGenerator.getConnectApi().withDataRs("checkRecord", config.getString("key"), checkRecordJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        progressDialog.setMessage("数据上传中，请稍候");
-                        progressDialog.show();
-                    }
+                .subscribe(new MyObserver<String>(this) {
 
                     @Override
                     public void onNext(String s) {
@@ -814,7 +784,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onError(@NonNull Throwable e) {
-                        progressDialog.dismiss();
+                        super.onError(e);
                         tv_info.setText("无法连接到服务器");
                         mdaoSession.insert(new ReUploadBean(null, "checkRecord", checkRecordJson.toString()));
 
@@ -822,7 +792,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onComplete() {
-                        progressDialog.dismiss();
+                        super.onComplete();
                         cg_User1 = new User();
                         cg_User2 = new User();
                         if (!getState(Two_man_OperateState.class) || !getState(Door_Open_OperateState.class)) {
@@ -841,17 +811,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        final ProgressDialog progressDialog = new ProgressDialog(New_IndexActivity.this);
         RetrofitGenerator.getConnectApi().withDataRs("saveVisit", config.getString("key"), unknownPeopleJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        progressDialog.setMessage("数据上传中，请稍候");
-                        progressDialog.show();
-                    }
+                .subscribe(new MyObserver<String>(this) {
 
                     @Override
                     public void onNext(String s) {
@@ -873,8 +837,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onError(@NonNull Throwable e) {
-                        progressDialog.dismiss();
-                        tv_info.setText("无法连接到服务器");
+                        super.onError(e);
                         unknownUser = new User();
                         pp.setDisplay(surfaceView.getHolder());
                         mdaoSession.insert(new ReUploadBean(null, "saveVisit", unknownPeopleJson.toString()));
@@ -882,7 +845,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onComplete() {
-                        progressDialog.dismiss();
+                        super.onComplete();
                         pp.setDisplay(surfaceView.getHolder());
                     }
                 });
@@ -895,18 +858,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        final ProgressDialog progressDialog = new ProgressDialog(New_IndexActivity.this);
         RetrofitGenerator.getConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<ResponseBody>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        progressDialog.setMessage("设备同步中，请稍候");
-                        progressDialog.show();
-                    }
-
+                .subscribe(new MyObserver<ResponseBody>(this,true) {
                     @Override
                     public void onNext(ResponseBody responseBody) {
                         try {
@@ -948,14 +904,13 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onError(@NonNull Throwable e) {
-                        progressDialog.dismiss();
-                        tv_info.setText("无法连接到服务器");
+                        super.onError(e);
                         fpp.fpIdentify();
                     }
 
                     @Override
                     public void onComplete() {
-                        progressDialog.dismiss();
+                        super.onComplete();
                         fpp.fpIdentify();
                     }
                 });
@@ -987,18 +942,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                 e.printStackTrace();
             }
         }
-        final ProgressDialog progressDialog = new ProgressDialog(New_IndexActivity.this);
         RetrofitGenerator.getConnectApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        progressDialog.setMessage("数据上传中，请稍候");
-                        progressDialog.show();
-                    }
-
+                .subscribe(new MyObserver<String>(this) {
                     @Override
                     public void onNext(String s) {
                         if (s.equals("true")) {
@@ -1023,15 +971,13 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onError(@NonNull Throwable e) {
-                        e.printStackTrace();
-                        progressDialog.dismiss();
-                        tv_info.setText("无法连接到服务器");
+                        super.onError(e);
                         mdaoSession.insert(new ReUploadBean(null, "openDoorRecord", OpenDoorJson.toString()));
                     }
 
                     @Override
                     public void onComplete() {
-                        progressDialog.dismiss();
+                        super.onComplete();
                         cg_User1 = new User();
                         cg_User2 = new User();
                     }

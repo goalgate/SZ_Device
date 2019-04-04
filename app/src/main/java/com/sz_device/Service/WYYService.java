@@ -556,10 +556,15 @@ public class WYYService extends Service implements ISwitchView {
                                         user_sp.put("name", item.getString("name"));
                                         user_sp.put("cardId", item.getString("idcard"));
                                         user_sp.put("courType", item.getString("courType"));
+
+                                        SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+                                        user_id.put("courIds", item.getString("courIds"));
+                                        user_id.put("name", item.getString("name"));
+                                        user_id.put("fingerprintId", item.getString("pfpIds"));
+                                        user_id.put("courType", item.getString("courType"));
                                     }
                                 }
                             }
-
                         } catch (JSONException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
