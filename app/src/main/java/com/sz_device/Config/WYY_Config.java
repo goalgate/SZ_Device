@@ -19,8 +19,13 @@ public class WYY_Config extends BaseConfig{
     }
 
     @Override
-    public String getActivity() {
+    public String getMainActivity() {
         return ".WYYActivity";
+    }
+
+    @Override
+    public String getAddActivity() {
+        return ".WYYAddPersonActivity";
     }
 
     @Override
@@ -31,5 +36,10 @@ public class WYY_Config extends BaseConfig{
     @Override
     public void stopReadCard() {
         IDCardPresenter.getInstance().stopReadIDCard();
+    }
+
+    @Override
+    public String CardFunction() {
+        return ID;
     }
 }

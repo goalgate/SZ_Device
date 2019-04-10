@@ -2,20 +2,20 @@ package com.sz_device.Config;
 
 import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 
-public class LN_Config extends BaseConfig {
+public class ZJYZB_Config extends BaseConfig {
     @Override
-    public String getProject() {
-        return "LN";
+    public String getServerId() {
+        return "http://192.168.11.21:9000/cjy/s/";
     }
 
     @Override
-    public String getServerId() {
-        return "http://124.172.232.89:8050/daServer/";
+    public String getProject() {
+        return "ZJYZB";
     }
 
     @Override
     public String getVer() {
-        return "1.2";
+        return "1.0";
     }
 
     @Override
@@ -25,21 +25,21 @@ public class LN_Config extends BaseConfig {
 
     @Override
     public String getAddActivity() {
-        return ".AddPersonActivity";
+        return ".ZJYZBAddActivity";
     }
 
     @Override
     public void readCard() {
-        IDCardPresenter.getInstance().readCard();
+        IDCardPresenter.getInstance().readIDCard();
     }
 
     @Override
     public void stopReadCard() {
-        IDCardPresenter.getInstance().stopReadCard();
+        IDCardPresenter.getInstance().stopReadIDCard();
     }
 
     @Override
     public String CardFunction() {
-        return IC;
+        return ID;
     }
 }

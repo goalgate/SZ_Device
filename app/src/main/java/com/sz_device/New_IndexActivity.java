@@ -12,7 +12,6 @@ import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
@@ -21,10 +20,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
-
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.NetworkUtils;
@@ -32,18 +29,23 @@ import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.drv.card.ICardInfo;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.widget.RxTextView;
+import com.log.Lg;
 import com.sz_device.Alerts.Alert_IP;
 import com.sz_device.Alerts.Alert_Message;
 import com.sz_device.Alerts.Alert_Password;
 import com.sz_device.Alerts.Alert_Server;
 import com.sz_device.Bean.ReUploadBean;
+import com.sz_device.Config.BaseConfig;
 import com.sz_device.EventBus.AlarmEvent;
 import com.sz_device.EventBus.LockUpEvent;
 import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.EventBus.PassEvent;
 import com.sz_device.EventBus.TemHumEvent;
+import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.State.OperationState.Door_Open_OperateState;
@@ -74,6 +76,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -160,6 +164,8 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     @OnClick(R.id.lay_network)
     void showMessage() {
         alert_message.showMessage();
+//        Alarm.getInstance(this).messageAlarm("请注意，该人员为巡检员，无法正常解锁\n如需解锁还请两名仓管员到现场重新操作");
+//        SwitchPresenter.getInstance().buzz(SwitchImpl.Hex.H2);
     }
 
     @Override
@@ -168,9 +174,10 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         setContentView(R.layout.activity_newindex);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
+        Lg.e("key",config.getString("key"));
         openService();
+        network_state = false;
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-
         disposableTips = RxTextView.textChanges(tv_info)
                 .debounce(60, TimeUnit.SECONDS)
                 .switchMap(new Function<CharSequence, ObservableSource<String>>() {
@@ -315,7 +322,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         cg_User2 = new User();
         global_Operation.setState(no_one_operateState);
         tv_info.setText("等待用户操作...");
-        network_state = false;
+        //network_state = false;
         Observable.interval(0, 1, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.<Long>bindUntilEvent(ActivityEvent.PAUSE))
@@ -346,7 +353,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     public void onSuperOptionType(Button view, int type) {
         superWindow.dismiss();
         if (type == 1) {
-            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".AddPersonActivity");
+            ActivityUtils.startActivity(getPackageName(), getPackageName() + AppInit.getInstrumentConfig().getAddActivity());
         } else if (type == 2) {
             alert_server.show();
         } else if (type == 3) {
@@ -391,7 +398,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     public void onOptionType(Button view, int type) {
         normalWindow.dismiss();
         if (type == 1) {
-            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".AddPersonActivity");
+            ActivityUtils.startActivity(getPackageName(), getPackageName() + AppInit.getInstrumentConfig().getAddActivity());
         } else if (type == 2) {
             alert_ip.show();
         }
@@ -400,7 +407,8 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     @Override
     public void onCaremaText(String s) {
         if ("摄像头打开失败，无法拍照".equals(s)) {
-            ToastUtils.showLong(s);
+            Alarm.getInstance(this).messageAlarm(s);
+            //ToastUtils.showLong(s);
         }
     }
 
@@ -446,8 +454,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     }
 
     private void loadMessage(String sp) {
-        SPUtils spss = SPUtils.getInstance(sp);
-        Log.e("sdsgfgfg", spss.getString("courType"));
         if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.KuGuan)) {
             if (getState(No_one_OperateState.class)) {
                 global_Operation.setState(new One_man_OperateState());
@@ -475,6 +481,10 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } else if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.XunJian)) {
             if (checkChange != null) {
                 checkChange.dispose();
+            }
+            if(getState(One_man_OperateState.class)){
+                Alarm.getInstance(this).messageAlarm("请注意，该人员为巡检员，无法正常解锁\n如需解锁还请两名仓管员到现场重新操作\n此次巡检记录已保存");
+                SwitchPresenter.getInstance().buzz(SwitchImpl.Hex.H2);
             }
             cg_User1.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
             cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
@@ -561,7 +571,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     @Override
     public void onsetCardInfo(final ICardInfo cardInfo) {
         if (alert_message.Showing()) {
-            alert_message.setICCardText("IC卡号：" + cardInfo.getUid());
+            if(AppInit.getInstrumentConfig().getClass().getName().equals(BaseConfig.IC)){
+                alert_message.setICCardText("IC卡号：" + cardInfo.getUid());
+            }else{
+                alert_message.setICCardText("身份证号：" + cardInfo.cardId());
+            }
         } else {
             Alarm.getInstance(this).doorAlarm(new Alarm.doorCallback() {
                 @Override
@@ -574,7 +588,12 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     Alarm.getInstance(New_IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
                         @Override
                         public void onIsKnown() {
-                            iccard_operation(cardInfo);
+                            if(AppInit.getInstrumentConfig().getClass().getName().equals(BaseConfig.IC)){
+                                iccard_operation(cardInfo);
+                            }else {
+                                idcard_operation(cardInfo);
+                            }
+
                         }
 
                         @Override
@@ -585,6 +604,103 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     });
                 }
             });
+
+        }
+    }
+    private void idcard_operation(final ICardInfo cardInfo) {
+        SPUtils sp = SPUtils.getInstance(cardInfo.cardId());
+        if (sp.getString("courType").equals(PersonType.KuGuan)) {
+            if (getState(No_one_OperateState.class)) {
+                global_Operation.setState(new One_man_OperateState());
+                cg_User1.setCourIds(sp.getString("courIds"));
+                cg_User1.setName(sp.getString("name"));
+                cg_User1.setCardId(cardInfo.cardId());
+                pp.capture();
+            } else if (getState(Two_man_OperateState.class)) {
+                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                    cg_User2.setCourIds(sp.getString("courIds"));
+                    cg_User2.setName(sp.getString("name"));
+                    cg_User2.setCardId(cardInfo.cardId());
+                    pp.capture();
+                    EventBus.getDefault().post(new PassEvent());
+                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                } else {
+                    tv_info.setText("请不要连续输入相同的管理员信息");
+                }
+            } else if (getState(Door_Open_OperateState.class)) {
+                tv_info.setText("仓库门已解锁");
+            }
+        } else if (sp.getString("courType").equals(PersonType.XunJian)) {
+            if (checkChange != null) {
+                checkChange.dispose();
+            }
+            cg_User1.setCourIds(sp.getString("courIds"));
+            cg_User1.setName(sp.getString("name"));
+            cg_User1.setCardId(cardInfo.cardId());
+            checkRecord(String.valueOf(2));
+        } else {
+            RetrofitGenerator.getConnectApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId())
+                    .subscribeOn(Schedulers.io())
+                    .unsubscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new MyObserver<ResponseBody>(this) {
+                        @Override
+                        public void onNext(ResponseBody responseBody) {
+                            try {
+                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
+                                        new TypeToken<HashMap<String, String>>() {
+                                        }.getType());
+                                if (infoMap.get("result").equals("true")) {
+                                    if (infoMap.get("status").equals(String.valueOf(0))) {
+                                        if (infoMap.get("courType").equals(PersonType.KuGuan)) {
+                                            if (getState(No_one_OperateState.class)) {
+                                                global_Operation.setState(new One_man_OperateState());
+                                                cg_User1.setCourIds(infoMap.get("courIds"));
+                                                cg_User1.setName(infoMap.get("name"));
+                                                cg_User1.setCardId(cardInfo.cardId());
+                                                pp.capture();
+                                            } else if (getState(Two_man_OperateState.class)) {
+                                                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                                                    cg_User2.setCourIds(infoMap.get("courIds"));
+                                                    cg_User2.setName(infoMap.get("name"));
+                                                    cg_User2.setCardId(cardInfo.cardId());
+                                                    pp.capture();
+                                                    EventBus.getDefault().post(new PassEvent());
+                                                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                                                } else {
+                                                    tv_info.setText("请不要连续输入相同的管理员信息");
+                                                }
+                                            } else if (getState(Door_Open_OperateState.class)) {
+                                                tv_info.setText("仓库门已解锁");
+                                            }
+                                        } else if (infoMap.get("courType").equals(PersonType.XunJian)) {
+                                            if (checkChange != null) {
+                                                checkChange.dispose();
+                                            }
+                                            cg_User1.setCourIds(infoMap.get("courIds"));
+                                            cg_User1.setName(infoMap.get("name"));
+                                            cg_User1.setCardId(cardInfo.cardId());
+                                            checkRecord(String.valueOf(2));
+                                        }
+                                    } else {
+                                        unknownUser.setName(cardInfo.name());
+                                        unknownUser.setCardId(cardInfo.cardId());
+                                        pp.capture();
+                                    }
+                                } else {
+                                    unknownUser.setName(cardInfo.name());
+                                    unknownUser.setCardId(cardInfo.cardId());
+                                    pp.capture();
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (NullPointerException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+
+//            unknownUser.setFingerprintId(sp);
 
         }
     }
@@ -602,11 +718,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new MyObserver<ResponseBody>(this) {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-
-                    }
-
                     @Override
                     public void onNext(ResponseBody responseBody) {
                         try {
@@ -828,7 +939,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             tv_info.setText("访问人上传失败");
                         } else if (s.equals("dataErr")) {
                             tv_info.setText("上传访问人数据失败");
-                        } else if (s.equals("dataErr")) {
+                        } else if (s.equals("dbErr")) {
                             tv_info.setText("数据库操作有错");
                         }
                         unknownUser = new User();

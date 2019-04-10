@@ -6,6 +6,7 @@ import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
+import com.sz_device.Tools.AssetsUtils;
 import com.sz_device.Tools.DESX;
 import com.sz_device.Tools.NetInfo;
 import com.trello.rxlifecycle2.android.ActivityEvent;
@@ -35,7 +36,6 @@ public class SplashActivity extends RxActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-
         Observable.timer(3, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(SplashActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
@@ -61,6 +61,8 @@ public class SplashActivity extends RxActivity {
                             config.put("daid", new NetInfo().getMacId());
                             config.put("key", DESX.encrypt(jsonKey.toString()));
                             config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
+                            AssetsUtils.getInstance(AppInit.getContext()).copyAssetsToSD("wltlib","wltlib");
+
                         }
                         Observable.timer(3, TimeUnit.SECONDS)
                                 .observeOn(AndroidSchedulers.mainThread())
@@ -73,7 +75,7 @@ public class SplashActivity extends RxActivity {
 
                                     @Override
                                     public void onNext(@NonNull Long aLong) {
-                                        ActivityUtils.startActivity(getPackageName(), getPackageName() + AppInit.getInstrumentConfig().getActivity());
+                                        ActivityUtils.startActivity(getPackageName(), getPackageName() + AppInit.getInstrumentConfig().getMainActivity());
                                         SplashActivity.this.finish();
                                     }
 

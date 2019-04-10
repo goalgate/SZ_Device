@@ -347,7 +347,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
     public void onSuperOptionType(Button view, int type) {
         superWindow.dismiss();
         if (type == 1) {
-            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".WYYAddPersonActivity");
+            ActivityUtils.startActivity(getPackageName(), getPackageName() + AppInit.getInstrumentConfig().getAddActivity());
         } else if (type == 2) {
             alert_server.show();
         } else if (type == 3) {
@@ -392,7 +392,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
     public void onOptionType(Button view, int type) {
         normalWindow.dismiss();
         if (type == 1) {
-            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".WYYAddPersonActivity");
+            ActivityUtils.startActivity(getPackageName(), getPackageName() + AppInit.getInstrumentConfig().getAddActivity());
         } else if (type == 2) {
             alert_ip.show();
         }
@@ -915,7 +915,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                             tv_info.setText("访问人上传失败");
                         } else if (s.equals("dataErr")) {
                             tv_info.setText("上传访问人数据失败");
-                        } else if (s.equals("dataErr")) {
+                        } else if (s.equals("dbErr")) {
                             tv_info.setText("数据库操作有错");
                         }
                         unknownUser = new User();

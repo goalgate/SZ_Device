@@ -11,6 +11,7 @@ import com.sz_device.Config.BaseConfig;
 
 import com.sz_device.Config.SZ_Config;
 import com.sz_device.Config.WYY_Config;
+import com.sz_device.Config.ZJYZB_Config;
 import com.sz_device.greendao.DaoMaster;
 import com.sz_device.greendao.DaoSession;
 import com.ys.myapi.MyManager;
@@ -67,7 +68,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        config = new SZ_Config();
+        config = new ZJYZB_Config();
 
         manager = MyManager.getInstance(this);
 

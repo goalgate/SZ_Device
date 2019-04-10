@@ -63,11 +63,11 @@ public class MyObserver<T> implements Observer<T>{
                     .subscribe(new Consumer<Long>() {
                         @Override
                         public void accept(Long aLong) throws Exception {
-                            Alarm.getInstance(context).messageAlarm("无法连接服务器");
+                            Alarm.getInstance(context).messageAlarm("无法连接服务器，请检查网络");
                         }
                     });
         }else {
-            Alarm.getInstance(context).messageAlarm("无法连接服务器");
+            Alarm.getInstance(context).messageAlarm("无法连接服务器，请检查网络");
         }
 
     }

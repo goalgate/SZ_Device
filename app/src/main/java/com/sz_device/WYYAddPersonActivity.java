@@ -378,13 +378,12 @@ public class WYYAddPersonActivity extends Activity implements IFingerPrintView, 
                                     user_sp.put("name", user.getName());
                                     user_sp.put("cardId", user.getCardId());
                                     user_sp.put("courType", user.getCourType());
-
                                     SPUtils user_id = SPUtils.getInstance(user.getCardId());
                                     user_id.put("courIds", user.getCourIds());
                                     user_id.put("name", user.getName());
                                     user_id.put("fingerprintId", user.getFingerprintId());
                                     user_id.put("courType", user.getCourType());
-
+                                    fp_id = "0";
                                     ToastUtils.showLong("人员插入成功");
                                     cancel();
                                 } else {
@@ -406,7 +405,6 @@ public class WYYAddPersonActivity extends Activity implements IFingerPrintView, 
             @Override
             public void onItemClick(Object o, int position) {
                 if (position == 0) {
-                    fp_id = "0";
                     commitable = false;
                     user = new User();
                     AppInit.getInstrumentConfig().readCard();
@@ -416,10 +414,14 @@ public class WYYAddPersonActivity extends Activity implements IFingerPrintView, 
                     tv_person_name.setText(null);
                     iv_head_photo.setImageBitmap(null);
                     img_finger.setClickable(false);
+                    fpp.fpCancel(true);
+                    fpp.fpRemoveTmpl(fp_id);
                     tv_finger.setText("请刷身份证以获得指纹编号");
                     img_finger.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.zw_icon));
                     //fpp.fpRemoveAll();
                 } else {
+                    fpp.fpCancel(true);
+                    fpp.fpRemoveTmpl(fp_id);
                     finish();
                 }
             }
@@ -569,7 +571,6 @@ public class WYYAddPersonActivity extends Activity implements IFingerPrintView, 
                                     AppInit.getInstrumentConfig().stopReadCard();
                                 } else {
                                     Alarm.getInstance(WYYAddPersonActivity.this).messageAlarm("您的身份有误，如有疑问请联系客服处理");
-//
                                 }
                             } else {
                                 Alarm.getInstance(WYYAddPersonActivity.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");

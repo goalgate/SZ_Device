@@ -19,8 +19,13 @@ public class JMZH_Config extends BaseConfig {
     }
 
     @Override
-    public String getActivity() {
+    public String getMainActivity() {
         return ".New_IndexActivity";
+    }
+
+    @Override
+    public String getAddActivity() {
+        return ".AddPersonActivity";
     }
 
     @Override
@@ -31,5 +36,10 @@ public class JMZH_Config extends BaseConfig {
     @Override
     public void stopReadCard() {
         IDCardPresenter.getInstance().stopReadCard();
+    }
+
+    @Override
+    public String CardFunction() {
+        return IC;
     }
 }

@@ -23,6 +23,7 @@
         <activity android:name=".New_IndexActivity"></activity>
         <activity android:name=".WYYActivity"></activity>
         <activity android:name=".WYYAddPersonActivity"></activity>
+        <activity android:name=".ZJYZBAddActivity"></activity>
         <service android:name=".Service.SwitchService"></service>
         <service android:name=".Service.WYYService"></service>
         <receiver android:name=".Receiver.BootBroadcastReceiver">
