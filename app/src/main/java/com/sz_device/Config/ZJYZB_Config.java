@@ -5,7 +5,7 @@ import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 public class ZJYZB_Config extends BaseConfig {
     @Override
     public String getServerId() {
-        return "http://192.168.11.21:9000/cjy/s/";
+        return "http://113.140.1.136:7117/cjy/s/";
     }
 
     @Override
@@ -15,7 +15,7 @@ public class ZJYZB_Config extends BaseConfig {
 
     @Override
     public String getVer() {
-        return "1.0";
+        return "1.2";
     }
 
     @Override

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -18,6 +19,7 @@ import com.drv.card.ICardInfo;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.view.RxView;
+import com.log.Lg;
 import com.sz_device.Alerts.Alarm;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.EventBus.OpenDoorEvent;
@@ -53,6 +55,8 @@ import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
 public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDCardView {
+
+    private String TAG = ZJYZBAddActivity.class.getSimpleName();
 
     SPUtils config = SPUtils.getInstance("config");
 
@@ -92,6 +96,7 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
                 try {
                     jsonObject.put("id", user.getCardId());
                     jsonObject.put("courIds", user.getCourIds());
+                    jsonObject.put("dataType", "1");
                     jsonObject.put("name", user.getName());
                     jsonObject.put("courType", user.getCourType());
                     jsonObject.put("fingerprintPhoto", user.getFingerprintPhoto());
@@ -101,6 +106,7 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+                Log.e("jsonString",jsonObject.toString());
                 RetrofitGenerator.getConnectApi().withDataRs("fingerLog", config.getString("key"), jsonObject.toString())
                         .subscribeOn(Schedulers.io())
                         .unsubscribeOn(Schedulers.io())
@@ -108,22 +114,26 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
                         .subscribe(new MyObserver<String>(this) {
                             @Override
                             public void onNext(String s) {
-                                if (s.equals("true")) {
-                                    SPUtils user_sp = SPUtils.getInstance(user.getFingerprintId());
-                                    user_sp.put("courIds", user.getCourIds());
-                                    user_sp.put("name", user.getName());
-                                    user_sp.put("cardId", user.getCardId());
-                                    user_sp.put("courType", user.getCourType());
-                                    SPUtils user_id = SPUtils.getInstance(user.getCardId());
-                                    user_id.put("courIds", user.getCourIds());
-                                    user_id.put("name", user.getName());
-                                    user_id.put("fingerprintId", user.getFingerprintId());
-                                    user_id.put("courType", user.getCourType());
-                                    fp_id = "0";
-                                    ToastUtils.showLong("人员插入成功");
-                                    cancel();
-                                } else {
-                                    Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm("数据插入有错");
+                                try {
+                                    if (s.equals("true")) {
+                                        SPUtils user_sp = SPUtils.getInstance(user.getFingerprintId());
+                                        user_sp.put("courIds", user.getCourIds());
+                                        user_sp.put("name", user.getName());
+                                        user_sp.put("cardId", user.getCardId());
+                                        user_sp.put("courType", user.getCourType());
+                                        SPUtils user_id = SPUtils.getInstance(user.getCardId());
+                                        user_id.put("courIds", user.getCourIds());
+                                        user_id.put("name", user.getName());
+                                        user_id.put("fingerprintId", user.getFingerprintId());
+                                        user_id.put("courType", user.getCourType());
+                                        fp_id = "0";
+                                        ToastUtils.showLong("人员插入成功");
+                                        cancel();
+                                    } else {
+                                        Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm("数据插入有错");
+                                    }
+                                }catch (Exception e){
+                                    Lg.e(TAG,e.toString());
                                 }
                             }
                         });
@@ -295,7 +305,8 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
                                     }.getType());
                             if (infoMap.get("result").equals("true")) {
                                 if (infoMap.get("status").equals(String.valueOf(0))) {
-                                    fp_id = infoMap.get("data");
+                                    //fp_id = infoMap.get("data");
+                                    fp_id = String.valueOf(fpp.fpGetEmptyID());
                                     img_finger.setClickable(false);
                                     fpp.fpEnroll(fp_id);
                                     user = new User();
@@ -314,9 +325,11 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
                                 Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm(infoMap.get("result"));
                             }
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            Lg.e(TAG,e.toString());
                         } catch (NullPointerException e){
-                            e.printStackTrace();
+                            Lg.e(TAG,e.toString());
+                        } catch (Exception e){
+                            Lg.e(TAG,e.toString());
                         }
                     }
                 });

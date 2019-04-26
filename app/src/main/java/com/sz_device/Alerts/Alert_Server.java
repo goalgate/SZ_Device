@@ -2,6 +2,7 @@ package com.sz_device.Alerts;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,7 +69,7 @@ public class Alert_Server {
                     url = etName.getText().toString();
                 }
                 if(AppInit.getInstrumentConfig().getClass().getName().equals(WYY_Config.class.getName())){
-                    RetrofitGenerator.getWyyConnectApi(url).noData("testNet", config.getString("key"))
+                    new RetrofitGenerator().getWyyConnectApi(url).noData("testNet", config.getString("key"))
                             .subscribeOn(Schedulers.io())
                             .unsubscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
@@ -80,13 +81,17 @@ public class Alert_Server {
 
                                 @Override
                                 public void onNext(String s) {
-                                    if (s.equals("true")) {
-                                        config.put("ServerId", url);
-                                        ToastUtils.showLong("连接服务器成功");
-                                        callback.setNetworkBmp();
-                                        //iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
-                                    } else {
-                                        ToastUtils.showLong("连接服务器失败");
+                                    try {
+                                        if (s.equals("true")) {
+                                            config.put("ServerId", url);
+                                            ToastUtils.showLong("连接服务器成功,请点击确定立即启用");
+                                            callback.setNetworkBmp();
+                                            //iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
+                                        } else {
+                                            ToastUtils.showLong("连接服务器失败");
+                                        }
+                                    }catch (Exception e){
+                                        e.printStackTrace();
                                     }
                                 }
 
@@ -101,7 +106,7 @@ public class Alert_Server {
                                 }
                             });
                 }else {
-                    RetrofitGenerator.getConnectApi(url).noData("testNet", config.getString("key"))
+                    new RetrofitGenerator().getConnectApi(url).noData("testNet", config.getString("key"))
                             .subscribeOn(Schedulers.io())
                             .unsubscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
@@ -113,14 +118,19 @@ public class Alert_Server {
 
                                 @Override
                                 public void onNext(String s) {
-                                    if (s.equals("true")) {
-                                        config.put("ServerId", url);
-                                        ToastUtils.showLong("连接服务器成功");
-                                        callback.setNetworkBmp();
-                                        //iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
-                                    } else {
-                                        ToastUtils.showLong("连接服务器失败");
+                                    try {
+                                        if (s.equals("true")) {
+                                            config.put("ServerId", url);
+                                            ToastUtils.showLong("连接服务器成功,请点击确定立即启用");
+                                            callback.setNetworkBmp();
+                                            //iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
+                                        } else {
+                                            ToastUtils.showLong("连接服务器失败");
+                                        }
+                                    }catch (Exception e){
+                                        e.printStackTrace();
                                     }
+
                                 }
 
                                 @Override

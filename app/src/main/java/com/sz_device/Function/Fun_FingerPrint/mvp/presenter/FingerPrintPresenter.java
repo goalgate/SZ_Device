@@ -93,7 +93,6 @@ public class FingerPrintPresenter {
         fpModule.onDownTemplate(id ,temp, getFpListener());
     }
 
-
     public void sync(String dataList){
         fpModule.sync(dataList);
     }

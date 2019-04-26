@@ -29,6 +29,9 @@ public class RetrofitGenerator {
 
     private static WYYConnectApi wyyConnectApi;
 
+    private ConnectApi testConnectApi;
+
+    private WYYConnectApi testWYYConnectApi;
 
     private static OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder();
     private static Gson gson = new GsonBuilder()
@@ -53,13 +56,12 @@ public class RetrofitGenerator {
                 .build();
         Retrofit retrofit = new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create(gson))
-
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(SPUtils.getInstance("config").getString("ServerId")).client(client).build();
         return retrofit.create(serviceClass);
     }
 
-    private static <S> S createService(Class<S> serviceClass, String url) {
+    private <S> S createService(Class<S> serviceClass, String url) {
         OkHttpClient client = okHttpClient.connectTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
@@ -71,11 +73,11 @@ public class RetrofitGenerator {
         return retrofit.create(serviceClass);
     }
 
-    public static ConnectApi getConnectApi(String url) {
-        if (connectApi == null) {
-            connectApi = createService(ConnectApi.class, url);
+    public ConnectApi getConnectApi(String url) {
+        if (testConnectApi == null) {
+            testConnectApi = createService(ConnectApi.class, url);
         }
-        return connectApi;
+        return testConnectApi;
     }
 
     public static ConnectApi getConnectApi() {
@@ -85,11 +87,11 @@ public class RetrofitGenerator {
         return connectApi;
     }
 
-    public static WYYConnectApi getWyyConnectApi(String url) {
-        if (wyyConnectApi == null) {
-            wyyConnectApi = createService(WYYConnectApi.class, url);
+    public WYYConnectApi getWyyConnectApi(String url) {
+        if (testWYYConnectApi == null) {
+            testWYYConnectApi = createService(WYYConnectApi.class, url);
         }
-        return wyyConnectApi;
+        return testWYYConnectApi;
     }
 
     public static WYYConnectApi getWyyConnectApi() {

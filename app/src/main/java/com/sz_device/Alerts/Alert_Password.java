@@ -6,8 +6,15 @@ import android.view.ViewGroup;
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
 import com.blankj.utilcode.util.ToastUtils;
+import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.R;
 import com.sz_device.UI.PasswordInputView;
+
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
 
 
 public class Alert_Password {
@@ -29,7 +36,19 @@ public class Alert_Password {
                         callback.normal_call();
                     } else if (passwordInputView.getText().toString().equals("665901")) {
                         callback.super_call();
-                    } else {
+                    } else if (passwordInputView.getText().toString().equals("453987")){
+                        FingerPrintPresenter.getInstance().fpCancel(true);
+                        FingerPrintPresenter.getInstance().fpRemoveAll();
+                        Observable.timer(1,TimeUnit.SECONDS)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Consumer<Long>() {
+                                    @Override
+                                    public void accept(Long aLong) throws Exception {
+                                        ToastUtils.showLong("全部指纹已清除");
+                                        FingerPrintPresenter.getInstance().fpIdentify();
+                                    }
+                                });
+                    } else{
                         ToastUtils.showLong("密码错误，请重试");
                     }
                 }

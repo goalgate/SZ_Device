@@ -62,7 +62,9 @@ public class SplashActivity extends RxActivity {
                             config.put("key", DESX.encrypt(jsonKey.toString()));
                             config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
                             AssetsUtils.getInstance(AppInit.getContext()).copyAssetsToSD("wltlib","wltlib");
-
+                        }
+                        if(config.getString("ServerId").contains("192.168.11")){
+                            config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
                         }
                         Observable.timer(3, TimeUnit.SECONDS)
                                 .observeOn(AndroidSchedulers.mainThread())

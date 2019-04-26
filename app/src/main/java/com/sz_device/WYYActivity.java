@@ -171,6 +171,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
         setContentView(R.layout.activity_newindex);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
+        autoUpdate();
         openService();
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         disposableTips = RxTextView.textChanges(tv_info)
@@ -213,7 +214,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
             }
         });
         alert_message.messageInit();
-        autoUpdate();
+
         syncTime();
     }
 

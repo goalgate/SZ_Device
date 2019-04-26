@@ -417,6 +417,8 @@ import okhttp3.ResponseBody;
 
 public class AddPersonActivity extends Activity implements IFingerPrintView {
 
+    private String TAG = AddPersonActivity.class.getSimpleName();
+
     SPUtils config = SPUtils.getInstance("config");
 
     FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
@@ -479,7 +481,9 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                                 Alarm.getInstance(AddPersonActivity.this).messageAlarm(infoMap.get("result"));
                             }
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            Lg.e(TAG,e.toString());
+                        } catch (Exception e){
+                            Lg.e(TAG,e.toString());
                         }
                     }
                 });
@@ -510,21 +514,24 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                         .subscribe(new MyObserver<String>(this) {
                             @Override
                             public void onNext(String s) {
-                                if (s.equals("true")) {
-                                    SPUtils user_sp = SPUtils.getInstance(user.getFingerprintId());
-                                    user_sp.put("courIds", user.getCourIds());
-                                    user_sp.put("name", user.getName());
-                                    user_sp.put("cardId", user.getCardId());
-                                    user_sp.put("courType", user.getCourType());
-                                    fp_id = "0";
-                                    ToastUtils.showLong("人员插入成功");
-                                    cancel();
-                                } else {
-                                    Alarm.getInstance(AddPersonActivity.this).messageAlarm("数据插入有错");
+                                try{
+                                    if (s.equals("true")) {
+                                        SPUtils user_sp = SPUtils.getInstance(user.getFingerprintId());
+                                        user_sp.put("courIds", user.getCourIds());
+                                        user_sp.put("name", user.getName());
+                                        user_sp.put("cardId", user.getCardId());
+                                        user_sp.put("courType", user.getCourType());
+                                        fp_id = "0";
+                                        ToastUtils.showLong("人员插入成功");
+                                        cancel();
+                                    } else {
+                                        Alarm.getInstance(AddPersonActivity.this).messageAlarm("数据插入有错");
+                                    }
+                                }catch (Exception e){
+                                    Lg.e(TAG,e.toString());
                                 }
                             }
                         });
-
             } else {
                 Alarm.getInstance(AddPersonActivity.this).messageAlarm("您的操作有误，请重试");
 

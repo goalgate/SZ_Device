@@ -5,7 +5,7 @@ import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 public class WYY_Config extends BaseConfig{
     @Override
     public String getServerId() {
-        return "http://192.168.11.190:8102/";
+        return "http://192.168.11.21:8502/";
     }
 
     @Override

@@ -18,6 +18,7 @@ import com.drv.card.ICardInfo;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.view.RxView;
+import com.log.Lg;
 import com.sz_device.Alerts.Alarm;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.EventBus.OpenDoorEvent;
@@ -318,6 +319,8 @@ import okhttp3.ResponseBody;
 
 public class WYYAddPersonActivity extends Activity implements IFingerPrintView, IIDCardView {
 
+    private String TAG = WYYAddPersonActivity.class.getSimpleName();
+
     SPUtils config = SPUtils.getInstance("config");
 
     FingerPrintPresenter fpp = FingerPrintPresenter.getInstance();
@@ -356,6 +359,7 @@ public class WYYAddPersonActivity extends Activity implements IFingerPrintView, 
                 try {
                     jsonObject.put("id", user.getCardId());
                     jsonObject.put("courIds", user.getCourIds());
+                    jsonObject.put("dataType", "1");
                     jsonObject.put("name", user.getName());
                     jsonObject.put("courType", user.getCourType());
                     jsonObject.put("fingerprintPhoto", user.getFingerprintPhoto());
@@ -372,22 +376,27 @@ public class WYYAddPersonActivity extends Activity implements IFingerPrintView, 
                         .subscribe(new MyObserver<String>(this) {
                             @Override
                             public void onNext(String s) {
-                                if (s.equals("true")) {
-                                    SPUtils user_sp = SPUtils.getInstance(user.getFingerprintId());
-                                    user_sp.put("courIds", user.getCourIds());
-                                    user_sp.put("name", user.getName());
-                                    user_sp.put("cardId", user.getCardId());
-                                    user_sp.put("courType", user.getCourType());
-                                    SPUtils user_id = SPUtils.getInstance(user.getCardId());
-                                    user_id.put("courIds", user.getCourIds());
-                                    user_id.put("name", user.getName());
-                                    user_id.put("fingerprintId", user.getFingerprintId());
-                                    user_id.put("courType", user.getCourType());
-                                    fp_id = "0";
-                                    ToastUtils.showLong("人员插入成功");
-                                    cancel();
-                                } else {
-                                    Alarm.getInstance(WYYAddPersonActivity.this).messageAlarm("数据插入有错");
+                                try {
+                                    if (s.equals("true")) {
+                                        SPUtils user_sp = SPUtils.getInstance(user.getFingerprintId());
+                                        user_sp.put("courIds", user.getCourIds());
+
+                                        user_sp.put("name", user.getName());
+                                        user_sp.put("cardId", user.getCardId());
+                                        user_sp.put("courType", user.getCourType());
+                                        SPUtils user_id = SPUtils.getInstance(user.getCardId());
+                                        user_id.put("courIds", user.getCourIds());
+                                        user_id.put("name", user.getName());
+                                        user_id.put("fingerprintId", user.getFingerprintId());
+                                        user_id.put("courType", user.getCourType());
+                                        fp_id = "0";
+                                        ToastUtils.showLong("人员插入成功");
+                                        cancel();
+                                    } else {
+                                        Alarm.getInstance(WYYAddPersonActivity.this).messageAlarm("数据插入有错");
+                                    }
+                                }catch (Exception e){
+                                    Lg.e(TAG,e.toString());
                                 }
                             }
                         });
@@ -401,7 +410,7 @@ public class WYYAddPersonActivity extends Activity implements IFingerPrintView, 
 
     @OnClick(R.id.btn_cancel)
     void cancel() {
-        new AlertView("请选择接下来的操作", null, null, new String[]{"重置", "退出"}, null, WYYAddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+        new AlertView("请选择接下来的操作", null, null, new String[]{"重置并继续录入指纹", "退出至主桌面"}, null, WYYAddPersonActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
             @Override
             public void onItemClick(Object o, int position) {
                 if (position == 0) {
@@ -576,9 +585,11 @@ public class WYYAddPersonActivity extends Activity implements IFingerPrintView, 
                                 Alarm.getInstance(WYYAddPersonActivity.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");
                             }
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            Lg.e(TAG,e.toString());
                         } catch (NullPointerException e) {
-                            e.printStackTrace();
+                            Lg.e(TAG,e.toString());
+                        } catch (Exception e){
+                            Lg.e(TAG,e.toString());
                         }
                     }
                 });

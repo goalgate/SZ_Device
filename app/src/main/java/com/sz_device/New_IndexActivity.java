@@ -20,6 +20,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
 import com.blankj.utilcode.util.ActivityUtils;
@@ -65,12 +66,14 @@ import com.sz_device.UI.NormalWindow;
 import com.sz_device.UI.SuperWindow;
 import com.sz_device.greendao.DaoSession;
 import com.trello.rxlifecycle2.android.ActivityEvent;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -79,6 +82,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -174,7 +178,8 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         setContentView(R.layout.activity_newindex);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
-        Lg.e("key",config.getString("key"));
+        autoUpdate();
+        Lg.e("key", config.getString("key"));
         openService();
         network_state = false;
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
@@ -218,7 +223,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
             }
         });
         alert_message.messageInit();
-        autoUpdate();
         syncTime();
     }
 
@@ -386,7 +390,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                         if (TextUtils.isEmpty(et_idcard.getText().toString()) || TextUtils.isEmpty(et_finger.getText().toString())) {
                             ToastUtils.showLong("您的输入为空请重试");
                         } else {
-                            deletePerson(et_idcard.getText().toString(), et_finger.getText().toString());
+                            deletePerson(et_idcard.getText().toString().toUpperCase(), et_finger.getText().toString());
                         }
                     }
                 }
@@ -482,7 +486,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
             if (checkChange != null) {
                 checkChange.dispose();
             }
-            if(getState(One_man_OperateState.class)){
+            if (getState(One_man_OperateState.class)) {
                 Alarm.getInstance(this).messageAlarm("请注意，该人员为巡检员，无法正常解锁\n如需解锁还请两名仓管员到现场重新操作\n此次巡检记录已保存");
                 SwitchPresenter.getInstance().buzz(SwitchImpl.Hex.H2);
             }
@@ -571,9 +575,9 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     @Override
     public void onsetCardInfo(final ICardInfo cardInfo) {
         if (alert_message.Showing()) {
-            if(AppInit.getInstrumentConfig().getClass().getName().equals(BaseConfig.IC)){
+            if (AppInit.getInstrumentConfig().CardFunction().equals(BaseConfig.IC)) {
                 alert_message.setICCardText("IC卡号：" + cardInfo.getUid());
-            }else{
+            } else {
                 alert_message.setICCardText("身份证号：" + cardInfo.cardId());
             }
         } else {
@@ -588,9 +592,9 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     Alarm.getInstance(New_IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
                         @Override
                         public void onIsKnown() {
-                            if(AppInit.getInstrumentConfig().getClass().getName().equals(BaseConfig.IC)){
+                            if (AppInit.getInstrumentConfig().CardFunction().equals(BaseConfig.IC)) {
                                 iccard_operation(cardInfo);
-                            }else {
+                            } else {
                                 idcard_operation(cardInfo);
                             }
 
@@ -607,6 +611,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
         }
     }
+
     private void idcard_operation(final ICardInfo cardInfo) {
         SPUtils sp = SPUtils.getInstance(cardInfo.cardId());
         if (sp.getString("courType").equals(PersonType.KuGuan)) {
@@ -724,8 +729,8 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             JSONObject jsonObject = new JSONObject(responseBody.string().toString());
                             if (jsonObject.getString("result").equals("true")) {
                                 JSONObject jsonArray = jsonObject.getJSONObject("data");
-                                if (Integer.parseInt(jsonArray.getString("courType")) == 2) {
-                                    cg_User1.setCourIds(jsonArray.getString("courIds"));
+                                if (TextUtils.isEmpty(jsonArray.getString("courType"))||Integer.parseInt(jsonArray.getString("courType")) == 2) {
+                                    cg_User1.setCourIds(jsonArray.getString("courids"));
                                     cg_User1.setCardId(jsonArray.getString("idcard"));
                                     cg_User1.setName(jsonArray.getString("name"));
                                     checkRecord(jsonArray.getString("courType"));
@@ -733,12 +738,12 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                                     if (getState(No_one_OperateState.class)) {
                                         global_Operation.setState(new One_man_OperateState());
                                         pp.capture();
-                                        cg_User1.setCourIds(jsonArray.getString("courIds"));
+                                        cg_User1.setCourIds(jsonArray.getString("courids"));
                                         cg_User1.setName(jsonArray.getString("name"));
                                         cg_User1.setCardId(jsonArray.getString("idcard"));
                                     } else if (getState(Two_man_OperateState.class)) {
                                         if (!jsonArray.getString("idcard").equals(cg_User1.getCardId())) {
-                                            cg_User2.setCourIds(jsonArray.getString("courIds"));
+                                            cg_User2.setCourIds(jsonArray.getString("courids"));
                                             cg_User2.setName(jsonArray.getString("name"));
                                             cg_User2.setCardId(jsonArray.getString("idcard"));
                                             pp.capture();
@@ -758,8 +763,9 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             e.printStackTrace();
                         } catch (JSONException exception) {
                             exception.printStackTrace();
+                        } catch (Exception e){
+                            e.printStackTrace();
                         }
-
                     }
 
                     @Override
@@ -830,7 +836,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver<String>(this,true) {
+                .subscribe(new MyObserver<String>(this, true) {
 
                     @Override
                     public void onNext(String s) {
@@ -973,7 +979,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver<ResponseBody>(this,true) {
+                .subscribe(new MyObserver<ResponseBody>(this, true) {
                     @Override
                     public void onNext(ResponseBody responseBody) {
                         try {
