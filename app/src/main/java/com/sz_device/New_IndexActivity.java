@@ -40,6 +40,7 @@ import com.sz_device.Alerts.Alert_Password;
 import com.sz_device.Alerts.Alert_Server;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.Config.BaseConfig;
+import com.sz_device.Config.SZ_Config;
 import com.sz_device.EventBus.AlarmEvent;
 import com.sz_device.EventBus.LockUpEvent;
 import com.sz_device.EventBus.NetworkEvent;
@@ -337,6 +338,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                         tv_time.setText(formatter.format(new Date(System.currentTimeMillis())));
                     }
                 });
+        sync();
     }
 
     @Override
@@ -729,7 +731,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             JSONObject jsonObject = new JSONObject(responseBody.string().toString());
                             if (jsonObject.getString("result").equals("true")) {
                                 JSONObject jsonArray = jsonObject.getJSONObject("data");
-                                if (TextUtils.isEmpty(jsonArray.getString("courType"))||Integer.parseInt(jsonArray.getString("courType")) == 2) {
+                                if (TextUtils.isEmpty(jsonArray.getString("courType")) || Integer.parseInt(jsonArray.getString("courType")) == 2) {
                                     cg_User1.setCourIds(jsonArray.getString("courids"));
                                     cg_User1.setCardId(jsonArray.getString("idcard"));
                                     cg_User1.setName(jsonArray.getString("name"));
@@ -763,7 +765,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             e.printStackTrace();
                         } catch (JSONException exception) {
                             exception.printStackTrace();
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -988,7 +990,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                                 final JSONArray jsonArray = jsonObject.getJSONArray("data");
                                 if (null != jsonArray && jsonArray.length() != 0) {
                                     fpp.fpRemoveAll();
-                                    Observable.timer(1,TimeUnit.SECONDS)
+                                    Observable.timer(1, TimeUnit.SECONDS)
                                             .observeOn(AndroidSchedulers.mainThread())
                                             .subscribe(new Consumer<Long>() {
                                                 @Override
@@ -1012,6 +1014,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                                                     config.put("daid", old_devid);
                                                     config.put("key", DESX.encrypt(jsonKey.toString()));
                                                     ToastUtils.showLong("设备数据更新成功");
+                                                    config.put("sync28", false);
                                                     fpp.fpIdentify();
                                                 }
                                             });
@@ -1043,7 +1046,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     }
                 });
     }
-
 
 
     private void OpenDoorRecord(boolean leagl) {
@@ -1114,6 +1116,21 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                 });
     }
 
+    private void sync() {
+        Observable.timer(5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<Long>bindUntilEvent(ActivityEvent.PAUSE))
+                .subscribe(new Consumer<Long>() {
+                    @Override
+                    public void accept(@NonNull Long aLong) throws Exception {
+                        if (config.getBoolean("sync28", true) &&
+                                AppInit.getInstrumentConfig().getClass().getName().equals(SZ_Config.class.getName())) {
+                            fpp.fpCancel(true);
+                            equipment_sync(config.getString("daid"));
+                        }
+                    }
+                });
+
+    }
 
 }
 

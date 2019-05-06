@@ -910,7 +910,6 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                                 tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功,指纹号为" + unknownUser.getFingerprintId());
                             }else{
                                 tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功");
-
                             }
                         } else if (s.equals("false")) {
                             tv_info.setText("访问人上传失败");

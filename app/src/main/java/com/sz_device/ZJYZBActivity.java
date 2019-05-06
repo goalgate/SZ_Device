@@ -933,7 +933,12 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                             global_Operation.setState(new No_one_OperateState());
                         }
                         if (s.equals("true")) {
-                            tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功,指纹号为" + unknownUser.getFingerprintId());
+                            if(unknownUser.getFingerprintId()!=null){
+                                tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功,指纹号为" + unknownUser.getFingerprintId());
+                            }else{
+                                tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功");
+                            }
+//                            tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功,指纹号为" + unknownUser.getFingerprintId());
                         } else if (s.equals("false")) {
                             tv_info.setText("访问人上传失败");
                         } else if (s.equals("dataErr")) {

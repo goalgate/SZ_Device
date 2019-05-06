@@ -70,7 +70,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        config = new SZ_Config();
+        config = new ZJYZB_Config();
 
         manager = MyManager.getInstance(this);
 
