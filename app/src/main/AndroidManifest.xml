@@ -24,8 +24,10 @@
         <activity android:name=".WYYActivity"></activity>
         <activity android:name=".WYYAddPersonActivity"></activity>
         <activity android:name=".ZJYZBAddActivity"></activity>
+        <activity android:name=".ZJYZBActivity"></activity>
         <service android:name=".Service.SwitchService"></service>
         <service android:name=".Service.WYYService"></service>
+        <service android:name=".Service.ZJYZBService"></service>
         <receiver android:name=".Receiver.BootBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>

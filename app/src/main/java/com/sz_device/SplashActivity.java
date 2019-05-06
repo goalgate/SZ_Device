@@ -66,6 +66,9 @@ public class SplashActivity extends RxActivity {
                         if(config.getString("ServerId").contains("192.168.11")){
                             config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
                         }
+                        if(config.getString("ServerId").equals("http://jdwp.szxhdz.com/")){
+                            config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
+                        }
                         Observable.timer(3, TimeUnit.SECONDS)
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .compose(SplashActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))

@@ -1,54 +1,39 @@
 package com.sz_device.Service;
 
-import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.util.Log;
 
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
-
-import com.blankj.utilcode.util.ToastUtils;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.log.Lg;
-import com.sz_device.Alerts.Alarm;
 import com.sz_device.AppInit;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.EventBus.AlarmEvent;
 import com.sz_device.EventBus.LockUpEvent;
-
 import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
+import com.sz_device.EventBus.PassEvent;
+import com.sz_device.EventBus.TemHumEvent;
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.sz_device.Function.Func_Switch.mvp.view.ISwitchView;
-import com.sz_device.IndexActivity;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.State.DoorState.Door;
-
 import com.sz_device.State.DoorState.DoorState;
 import com.sz_device.State.DoorState.State_Close;
 import com.sz_device.State.DoorState.State_Open;
-
-import com.sz_device.EventBus.PassEvent;
-import com.sz_device.EventBus.TemHumEvent;
-
 import com.sz_device.State.LockState.Lock;
 import com.sz_device.State.LockState.State_Lockup;
 import com.sz_device.State.LockState.State_Unlock;
-import com.sz_device.Tools.DESX;
 import com.sz_device.greendao.DaoSession;
 import com.sz_device.greendao.ReUploadBeanDao;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.greenrobot.greendao.query.QueryBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,9 +42,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -74,12 +57,7 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
-
-/**
- * Created by zbsz on 2017/8/28.
- */
-
-public class SwitchService extends Service implements ISwitchView {
+public class ZJYZBService extends Service implements ISwitchView {
 
     SwitchPresenter sp = SwitchPresenter.getInstance();
 
@@ -607,6 +585,12 @@ public class SwitchService extends Service implements ISwitchView {
                                                         user_sp.put("name", item.getString("name"));
                                                         user_sp.put("cardId", item.getString("idcard"));
                                                         user_sp.put("courType", item.getString("courType"));
+
+                                                        SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+                                                        user_id.put("courIds", item.getString("courIds"));
+                                                        user_id.put("name", item.getString("name"));
+                                                        user_id.put("fingerprintId", item.getString("pfpIds"));
+                                                        user_id.put("courType", item.getString("courType"));
                                                     }
                                                     AppInit.getMyManager().reboot();
                                                 }

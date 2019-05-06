@@ -20,7 +20,7 @@ public class ZJYZB_Config extends BaseConfig {
 
     @Override
     public String getMainActivity() {
-        return ".New_IndexActivity";
+        return ".ZJYZBActivity";
     }
 
     @Override

@@ -514,7 +514,7 @@ public class WYYService extends Service implements ISwitchView {
                     // 要执行的代码
                     Lg.d("message", "equipment");
                     FingerPrintPresenter.getInstance().fpCancel(true);
-                    FingerPrintPresenter.getInstance().fpRemoveAll();
+//                    FingerPrintPresenter.getInstance().fpRemoveAll();
                     equipment_sync(config.getString("daid"));
                 }
             };
@@ -524,6 +524,66 @@ public class WYYService extends Service implements ISwitchView {
         }
     }
 
+//    private void equipment_sync(String old_devid) {
+//        JSONObject jsonObject = new JSONObject();
+//        try {
+//            jsonObject.put("oldDaid", old_devid);
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//        RetrofitGenerator.getWyyConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
+//                .subscribeOn(Schedulers.io())
+//                .unsubscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new Observer<ResponseBody>() {
+//                    @Override
+//                    public void onSubscribe(@NonNull Disposable d) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onNext(ResponseBody responseBody) {
+//                        try {
+//                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
+//                            if (jsonObject.getString("result").equals("true")) {
+//                                JSONArray jsonArray = jsonObject.getJSONArray("data");
+//                                if (null != jsonArray && jsonArray.length() != 0) {
+//                                    for (int i = 0; i < jsonArray.length(); i++) {
+//                                        JSONObject item = jsonArray.getJSONObject(i);
+//                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
+//                                        FingerPrintPresenter.getInstance().fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
+//                                        user_sp.put("courIds", item.getString("personIds"));
+//                                        user_sp.put("name", item.getString("name"));
+//                                        user_sp.put("cardId", item.getString("idcard"));
+//                                        user_sp.put("courType", item.getString("courType"));
+//
+//                                        SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+//                                        user_id.put("courIds", item.getString("courIds"));
+//                                        user_id.put("name", item.getString("name"));
+//                                        user_id.put("fingerprintId", item.getString("pfpIds"));
+//                                        user_id.put("courType", item.getString("courType"));
+//                                    }
+//                                }
+//                            }
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onError(@NonNull Throwable e) {
+//                        AppInit.getMyManager().reboot();
+//                    }
+//
+//                    @Override
+//                    public void onComplete() {
+//                        AppInit.getMyManager().reboot();
+//                    }
+//                });
+//    }
+
     private void equipment_sync(String old_devid) {
         JSONObject jsonObject = new JSONObject();
         try {
@@ -531,7 +591,7 @@ public class WYYService extends Service implements ISwitchView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getWyyConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -545,25 +605,38 @@ public class WYYService extends Service implements ISwitchView {
                     public void onNext(ResponseBody responseBody) {
                         try {
                             JSONObject jsonObject = new JSONObject(responseBody.string().toString());
-                            if (jsonObject.getString("result").equals("true")) {
-                                JSONArray jsonArray = jsonObject.getJSONArray("data");
+                            if (("true").equals(jsonObject.getString("result"))) {
+                                final JSONArray jsonArray = jsonObject.getJSONArray("data");
                                 if (null != jsonArray && jsonArray.length() != 0) {
-                                    for (int i = 0; i < jsonArray.length(); i++) {
-                                        JSONObject item = jsonArray.getJSONObject(i);
-                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
-                                        FingerPrintPresenter.getInstance().fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
-                                        user_sp.put("courIds", item.getString("personIds"));
-                                        user_sp.put("name", item.getString("name"));
-                                        user_sp.put("cardId", item.getString("idcard"));
-                                        user_sp.put("courType", item.getString("courType"));
+                                    FingerPrintPresenter.getInstance().fpRemoveAll();
+                                    Observable.timer(1, TimeUnit.SECONDS)
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe(new Consumer<Long>() {
+                                                @Override
+                                                public void accept(Long aLong) throws Exception {
+                                                    for (int i = 0; i < jsonArray.length(); i++) {
+                                                        JSONObject item = jsonArray.getJSONObject(i);
+                                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
+                                                        FingerPrintPresenter.getInstance().fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
+                                                        user_sp.put("courIds", item.getString("personIds"));
+                                                        user_sp.put("name", item.getString("name"));
+                                                        user_sp.put("cardId", item.getString("idcard"));
+                                                        user_sp.put("courType", item.getString("courType"));
 
-                                        SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
-                                        user_id.put("courIds", item.getString("courIds"));
-                                        user_id.put("name", item.getString("name"));
-                                        user_id.put("fingerprintId", item.getString("pfpIds"));
-                                        user_id.put("courType", item.getString("courType"));
-                                    }
+                                                        SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+                                                        user_id.put("courIds", item.getString("courIds"));
+                                                        user_id.put("name", item.getString("name"));
+                                                        user_id.put("fingerprintId", item.getString("pfpIds"));
+                                                        user_id.put("courType", item.getString("courType"));
+                                                    }
+                                                    AppInit.getMyManager().reboot();
+                                                }
+                                            });
+                                }else{
+                                    AppInit.getMyManager().reboot();
                                 }
+                            }else {
+                                AppInit.getMyManager().reboot();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -579,7 +652,7 @@ public class WYYService extends Service implements ISwitchView {
 
                     @Override
                     public void onComplete() {
-                        AppInit.getMyManager().reboot();
+
                     }
                 });
     }

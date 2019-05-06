@@ -5,7 +5,7 @@ import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 public class SZ_Config extends BaseConfig{
     @Override
     public String getServerId() {
-        return "http://jdwp.szxhdz.com/";
+        return "https://jdwp.szxhdz.com:7002/";
     }
 
     @Override

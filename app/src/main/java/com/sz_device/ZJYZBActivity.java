@@ -34,6 +34,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.log.Lg;
+import com.sz_device.Alerts.Alarm;
 import com.sz_device.Alerts.Alert_IP;
 import com.sz_device.Alerts.Alert_Message;
 import com.sz_device.Alerts.Alert_Password;
@@ -46,17 +47,16 @@ import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.EventBus.PassEvent;
 import com.sz_device.EventBus.TemHumEvent;
-import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.sz_device.Retrofit.RetrofitGenerator;
+import com.sz_device.Service.SwitchService;
+import com.sz_device.Service.ZJYZBService;
 import com.sz_device.State.OperationState.Door_Open_OperateState;
 import com.sz_device.State.OperationState.No_one_OperateState;
 import com.sz_device.State.OperationState.One_man_OperateState;
 import com.sz_device.State.OperationState.Operation;
 import com.sz_device.State.OperationState.Two_man_OperateState;
-import com.sz_device.Service.SwitchService;
-import com.sz_device.Alerts.Alarm;
 import com.sz_device.Tools.DESX;
 import com.sz_device.Tools.FileUtils;
 import com.sz_device.Tools.MyObserver;
@@ -98,14 +98,7 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
-
-/**
- * Created by zbsz on 2017/8/25.
- */
-
-
-public class New_IndexActivity extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
-
+public class ZJYZBActivity extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private SPUtils config = SPUtils.getInstance("config");
@@ -211,15 +204,15 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         alert_password.PasswordViewInit(new Alert_Password.Callback() {
             @Override
             public void normal_call() {
-                normalWindow = new NormalWindow(New_IndexActivity.this);
-                normalWindow.setOptionTypeListener(New_IndexActivity.this);
+                normalWindow = new NormalWindow(ZJYZBActivity.this);
+                normalWindow.setOptionTypeListener(ZJYZBActivity.this);
                 normalWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
 
             @Override
             public void super_call() {
-                superWindow = new SuperWindow(New_IndexActivity.this);
-                superWindow.setOptionTypeListener(New_IndexActivity.this);
+                superWindow = new SuperWindow(ZJYZBActivity.this);
+                superWindow.setOptionTypeListener(ZJYZBActivity.this);
                 superWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
         });
@@ -271,7 +264,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
 
     void openService() {
-        intent = new Intent(New_IndexActivity.this, SwitchService.class);
+        intent = new Intent(ZJYZBActivity.this, ZJYZBService.class);
         startService(intent);
     }
 
@@ -364,7 +357,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } else if (type == 3) {
             ViewGroup extView2 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputdevid_form, null);
             final EditText et_devid = (EditText) extView2.findViewById(R.id.devid_input);
-            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, New_IndexActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, ZJYZBActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
@@ -383,7 +376,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
             ViewGroup deleteView = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.delete_person_form, null);
             final EditText et_idcard = (EditText) deleteView.findViewById(R.id.idcard_input);
             final EditText et_finger = (EditText) deleteView.findViewById(R.id.et_finger);
-            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, New_IndexActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, ZJYZBActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
@@ -440,7 +433,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
             @Override
             public void onSucc() {
-                Alarm.getInstance(New_IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                Alarm.getInstance(ZJYZBActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
                     @Override
                     public void onIsKnown() {
                         loadMessage(msg.substring(3, msg.length()));
@@ -448,7 +441,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onTextBack(String msg) {
-                        Alarm.getInstance(New_IndexActivity.this).setKnown(true);
+                        Alarm.getInstance(ZJYZBActivity.this).setKnown(true);
                         tv_info.setText(msg);
                     }
                 });
@@ -589,7 +582,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                 @Override
                 public void onSucc() {
-                    Alarm.getInstance(New_IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                    Alarm.getInstance(ZJYZBActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
                         @Override
                         public void onIsKnown() {
                             if (AppInit.getInstrumentConfig().CardFunction().equals(BaseConfig.IC)) {
@@ -602,7 +595,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                         @Override
                         public void onTextBack(String msg) {
-                            Alarm.getInstance(New_IndexActivity.this).setKnown(true);
+                            Alarm.getInstance(ZJYZBActivity.this).setKnown(true);
                             tv_info.setText(msg);
                         }
                     });
@@ -729,7 +722,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             JSONObject jsonObject = new JSONObject(responseBody.string().toString());
                             if (jsonObject.getString("result").equals("true")) {
                                 JSONObject jsonArray = jsonObject.getJSONObject("data");
-                                if (TextUtils.isEmpty(jsonArray.getString("courType"))||Integer.parseInt(jsonArray.getString("courType")) == 2) {
+                                if (TextUtils.isEmpty(jsonArray.getString("courType")) || Integer.parseInt(jsonArray.getString("courType")) == 2) {
                                     cg_User1.setCourIds(jsonArray.getString("courids"));
                                     cg_User1.setCardId(jsonArray.getString("idcard"));
                                     cg_User1.setName(jsonArray.getString("name"));
@@ -763,7 +756,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             e.printStackTrace();
                         } catch (JSONException exception) {
                             exception.printStackTrace();
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -988,7 +981,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                                 final JSONArray jsonArray = jsonObject.getJSONArray("data");
                                 if (null != jsonArray && jsonArray.length() != 0) {
                                     fpp.fpRemoveAll();
-                                    Observable.timer(1,TimeUnit.SECONDS)
+                                    Observable.timer(1, TimeUnit.SECONDS)
                                             .observeOn(AndroidSchedulers.mainThread())
                                             .subscribe(new Consumer<Long>() {
                                                 @Override
@@ -1001,6 +994,12 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                                                         user_sp.put("name", item.getString("name"));
                                                         user_sp.put("cardId", item.getString("idcard"));
                                                         user_sp.put("courType", item.getString("courType"));
+
+                                                        SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+                                                        user_id.put("courIds", item.getString("courIds"));
+                                                        user_id.put("name", item.getString("name"));
+                                                        user_id.put("fingerprintId", item.getString("pfpIds"));
+                                                        user_id.put("courType", item.getString("courType"));
                                                     }
                                                     JSONObject jsonKey = new JSONObject();
                                                     try {
@@ -1043,7 +1042,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     }
                 });
     }
-
 
 
     private void OpenDoorRecord(boolean leagl) {
@@ -1113,7 +1111,4 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     }
                 });
     }
-
-
 }
-
