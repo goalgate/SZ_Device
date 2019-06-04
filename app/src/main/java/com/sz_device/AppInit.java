@@ -9,6 +9,7 @@ import com.log.Lg;
 import com.squareup.leakcanary.LeakCanary;
 import com.sz_device.Config.BaseConfig;
 
+import com.sz_device.Config.HNMBY_Config;
 import com.sz_device.Config.JMZH_Config;
 import com.sz_device.Config.LN_Config;
 import com.sz_device.Config.SZ_Config;
@@ -70,7 +71,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        config = new ZJYZB_Config();
+        config = new HNMBY_Config();
 
         manager = MyManager.getInstance(this);
 

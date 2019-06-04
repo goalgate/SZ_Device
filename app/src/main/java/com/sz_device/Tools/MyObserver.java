@@ -8,6 +8,8 @@ import android.view.Gravity;
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
 import com.sz_device.Alerts.Alarm;
+import com.sz_device.AppInit;
+import com.sz_device.Config.HNMBY_Config;
 import com.sz_device.WYYAddPersonActivity;
 
 import java.util.concurrent.TimeUnit;
@@ -57,18 +59,23 @@ public class MyObserver<T> implements Observer<T>{
     @Override
     public void onError(Throwable e) {
         progressDialog.dismiss();
-        if(delay){
-            Observable.timer(1,TimeUnit.SECONDS)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Consumer<Long>() {
-                        @Override
-                        public void accept(Long aLong) throws Exception {
-                            Alarm.getInstance(context).messageAlarm("无法连接服务器，请检查网络");
-                        }
-                    });
+        if (AppInit.getInstrumentConfig().getClass().getName().equals(HNMBY_Config.class.getName())){
+            //Alarm.getInstance(context).messageAlarm("无法连接服务器，请检查网络,离线数据已保存");
         }else {
-            Alarm.getInstance(context).messageAlarm("无法连接服务器，请检查网络");
+            if(delay){
+                Observable.timer(1,TimeUnit.SECONDS)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Consumer<Long>() {
+                            @Override
+                            public void accept(Long aLong) throws Exception {
+                                Alarm.getInstance(context).messageAlarm("无法连接服务器，请检查网络");
+                            }
+                        });
+            }else {
+                Alarm.getInstance(context).messageAlarm("无法连接服务器，请检查网络");
+            }
         }
+
 
     }
 

@@ -1014,17 +1014,20 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                                                     config.put("daid", old_devid);
                                                     config.put("key", DESX.encrypt(jsonKey.toString()));
                                                     ToastUtils.showLong("设备数据更新成功");
-                                                    config.put("sync28", false);
+                                                    config.put("sync29", false);
                                                     fpp.fpIdentify();
                                                 }
                                             });
                                 } else {
                                     ToastUtils.showLong("该设备号无人员数据");
+                                    config.put("sync29", false);
                                     fpp.fpIdentify();
 
                                 }
                             } else {
                                 ToastUtils.showLong("设备号有误");
+                                config.put("sync29", false);
+
                                 fpp.fpIdentify();
                             }
                         } catch (JSONException e) {
@@ -1122,14 +1125,13 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
-                        if (config.getBoolean("sync28", true) &&
+                        if (config.getBoolean("sync29", true) &&
                                 AppInit.getInstrumentConfig().getClass().getName().equals(SZ_Config.class.getName())) {
                             fpp.fpCancel(true);
                             equipment_sync(config.getString("daid"));
                         }
                     }
                 });
-
     }
 
 }

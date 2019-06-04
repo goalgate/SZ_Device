@@ -5,6 +5,8 @@ public abstract class BaseConfig {
 
     public static String ID = "ID";
 
+    public abstract boolean face();
+
     public abstract String getServerId();
 
     public abstract String getProject();
@@ -21,6 +23,9 @@ public abstract class BaseConfig {
 
     public abstract String CardFunction();
 
+    public abstract String getServiceName();
+
+    public abstract String getModel();
 
 
 }

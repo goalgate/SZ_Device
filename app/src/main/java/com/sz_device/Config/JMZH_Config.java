@@ -15,7 +15,7 @@ public class JMZH_Config extends BaseConfig {
 
     @Override
     public String getVer() {
-        return "1.2";
+        return "1.5";
     }
 
     @Override
@@ -42,4 +42,21 @@ public class JMZH_Config extends BaseConfig {
     public String CardFunction() {
         return IC;
     }
+
+    @Override
+    public boolean face() {
+        return false;
+    }
+
+    @Override
+    public String getServiceName() {
+        return "数据采集器";
+    }
+
+    @Override
+    public String getModel() {
+        return "CBDI-P-IC";
+    }
 }
+
+

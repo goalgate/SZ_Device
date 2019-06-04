@@ -41,6 +41,7 @@ import com.sz_device.Alerts.Alert_Password;
 import com.sz_device.Alerts.Alert_Server;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.Config.BaseConfig;
+import com.sz_device.Config.SZ_Config;
 import com.sz_device.EventBus.AlarmEvent;
 import com.sz_device.EventBus.LockUpEvent;
 import com.sz_device.EventBus.NetworkEvent;
@@ -330,6 +331,7 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                         tv_time.setText(formatter.format(new Date(System.currentTimeMillis())));
                     }
                 });
+        sync();
     }
 
     @Override
@@ -1000,8 +1002,8 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                                                         user_sp.put("cardId", item.getString("idcard"));
                                                         user_sp.put("courType", item.getString("courType"));
 
-                                                        SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
-                                                        user_id.put("courIds", item.getString("courIds"));
+                                                        SPUtils user_id = SPUtils.getInstance(item.getString("idcard"));
+                                                        user_id.put("courIds", item.getString("personIds"));
                                                         user_id.put("name", item.getString("name"));
                                                         user_id.put("fingerprintId", item.getString("pfpIds"));
                                                         user_id.put("courType", item.getString("courType"));
@@ -1016,6 +1018,7 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                                                     config.put("daid", old_devid);
                                                     config.put("key", DESX.encrypt(jsonKey.toString()));
                                                     ToastUtils.showLong("设备数据更新成功");
+                                                    config.put("sync15", false);
                                                     fpp.fpIdentify();
                                                 }
                                             });
@@ -1113,6 +1116,20 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                         super.onComplete();
                         cg_User1 = new User();
                         cg_User2 = new User();
+                    }
+                });
+    }
+
+    private void sync() {
+        Observable.timer(5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<Long>bindUntilEvent(ActivityEvent.PAUSE))
+                .subscribe(new Consumer<Long>() {
+                    @Override
+                    public void accept(@NonNull Long aLong) throws Exception {
+                        if (config.getBoolean("sync15", true)) {
+                            fpp.fpCancel(true);
+                            equipment_sync(config.getString("daid"));
+                        }
                     }
                 });
     }

@@ -10,6 +10,8 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.PopupWindow;
 
+import com.sz_device.AppInit;
+import com.sz_device.Config.HNMBY_Config;
 import com.sz_device.R;
 
 
@@ -34,6 +36,9 @@ public class NormalWindow extends PopupWindow implements View.OnClickListener{
         mContentView = LayoutInflater.from(activity).inflate(R.layout.window_normal, null);
         setContentView(mContentView);
         add = (Button) mContentView.findViewById(R.id.btn_add);
+        if (AppInit.getInstrumentConfig().getClass().getName().startsWith(HNMBY_Config.class.getName())){
+            add.setText("服务器设置");
+        }
         staticIP = (Button) mContentView.findViewById(R.id.btn_staticIP);
         add.setOnClickListener(this);
         staticIP.setOnClickListener(this);

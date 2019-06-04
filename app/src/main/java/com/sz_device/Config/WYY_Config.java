@@ -42,4 +42,19 @@ public class WYY_Config extends BaseConfig{
     public String CardFunction() {
         return ID;
     }
+
+    @Override
+    public boolean face() {
+        return false;
+    }
+
+    @Override
+    public String getServiceName() {
+        return "数据采集器";
+    }
+
+    @Override
+    public String getModel() {
+        return "CBDI-P-ID";
+    }
 }

@@ -15,7 +15,7 @@ public class SZ_Config extends BaseConfig{
 
     @Override
     public String getVer() {
-        return "2.4";
+        return "2.8";
     }
 
     @Override
@@ -42,6 +42,21 @@ public class SZ_Config extends BaseConfig{
     @Override
     public String CardFunction() {
         return IC;
+    }
+
+    @Override
+    public boolean face() {
+        return false;
+    }
+
+    @Override
+    public String getServiceName() {
+        return "数据采集器";
+    }
+
+    @Override
+    public String getModel() {
+        return "CBDI-P-IC";
     }
 }
 

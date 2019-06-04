@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 import com.sz_device.AppInit;
 import com.sz_device.Config.WYY_Config;
 import com.sz_device.Retrofit.InterfaceApi.ConnectApi;
+import com.sz_device.Retrofit.InterfaceApi.HNMBYApi;
 import com.sz_device.Retrofit.InterfaceApi.WYYConnectApi;
 
 import java.io.IOException;
@@ -29,9 +30,13 @@ public class RetrofitGenerator {
 
     private static WYYConnectApi wyyConnectApi;
 
+    private static HNMBYApi hnmbyApi;
+
     private ConnectApi testConnectApi;
 
     private WYYConnectApi testWYYConnectApi;
+
+    private HNMBYApi testHnmbyApi;
 
     private static OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder();
     private static Gson gson = new GsonBuilder()
@@ -99,5 +104,18 @@ public class RetrofitGenerator {
             wyyConnectApi = createService(WYYConnectApi.class);
         }
         return wyyConnectApi;
+    }
+
+    public HNMBYApi getHnmbyApi(String url){
+        if (testHnmbyApi == null) {
+            testHnmbyApi = createService(HNMBYApi.class, url);
+        }
+        return testHnmbyApi;
+    }
+    public static HNMBYApi getHnmbyApi() {
+        if (hnmbyApi == null) {
+            hnmbyApi = createService(HNMBYApi.class);
+        }
+        return hnmbyApi;
     }
 }

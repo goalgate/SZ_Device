@@ -15,6 +15,16 @@ public class User {
     private String fingerprintId;
     private String fingerprintKey;
     private String courType;
+    private String faceRecognition;
+
+    public void setFaceRecognition(String faceRecognition) {
+        this.faceRecognition = faceRecognition;
+    }
+
+    public String getFaceRecognition() {
+
+        return faceRecognition;
+    }
 
     public String getCourIds() {
         return courIds;

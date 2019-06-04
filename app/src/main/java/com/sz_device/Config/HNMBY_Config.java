@@ -2,30 +2,30 @@ package com.sz_device.Config;
 
 import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 
-public class ZJYZB_Config extends BaseConfig {
+public class HNMBY_Config extends BaseConfig {
     @Override
     public String getServerId() {
-        return "http://113.140.1.136:7117/cjy/s/";
+        return "http://192.168.11.125:8102/";
     }
 
     @Override
     public String getProject() {
-        return "ZJYZB";
+        return "HNMBY";
     }
 
     @Override
     public String getVer() {
-        return "1.4";
+        return "1.0";
     }
 
     @Override
     public String getMainActivity() {
-        return ".ZJYZBActivity";
+        return ".HNMBYActivity";
     }
 
     @Override
     public String getAddActivity() {
-        return ".ZJYZBAddActivity";
+        return null;
     }
 
     @Override
@@ -49,12 +49,12 @@ public class ZJYZB_Config extends BaseConfig {
     }
 
     @Override
-    public String getServiceName() {
-        return "数据采集器";
+    public String getModel() {
+        return "CBDI-DA-01";
     }
 
     @Override
-    public String getModel() {
-        return "CBDI-P-ID";
+    public String getServiceName() {
+        return "防爆数据采集器";
     }
 }
