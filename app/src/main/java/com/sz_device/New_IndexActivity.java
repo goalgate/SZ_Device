@@ -809,10 +809,17 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
             @Override
             public void onNext(String s) {
-                String datetime = s;
-                AppInit.getMyManager().setTime(Integer.parseInt(datetime.substring(0, 4)), Integer.parseInt(datetime.substring(5, 7))
-                        , Integer.parseInt(datetime.substring(8, 10)), Integer.parseInt(datetime.substring(11, 13)), Integer.parseInt(datetime.substring(14, 16)));
-
+                try {
+                    String datetime = s;
+                    AppInit.getMyManager().setTime(Integer.parseInt(datetime.substring(0, 4)),
+                            Integer.parseInt(datetime.substring(5, 7)),
+                            Integer.parseInt(datetime.substring(8, 10)),
+                            Integer.parseInt(datetime.substring(11, 13)),
+                            Integer.parseInt(datetime.substring(14, 16)),
+                            Integer.parseInt(datetime.substring(17, 19)));
+                } catch (Exception e) {
+                    ToastUtils.showLong(e.toString());
+                }
             }
 
             @Override

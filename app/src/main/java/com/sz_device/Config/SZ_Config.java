@@ -15,7 +15,7 @@ public class SZ_Config extends BaseConfig{
 
     @Override
     public String getVer() {
-        return "2.8";
+        return "2.9";
     }
 
     @Override

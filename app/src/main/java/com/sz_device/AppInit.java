@@ -8,16 +8,15 @@ import com.blankj.utilcode.util.Utils;
 import com.log.Lg;
 import com.squareup.leakcanary.LeakCanary;
 import com.sz_device.Config.BaseConfig;
-
 import com.sz_device.Config.HNMBY_Config;
 import com.sz_device.Config.JMZH_Config;
 import com.sz_device.Config.LN_Config;
 import com.sz_device.Config.SZ_Config;
 import com.sz_device.Config.WYY_Config;
 import com.sz_device.Config.ZJYZB_Config;
+import com.sz_device.Tools.WZWManager;
 import com.sz_device.greendao.DaoMaster;
 import com.sz_device.greendao.DaoSession;
-import com.ys.myapi.MyManager;
 
 
 /**
@@ -42,13 +41,19 @@ public class AppInit extends Application {
         return instance;
     }
 
-    public static BaseConfig getInstrumentConfig(){
+    public static BaseConfig getInstrumentConfig() {
         return config;
     }
 
-    protected static MyManager manager;
+//    protected static MyManager manager;
+////
+////    public static MyManager getMyManager() {
+////        return manager;
+////    }
 
-    public static MyManager getMyManager() {
+    protected static WZWManager manager;
+
+    public static WZWManager getMyManager() {
         return manager;
     }
 
@@ -71,9 +76,9 @@ public class AppInit extends Application {
 
         instance = this;
 
-        config = new HNMBY_Config();
+        config = new SZ_Config();
 
-        manager = MyManager.getInstance(this);
+        manager = WZWManager.getInstance(this);
 
         manager.bindAIDLService(this);
 

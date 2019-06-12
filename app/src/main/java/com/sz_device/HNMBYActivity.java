@@ -393,7 +393,11 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
                 alert_message.setICCardText("身份证号：" + cardInfo.cardId());
             }
         } else {
-            idcard_operation(cardInfo);
+            try{
+                idcard_operation(cardInfo);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
         }
     }
 
@@ -478,6 +482,14 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
                             } catch (Exception e){
                                 tv_info.setText("Exception");
                             }
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            super.onError(e);
+                            unknownUser.setName(cardInfo.name());
+                            unknownUser.setCardId(cardInfo.cardId());
+                            pp.screenshots();
                         }
                     });
         }
@@ -586,6 +598,13 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
                     }
 
                     @Override
+                    public void onError(Throwable e) {
+                        super.onError(e);
+                        tv_info.setText("无法连接服务器,机器已重置,请重新录入仓管员信息");
+                        global_Operation.setState(new No_one_OperateState());
+                    }
+
+                    @Override
                     public void onComplete() {
                         super.onComplete();
 
@@ -667,11 +686,14 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
             public void onNext(ResponseBody responseBody) {
                 try {
                     String datetime = responseBody.string();
-
-                    AppInit.getMyManager().setTime(Integer.parseInt(datetime.substring(0, 4)), Integer.parseInt(datetime.substring(5, 7))
-                            , Integer.parseInt(datetime.substring(8, 10)), Integer.parseInt(datetime.substring(11, 13)), Integer.parseInt(datetime.substring(14, 16)));
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    AppInit.getMyManager().setTime(Integer.parseInt(datetime.substring(0, 4)),
+                            Integer.parseInt(datetime.substring(5, 7)),
+                            Integer.parseInt(datetime.substring(8, 10)),
+                            Integer.parseInt(datetime.substring(11, 13)),
+                            Integer.parseInt(datetime.substring(14, 16)),
+                            Integer.parseInt(datetime.substring(17, 19)));
+                } catch (Exception e) {
+                    ToastUtils.showLong(e.toString());
                 }
             }
 
@@ -721,7 +743,7 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
                     @Override
                     public void onError(@NonNull Throwable e) {
                         super.onError(e);
-                        tv_info.setText("无法连接到服务器");
+                        tv_info.setText("无法连接服务器,请检查网络,离线数据已保存");
                         mdaoSession.insert(new ReUploadBean(null, "saveVisit", checkRecordJson.toString()));
 
                     }
@@ -777,8 +799,10 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
                     @Override
                     public void onError(@NonNull Throwable e) {
                         super.onError(e);
+                        tv_info.setText("无法连接服务器,请检查网络,离线数据已保存");
                         unknownUser = new User();
                         mdaoSession.insert(new ReUploadBean(null, "persionRecord", unknownPeopleJson.toString()));
+
                     }
 
                     @Override
@@ -847,6 +871,7 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
                     @Override
                     public void onError(@NonNull Throwable e) {
                         super.onError(e);
+                        tv_info.setText("无法连接服务器,请检查网络,离线数据已保存");
                         mdaoSession.insert(new ReUploadBean(null, "openDoorRecord", OpenDoorJson.toString()));
                     }
 
