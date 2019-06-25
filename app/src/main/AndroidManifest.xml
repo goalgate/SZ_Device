@@ -23,6 +23,7 @@
         <activity android:name=".New_IndexActivity"></activity>
         <activity android:name=".WYYActivity"></activity>
         <activity android:name=".WYYAddPersonActivity"></activity>
+        <activity android:name=".WYYAddActivity2"></activity>
         <activity android:name=".ZJYZBAddActivity"></activity>
         <activity android:name=".ZJYZBActivity"></activity>
         <activity android:name=".HNMBYActivity"></activity>

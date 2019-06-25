@@ -76,7 +76,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        config = new SZ_Config();
+        config = new WYY_Config();
 
         manager = WZWManager.getInstance(this);
 

@@ -42,6 +42,7 @@ import com.sz_device.Alerts.Alert_Message;
 import com.sz_device.Alerts.Alert_Password;
 import com.sz_device.Alerts.Alert_Server;
 import com.sz_device.Bean.ReUploadBean;
+import com.sz_device.Config.BaseConfig;
 import com.sz_device.EventBus.AlarmEvent;
 import com.sz_device.EventBus.LockUpEvent;
 import com.sz_device.EventBus.NetworkEvent;
@@ -561,7 +562,11 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
     @Override
     public void onsetCardInfo(final ICardInfo cardInfo) {
         if (alert_message.Showing()) {
-            alert_message.setICCardText("身份证号：" + cardInfo.cardId());
+            if (AppInit.getInstrumentConfig().CardFunction().equals(BaseConfig.IC)) {
+                alert_message.setICCardText("IC卡号：" + cardInfo.getUid());
+            } else {
+                alert_message.setICCardText("身份证号：" + cardInfo.cardId());
+            }
         } else {
             Alarm.getInstance(this).doorAlarm(new Alarm.doorCallback() {
                 @Override
@@ -574,7 +579,12 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                     Alarm.getInstance(WYYActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
                         @Override
                         public void onIsKnown() {
-                            iccard_operation(cardInfo);
+                            if (AppInit.getInstrumentConfig().CardFunction().equals(BaseConfig.IC)) {
+                                iccard_operation(cardInfo);
+                            } else {
+                                idcard_operation(cardInfo);
+                            }
+
                         }
 
                         @Override
@@ -589,8 +599,73 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
 
         }
     }
+    private void iccard_operation(ICardInfo cardInfo) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("ickBh", cardInfo.getUid());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-    private void iccard_operation(final ICardInfo cardInfo) {
+        RetrofitGenerator.getWyyConnectApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new MyObserver<ResponseBody>(this) {
+                    @Override
+                    public void onNext(ResponseBody responseBody) {
+                        try {
+                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
+                            if (jsonObject.getString("result").equals("true")) {
+                                JSONObject jsonArray = jsonObject.getJSONObject("data");
+                                if (TextUtils.isEmpty(jsonArray.getString("courType")) || Integer.parseInt(jsonArray.getString("courType")) == 2) {
+                                    cg_User1.setCourIds(jsonArray.getString("courids"));
+                                    cg_User1.setCardId(jsonArray.getString("idcard"));
+                                    cg_User1.setName(jsonArray.getString("name"));
+                                    checkRecord(jsonArray.getString("courType"));
+                                } else if (Integer.parseInt(jsonArray.getString("courType")) == 1) {
+                                    if (getState(No_one_OperateState.class)) {
+                                        global_Operation.setState(new One_man_OperateState());
+                                        pp.capture();
+                                        cg_User1.setCourIds(jsonArray.getString("courids"));
+                                        cg_User1.setName(jsonArray.getString("name"));
+                                        cg_User1.setCardId(jsonArray.getString("idcard"));
+                                    } else if (getState(Two_man_OperateState.class)) {
+                                        if (!jsonArray.getString("idcard").equals(cg_User1.getCardId())) {
+                                            cg_User2.setCourIds(jsonArray.getString("courids"));
+                                            cg_User2.setName(jsonArray.getString("name"));
+                                            cg_User2.setCardId(jsonArray.getString("idcard"));
+                                            pp.capture();
+                                            EventBus.getDefault().post(new PassEvent());
+                                            iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                                        } else {
+                                            tv_info.setText("请不要连续输入相同的管理员信息");
+                                        }
+                                    } else if (getState(Door_Open_OperateState.class)) {
+                                        tv_info.setText("仓库门已解锁");
+                                    }
+                                }
+                            } else {
+                                tv_info.setText("您的IC卡没有登记备案，请更换IC卡重试");
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (JSONException exception) {
+                            exception.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+                        super.onError(e);
+                        tv_info.setText("服务器连接失败，无法辨别IC卡的有效性");
+                    }
+
+                });
+    }
+    private void idcard_operation(final ICardInfo cardInfo) {
         SPUtils sp = SPUtils.getInstance(cardInfo.cardId());
         if (sp.getString("courType").equals(PersonType.KuGuan)) {
             if (getState(No_one_OperateState.class)) {
@@ -948,6 +1023,11 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
     private void equipment_sync(final String old_devid) {
         JSONObject jsonObject = new JSONObject();
         try {
+//            JSONObject jsonKey = new JSONObject();
+//            jsonKey.put("daid", old_devid);
+//            jsonKey.put("check", DESX.encrypt(old_devid));
+//            config.put("daid", old_devid);
+//            config.put("key", DESX.encrypt(jsonKey.toString()));
             jsonObject.put("oldDaid", old_devid);
         } catch (JSONException e) {
             e.printStackTrace();

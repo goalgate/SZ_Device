@@ -5,7 +5,7 @@ import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 public class WYY_Config extends BaseConfig{
     @Override
     public String getServerId() {
-        return "http://192.168.11.21:8502/";
+        return "http://129.204.110.143:8102/";
     }
 
     @Override
@@ -25,22 +25,22 @@ public class WYY_Config extends BaseConfig{
 
     @Override
     public String getAddActivity() {
-        return ".WYYAddPersonActivity";
+        return ".WYYAddActivity2";
     }
 
     @Override
     public void readCard() {
-        IDCardPresenter.getInstance().readIDCard();
+        IDCardPresenter.getInstance().readCard();
     }
 
     @Override
     public void stopReadCard() {
-        IDCardPresenter.getInstance().stopReadIDCard();
+        IDCardPresenter.getInstance().stopReadCard();
     }
 
     @Override
     public String CardFunction() {
-        return ID;
+        return IC;
     }
 
     @Override
