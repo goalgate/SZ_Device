@@ -184,7 +184,7 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
                 .switchMap(new Function<CharSequence, ObservableSource<String>>() {
                     @Override
                     public ObservableSource<String> apply(@NonNull CharSequence charSequence) throws Exception {
-                        return Observable.just(config.getString("daid")+"\n等待用户操作...");
+                        return Observable.just(config.getString("daid") + "\n等待用户操作...");
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
@@ -307,7 +307,7 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
         cg_User1 = new User();
         cg_User2 = new User();
         global_Operation.setState(no_one_operateState);
-        tv_info.setText(config.getString("daid")+"\n等待用户操作...");
+        tv_info.setText(config.getString("daid") + "\n等待用户操作...");
         Observable.interval(0, 1, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.<Long>bindUntilEvent(ActivityEvent.PAUSE))
@@ -365,6 +365,10 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
             cg_User1.setPhoto(FileUtils.bitmapToBase64(bmp));
             checkRecord(String.valueOf(2));
             return;
+        } else if (gongan) {
+            cg_User1.setPhoto(FileUtils.bitmapToBase64(bmp));
+            checkRecord(String.valueOf(3));
+            return;
         }
         if (getState(No_one_OperateState.class)) {
             cg_User1.setPhoto(FileUtils.bitmapToBase64(bmp));
@@ -393,19 +397,21 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
                 alert_message.setICCardText("身份证号：" + cardInfo.cardId());
             }
         } else {
-            try{
+            try {
                 idcard_operation(cardInfo);
-            }catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
     boolean xunjian = false;
+    boolean gongan = false;
 
     private void idcard_operation(final ICardInfo cardInfo) {
         SPUtils sp = SPUtils.getInstance("personData");
         xunjian = false;
+        gongan = false;
         if (sp.getString(cardInfo.cardId()).equals(PersonType.KuGuan)) {
             if (getState(No_one_OperateState.class)) {
                 cg_User1.setName(cardInfo.name());
@@ -427,10 +433,31 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
             if (checkChange != null) {
                 checkChange.dispose();
             }
+            if (getState(One_man_OperateState.class)) {
+                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                    cg_User2.setName(cardInfo.name());
+                    cg_User2.setCardId(cardInfo.cardId());
+                    pp.screenshots();
+                } else {
+                    tv_info.setText("请不要连续输入相同的管理员信息");
+                    return;
+                }
+            } else {
+                cg_User1.setName(cardInfo.name());
+                cg_User1.setCardId(cardInfo.cardId());
+                pp.screenshots();
+                xunjian = true;
+            }
+
+        } else if (sp.getString(cardInfo.cardId()).equals(PersonType.Gongan)) {
+            if (checkChange != null) {
+                checkChange.dispose();
+            }
             cg_User1.setName(cardInfo.name());
             cg_User1.setCardId(cardInfo.cardId());
             pp.screenshots();
-            xunjian = true;
+            gongan = true;
+
         } else {
             RetrofitGenerator.getHnmbyApi().queryPersonInfo("queryPersion", config.getString("key"), cardInfo.cardId())
                     .subscribeOn(Schedulers.io())
@@ -445,10 +472,10 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
                                     unknownUser.setName(cardInfo.name());
                                     unknownUser.setCardId(cardInfo.cardId());
                                     pp.screenshots();
-                                }else if (s.startsWith("true")) {
+                                } else if (s.startsWith("true")) {
                                     String type = s.substring(5, s.length());
                                     SPUtils.getInstance("personData").put(cardInfo.cardId(), type);
-                                    if(type.equals(PersonType.KuGuan)){
+                                    if (type.equals(PersonType.KuGuan)) {
                                         if (getState(No_one_OperateState.class)) {
                                             cg_User1.setName(cardInfo.name());
                                             cg_User1.setCardId(cardInfo.cardId());
@@ -465,21 +492,45 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
                                         } else if (getState(Door_Open_OperateState.class)) {
                                             tv_info.setText("仓库门已解锁");
                                         }
-                                    }else if (type.equals(PersonType.XunJian)){
+                                    } else if (type.equals(PersonType.XunJian)) {
+                                        if (checkChange != null) {
+                                            checkChange.dispose();
+                                        }
+//                                        cg_User1.setName(cardInfo.name());
+//                                        cg_User1.setCardId(cardInfo.cardId());
+//                                        pp.screenshots();
+//                                        xunjian = true;
+                                        if (getState(One_man_OperateState.class)) {
+                                            if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                                                cg_User2.setName(cardInfo.name());
+                                                cg_User2.setCardId(cardInfo.cardId());
+                                                pp.screenshots();
+                                            } else {
+                                                tv_info.setText("请不要连续输入相同的管理员信息");
+                                                return;
+                                            }
+                                        } else {
+                                            cg_User1.setName(cardInfo.name());
+                                            cg_User1.setCardId(cardInfo.cardId());
+                                            pp.screenshots();
+                                            xunjian = true;
+                                        }
+                                    } else if (type.equals(PersonType.Gongan)) {
                                         if (checkChange != null) {
                                             checkChange.dispose();
                                         }
                                         cg_User1.setName(cardInfo.name());
                                         cg_User1.setCardId(cardInfo.cardId());
                                         pp.screenshots();
-                                        xunjian = true;
+                                        gongan = true;
+
                                     }
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();
                             } catch (NullPointerException e) {
                                 e.printStackTrace();
-                            } catch (Exception e){
+                            } catch (Exception e) {
                                 tv_info.setText("Exception");
                             }
                         }
@@ -510,7 +561,7 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
 
                         @Override
                         public void onNext(Long aLong) {
-                            checkRecord(String.valueOf(1));
+                            checkRecord(String.valueOf(2));
 
                         }
 
@@ -568,7 +619,7 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
 
                                             @Override
                                             public void onNext(Long aLong) {
-                                                checkRecord(String.valueOf(1));
+                                                checkRecord(String.valueOf(2));
 
                                             }
 
@@ -693,7 +744,7 @@ public class HNMBYActivity extends HNMBYFunctionActivity implements NormalWindow
                             Integer.parseInt(datetime.substring(14, 16)),
                             Integer.parseInt(datetime.substring(17, 19)));
                 } catch (Exception e) {
-                    ToastUtils.showLong(e.toString());
+                    Lg.e("Exception", e.toString());
                 }
             }
 

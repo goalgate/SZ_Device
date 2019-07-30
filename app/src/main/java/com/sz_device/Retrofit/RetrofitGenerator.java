@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sz_device.AppInit;
 import com.sz_device.Config.WYY_Config;
+import com.sz_device.Retrofit.InterfaceApi.CommonApi;
 import com.sz_device.Retrofit.InterfaceApi.ConnectApi;
 import com.sz_device.Retrofit.InterfaceApi.HNMBYApi;
 import com.sz_device.Retrofit.InterfaceApi.WYYConnectApi;
@@ -20,10 +21,8 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-
 /**
  * Retrofit变量初始化
- * Created by SmileXie on 16/7/16.
  */
 public class RetrofitGenerator {
     private static ConnectApi connectApi;
@@ -32,11 +31,15 @@ public class RetrofitGenerator {
 
     private static HNMBYApi hnmbyApi;
 
+    private static CommonApi commonApi;
+
     private ConnectApi testConnectApi;
 
     private WYYConnectApi testWYYConnectApi;
 
     private HNMBYApi testHnmbyApi;
+
+    private  CommonApi testCommonApi;
 
     private static OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder();
     private static Gson gson = new GsonBuilder()
@@ -117,5 +120,19 @@ public class RetrofitGenerator {
             hnmbyApi = createService(HNMBYApi.class);
         }
         return hnmbyApi;
+    }
+
+    public static CommonApi getCommonApi() {
+        if (commonApi == null) {
+            commonApi = createService(CommonApi.class);
+        }
+        return commonApi;
+    }
+
+    public CommonApi getCommonApi(String url){
+        if (testCommonApi == null) {
+            testCommonApi = createService(CommonApi.class, url);
+        }
+        return testCommonApi;
     }
 }

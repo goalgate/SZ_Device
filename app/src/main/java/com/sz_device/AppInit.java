@@ -11,6 +11,7 @@ import com.sz_device.Config.BaseConfig;
 import com.sz_device.Config.HNMBY_Config;
 import com.sz_device.Config.JMZH_Config;
 import com.sz_device.Config.LN_Config;
+import com.sz_device.Config.SYJ_Config;
 import com.sz_device.Config.SZ_Config;
 import com.sz_device.Config.WYY_Config;
 import com.sz_device.Config.ZJYZB_Config;

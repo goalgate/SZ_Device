@@ -39,14 +39,31 @@ public class SplashActivity extends RxActivity {
         setContentView(R.layout.activity_splash);
 
         if (AppInit.getInstrumentConfig().getClass().getName().equals(HNMBY_Config.class.getName())) {
+//            if (config.getBoolean("firstStart", true)) {
+//                AssetsUtils.getInstance(AppInit.getContext()).copyAssetsToSD("wltlib", "wltlib");
+//                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".StartActivity");
+//                SplashActivity.this.finish();
+//            } else {
+//                ActivityUtils.startActivity(getPackageName(), getPackageName() + AppInit.getInstrumentConfig().getMainActivity());
+//                SplashActivity.this.finish();
+//            }
             if (config.getBoolean("firstStart", true)) {
+                JSONObject jsonKey = new JSONObject();
+                try {
+                    jsonKey.put("daid", new NetInfo().getMacId());
+                    jsonKey.put("check", DESX.encrypt(new NetInfo().getMacId()));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                config.put("firstStart", false);
+                config.put("daid", new NetInfo().getMacId());
+                config.put("key", DESX.encrypt(jsonKey.toString()));
+                config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
                 AssetsUtils.getInstance(AppInit.getContext()).copyAssetsToSD("wltlib", "wltlib");
-                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".StartActivity");
-                SplashActivity.this.finish();
-            } else {
-                ActivityUtils.startActivity(getPackageName(), getPackageName() + AppInit.getInstrumentConfig().getMainActivity());
-                SplashActivity.this.finish();
             }
+            ActivityUtils.startActivity(getPackageName(), getPackageName() + AppInit.getInstrumentConfig().getMainActivity());
+            SplashActivity.this.finish();
+
         } else {
             Observable.timer(3, TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
@@ -64,12 +81,15 @@ public class SplashActivity extends RxActivity {
                             if (config.getBoolean("firstStart", true)) {
                                 JSONObject jsonKey = new JSONObject();
                                 try {
+//                                    jsonKey.put("daid", "089031-154100-076116");
+//                                    jsonKey.put("check", DESX.encrypt("089031-154100-076116"));
                                     jsonKey.put("daid", new NetInfo().getMacId());
                                     jsonKey.put("check", DESX.encrypt(new NetInfo().getMacId()));
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
                                 config.put("firstStart", false);
+//                                config.put("daid","089031-154100-076116");
                                 config.put("daid", new NetInfo().getMacId());
                                 config.put("key", DESX.encrypt(jsonKey.toString()));
                                 config.put("ServerId", AppInit.getInstrumentConfig().getServerId());

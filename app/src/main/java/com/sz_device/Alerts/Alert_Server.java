@@ -24,6 +24,7 @@ import com.sz_device.Retrofit.InterfaceApi.ConnectApi;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Tools.DAInfo;
 
+import java.net.URLEncoder;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -144,7 +145,7 @@ public class Alert_Server {
                                 }
                             });
                 }else {
-                    new RetrofitGenerator().getConnectApi(url).noData("testNet", config.getString("key"))
+                    new RetrofitGenerator().getConnectApi(url).noData1("cjy_updata","testNet", config.getString("key"))
                             .subscribeOn(Schedulers.io())
                             .unsubscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
@@ -182,6 +183,42 @@ public class Alert_Server {
                                 }
                             });
                 }
+//                new RetrofitGenerator().getCommonApi(url).noData("testNet", config.getString("key"))
+//                            .subscribeOn(Schedulers.io())
+//                            .unsubscribeOn(Schedulers.io())
+//                            .observeOn(AndroidSchedulers.mainThread())
+//                            .subscribe(new Observer<String>() {
+//                                @Override
+//                                public void onSubscribe(@NonNull Disposable d) {
+//
+//                                }
+//
+//                                @Override
+//                                public void onNext(String s) {
+//                                    try {
+//                                        if (s.equals("true")) {
+//                                            config.put("ServerId", url);
+//                                            ToastUtils.showLong("连接服务器成功,请点击确定立即启用");
+//                                            callback.setNetworkBmp();
+//                                            //iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
+//                                        } else {
+//                                            ToastUtils.showLong("连接服务器失败");
+//                                        }
+//                                    }catch (Exception e){
+//                                        e.printStackTrace();
+//                                    }
+//                                }
+//
+//                                @Override
+//                                public void onError(@NonNull Throwable e) {
+//                                    ToastUtils.showLong("服务器连接失败");
+//                                }
+//
+//                                @Override
+//                                public void onComplete() {
+//
+//                                }
+//                            });
 
             }
         });

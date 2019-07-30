@@ -3,6 +3,7 @@ package com.sz_device.Alerts;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
 import com.blankj.utilcode.util.ToastUtils;
@@ -23,8 +24,10 @@ public class Alert_Password {
     public Alert_Password(Context context) {
         this.context = context;
     }
+
     private AlertView passwordAlert;
     private PasswordInputView passwordInputView;
+
     public void PasswordViewInit(final Callback callback) {
         ViewGroup passwordView = (ViewGroup) LayoutInflater.from(this.context).inflate(R.layout.inputpassword_form, null);
         passwordInputView = (PasswordInputView) passwordView.findViewById(R.id.passwordInputView);
@@ -36,19 +39,27 @@ public class Alert_Password {
                         callback.normal_call();
                     } else if (passwordInputView.getText().toString().equals("665901")) {
                         callback.super_call();
-                    } else if (passwordInputView.getText().toString().equals("453987")){
+                    } else if (passwordInputView.getText().toString().equals("453987")) {
                         FingerPrintPresenter.getInstance().fpCancel(true);
-                        FingerPrintPresenter.getInstance().fpRemoveAll();
-                        Observable.timer(1,TimeUnit.SECONDS)
+                        Observable.timer(1, TimeUnit.SECONDS)
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new Consumer<Long>() {
                                     @Override
                                     public void accept(Long aLong) throws Exception {
-                                        ToastUtils.showLong("全部指纹已清除");
-                                        FingerPrintPresenter.getInstance().fpIdentify();
+                                        FingerPrintPresenter.getInstance().fpRemoveAll();
+                                        Observable.timer(1, TimeUnit.SECONDS)
+                                                .observeOn(AndroidSchedulers.mainThread())
+                                                .subscribe(new Consumer<Long>() {
+                                                    @Override
+                                                    public void accept(Long aLong) throws Exception {
+                                                        ToastUtils.showLong("全部指纹已清除");
+                                                        FingerPrintPresenter.getInstance().fpIdentify();
+                                                    }
+                                                });
                                     }
                                 });
-                    } else{
+
+                    } else {
                         ToastUtils.showLong("密码错误，请重试");
                     }
                 }
@@ -58,13 +69,14 @@ public class Alert_Password {
         passwordAlert.addExtView(passwordView);
     }
 
-    public void show(){
+    public void show() {
         passwordInputView.setText(null);
         passwordAlert.show();
     }
 
-    public interface Callback{
+    public interface Callback {
         void normal_call();
+
         void super_call();
     }
 }

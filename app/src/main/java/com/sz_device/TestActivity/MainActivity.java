@@ -1,4 +1,4 @@
-package com.sz_device;
+package com.sz_device.TestActivity;
 
 import android.content.Intent;
 import android.gesture.Gesture;
@@ -12,6 +12,7 @@ import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
@@ -31,33 +32,32 @@ import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.drv.card.ICardInfo;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.widget.RxTextView;
-import com.log.Lg;
+import com.sz_device.Alerts.Alarm;
 import com.sz_device.Alerts.Alert_IP;
 import com.sz_device.Alerts.Alert_Message;
 import com.sz_device.Alerts.Alert_Password;
 import com.sz_device.Alerts.Alert_Server;
+import com.sz_device.AppInit;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.Config.BaseConfig;
-import com.sz_device.Config.SZ_Config;
 import com.sz_device.EventBus.AlarmEvent;
 import com.sz_device.EventBus.LockUpEvent;
 import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.EventBus.PassEvent;
 import com.sz_device.EventBus.TemHumEvent;
-import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
-import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
+import com.sz_device.FunctionActivity;
+import com.sz_device.R;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.State.OperationState.Door_Open_OperateState;
 import com.sz_device.State.OperationState.No_one_OperateState;
 import com.sz_device.State.OperationState.One_man_OperateState;
 import com.sz_device.State.OperationState.Operation;
 import com.sz_device.State.OperationState.Two_man_OperateState;
-import com.sz_device.Service.SwitchService;
-import com.sz_device.Alerts.Alarm;
 import com.sz_device.Tools.DESX;
 import com.sz_device.Tools.FileUtils;
 import com.sz_device.Tools.MyObserver;
@@ -78,6 +78,8 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -99,13 +101,7 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
-
-/**
- * Created by zbsz on 2017/8/25.
- */
-
-
-public class New_IndexActivity extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
+public class MainActivity extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -170,8 +166,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     @OnClick(R.id.lay_network)
     void showMessage() {
         alert_message.showMessage();
-//        Alarm.getInstance(this).messageAlarm("请注意，该人员为巡检员，无法正常解锁\n如需解锁还请两名仓管员到现场重新操作");
-//        SwitchPresenter.getInstance().buzz(SwitchImpl.Hex.H2);
     }
 
     @Override
@@ -181,9 +175,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
         autoUpdate();
-        Lg.e("key", config.getString("key"));
         openService();
-        network_state = false;
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         disposableTips = RxTextView.textChanges(tv_info)
                 .debounce(60, TimeUnit.SECONDS)
@@ -212,19 +204,20 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         alert_password.PasswordViewInit(new Alert_Password.Callback() {
             @Override
             public void normal_call() {
-                normalWindow = new NormalWindow(New_IndexActivity.this);
-                normalWindow.setOptionTypeListener(New_IndexActivity.this);
+                normalWindow = new NormalWindow(MainActivity.this);
+                normalWindow.setOptionTypeListener(MainActivity.this);
                 normalWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
 
             @Override
             public void super_call() {
-                superWindow = new SuperWindow(New_IndexActivity.this);
-                superWindow.setOptionTypeListener(New_IndexActivity.this);
+                superWindow = new SuperWindow(MainActivity.this);
+                superWindow.setOptionTypeListener(MainActivity.this);
                 superWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
         });
         alert_message.messageInit();
+
         syncTime();
     }
 
@@ -270,9 +263,8 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         }
     }
 
-
     void openService() {
-        intent = new Intent(New_IndexActivity.this, SwitchService.class);
+        intent = new Intent(MainActivity.this, SwitchService.class);
         startService(intent);
     }
 
@@ -328,7 +320,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         cg_User2 = new User();
         global_Operation.setState(no_one_operateState);
         tv_info.setText("等待用户操作...");
-        //network_state = false;
+        network_state = false;
         Observable.interval(0, 1, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.<Long>bindUntilEvent(ActivityEvent.PAUSE))
@@ -338,7 +330,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                         tv_time.setText(formatter.format(new Date(System.currentTimeMillis())));
                     }
                 });
-        sync();
     }
 
     @Override
@@ -366,8 +357,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } else if (type == 3) {
             ViewGroup extView2 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputdevid_form, null);
             final EditText et_devid = (EditText) extView2.findViewById(R.id.devid_input);
-            et_devid.setText(config.getString("daid"));
-            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, New_IndexActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, MainActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
@@ -375,6 +365,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             ToastUtils.showLong("您的输入为空请重试");
                         } else {
                             fpp.fpCancel(true);
+                            fpp.fpRemoveAll();
                             equipment_sync(et_devid.getText().toString());
                         }
                     }
@@ -386,14 +377,14 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
             ViewGroup deleteView = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.delete_person_form, null);
             final EditText et_idcard = (EditText) deleteView.findViewById(R.id.idcard_input);
             final EditText et_finger = (EditText) deleteView.findViewById(R.id.et_finger);
-            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, New_IndexActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, MainActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
                         if (TextUtils.isEmpty(et_idcard.getText().toString()) || TextUtils.isEmpty(et_finger.getText().toString())) {
                             ToastUtils.showLong("您的输入为空请重试");
                         } else {
-                            deletePerson(et_idcard.getText().toString().toUpperCase(), et_finger.getText().toString());
+                            deletePerson(et_idcard.getText().toString(), et_finger.getText().toString());
                         }
                     }
                 }
@@ -414,8 +405,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     @Override
     public void onCaremaText(String s) {
         if ("摄像头打开失败，无法拍照".equals(s)) {
-            Alarm.getInstance(this).messageAlarm(s);
-            //ToastUtils.showLong(s);
+            ToastUtils.showLong(s);
         }
     }
 
@@ -443,7 +433,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
             @Override
             public void onSucc() {
-                Alarm.getInstance(New_IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                Alarm.getInstance(MainActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
                     @Override
                     public void onIsKnown() {
                         loadMessage(msg.substring(3, msg.length()));
@@ -451,7 +441,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onTextBack(String msg) {
-                        Alarm.getInstance(New_IndexActivity.this).setKnown(true);
+                        Alarm.getInstance(MainActivity.this).setKnown(true);
                         tv_info.setText(msg);
                     }
                 });
@@ -488,10 +478,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } else if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.XunJian)) {
             if (checkChange != null) {
                 checkChange.dispose();
-            }
-            if (getState(One_man_OperateState.class)) {
-                Alarm.getInstance(this).messageAlarm("请注意，该人员为巡检员，无法正常解锁\n如需解锁还请两名仓管员到现场重新操作\n此次巡检记录已保存");
-                SwitchPresenter.getInstance().buzz(SwitchImpl.Hex.H2);
             }
             cg_User1.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
             cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
@@ -562,7 +548,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                 tv_info.setText(String.format("管理员%s打卡成功,指纹ID:%s\n设备已撤防", cg_User2.getName(), cg_User2.getFingerprintId()));
                 //tv_info.setText("管理员" + cg_User2.getName() + "打卡，双人管理成功,指纹ID为" + cg_User2.getFingerprintId());
             } else {
-                tv_info.setText("管理员" + cg_User2.getName() + "打卡，双人管理成功");
+                tv_info.setText("管理员" + cg_User2.getName() + "打卡,双人管理成功,\n请开启仓门");
             }
             cg_User2.setPhoto(FileUtils.bitmapToBase64(bmp));
             global_Operation.doNext(new Operation.Callback_Operation() {
@@ -592,7 +578,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                 @Override
                 public void onSucc() {
-                    Alarm.getInstance(New_IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                    Alarm.getInstance(MainActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
                         @Override
                         public void onIsKnown() {
                             if (AppInit.getInstrumentConfig().CardFunction().equals(BaseConfig.IC)) {
@@ -605,110 +591,13 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                         @Override
                         public void onTextBack(String msg) {
-                            Alarm.getInstance(New_IndexActivity.this).setKnown(true);
+                            Alarm.getInstance(MainActivity.this).setKnown(true);
                             tv_info.setText(msg);
                         }
                     });
+
                 }
             });
-
-        }
-    }
-
-    private void idcard_operation(final ICardInfo cardInfo) {
-        SPUtils sp = SPUtils.getInstance(cardInfo.cardId());
-        if (sp.getString("courType").equals(PersonType.KuGuan)) {
-            if (getState(No_one_OperateState.class)) {
-                global_Operation.setState(new One_man_OperateState());
-                cg_User1.setCourIds(sp.getString("courIds"));
-                cg_User1.setName(sp.getString("name"));
-                cg_User1.setCardId(cardInfo.cardId());
-                pp.capture();
-            } else if (getState(Two_man_OperateState.class)) {
-                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
-                    cg_User2.setCourIds(sp.getString("courIds"));
-                    cg_User2.setName(sp.getString("name"));
-                    cg_User2.setCardId(cardInfo.cardId());
-                    pp.capture();
-                    EventBus.getDefault().post(new PassEvent());
-                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-                } else {
-                    tv_info.setText("请不要连续输入相同的管理员信息");
-                }
-            } else if (getState(Door_Open_OperateState.class)) {
-                tv_info.setText("仓库门已解锁");
-            }
-        } else if (sp.getString("courType").equals(PersonType.XunJian)) {
-            if (checkChange != null) {
-                checkChange.dispose();
-            }
-            cg_User1.setCourIds(sp.getString("courIds"));
-            cg_User1.setName(sp.getString("name"));
-            cg_User1.setCardId(cardInfo.cardId());
-            checkRecord(String.valueOf(2));
-        } else {
-            RetrofitGenerator.getConnectApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId())
-                    .subscribeOn(Schedulers.io())
-                    .unsubscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new MyObserver<ResponseBody>(this) {
-                        @Override
-                        public void onNext(ResponseBody responseBody) {
-                            try {
-                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
-                                        new TypeToken<HashMap<String, String>>() {
-                                        }.getType());
-                                if (infoMap.get("result").equals("true")) {
-                                    if (infoMap.get("status").equals(String.valueOf(0))) {
-                                        if (infoMap.get("courType").equals(PersonType.KuGuan)) {
-                                            if (getState(No_one_OperateState.class)) {
-                                                global_Operation.setState(new One_man_OperateState());
-                                                cg_User1.setCourIds(infoMap.get("courIds"));
-                                                cg_User1.setName(infoMap.get("name"));
-                                                cg_User1.setCardId(cardInfo.cardId());
-                                                pp.capture();
-                                            } else if (getState(Two_man_OperateState.class)) {
-                                                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
-                                                    cg_User2.setCourIds(infoMap.get("courIds"));
-                                                    cg_User2.setName(infoMap.get("name"));
-                                                    cg_User2.setCardId(cardInfo.cardId());
-                                                    pp.capture();
-                                                    EventBus.getDefault().post(new PassEvent());
-                                                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-                                                } else {
-                                                    tv_info.setText("请不要连续输入相同的管理员信息");
-                                                }
-                                            } else if (getState(Door_Open_OperateState.class)) {
-                                                tv_info.setText("仓库门已解锁");
-                                            }
-                                        } else if (infoMap.get("courType").equals(PersonType.XunJian)) {
-                                            if (checkChange != null) {
-                                                checkChange.dispose();
-                                            }
-                                            cg_User1.setCourIds(infoMap.get("courIds"));
-                                            cg_User1.setName(infoMap.get("name"));
-                                            cg_User1.setCardId(cardInfo.cardId());
-                                            checkRecord(String.valueOf(2));
-                                        }
-                                    } else {
-                                        unknownUser.setName(cardInfo.name());
-                                        unknownUser.setCardId(cardInfo.cardId());
-                                        pp.capture();
-                                    }
-                                } else {
-                                    unknownUser.setName(cardInfo.name());
-                                    unknownUser.setCardId(cardInfo.cardId());
-                                    pp.capture();
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (NullPointerException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-
-//            unknownUser.setFingerprintId(sp);
 
         }
     }
@@ -721,7 +610,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getConnectApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getCommonApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -780,15 +669,135 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                 });
     }
 
+    private void idcard_operation(final ICardInfo cardInfo) {
+        SPUtils sp = SPUtils.getInstance(cardInfo.cardId());
+        if (sp.getString("courType").equals(PersonType.KuGuan)) {
+            if (getState(No_one_OperateState.class)) {
+                global_Operation.setState(new One_man_OperateState());
+                cg_User1.setCourIds(sp.getString("courIds"));
+                cg_User1.setName(sp.getString("name"));
+                cg_User1.setCardId(cardInfo.cardId());
+                pp.capture();
+            } else if (getState(Two_man_OperateState.class)) {
+                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                    cg_User2.setCourIds(sp.getString("courIds"));
+                    cg_User2.setName(sp.getString("name"));
+                    cg_User2.setCardId(cardInfo.cardId());
+                    pp.capture();
+                    EventBus.getDefault().post(new PassEvent());
+                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                } else {
+                    tv_info.setText("请不要连续输入相同的管理员信息");
+                }
+            } else if (getState(Door_Open_OperateState.class)) {
+                tv_info.setText("仓库门已解锁");
+            }
+        } else if (sp.getString("courType").equals(PersonType.XunJian)) {
+            if (checkChange != null) {
+                checkChange.dispose();
+            }
+            cg_User1.setCourIds(sp.getString("courIds"));
+            cg_User1.setName(sp.getString("name"));
+            cg_User1.setCardId(cardInfo.cardId());
+            checkRecord(String.valueOf(2));
+        } else {
+            RetrofitGenerator.getCommonApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId())
+                    .subscribeOn(Schedulers.io())
+                    .unsubscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new MyObserver<ResponseBody>(this) {
+                        @Override
+                        public void onNext(ResponseBody responseBody) {
+                            try {
+                                if (responseBody.string().equals("true")) {
+                                    if (getState(No_one_OperateState.class)) {
+                                        global_Operation.setState(new One_man_OperateState());
+//                                                cg_User1.setCourIds(infoMap.get("courIds"));
+                                        cg_User1.setName(cardInfo.name());
+                                        cg_User1.setCardId(cardInfo.cardId());
+                                        pp.capture();
+                                    } else if (getState(Two_man_OperateState.class)) {
+                                        if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                                            cg_User2.setName(cardInfo.name());
+                                            cg_User2.setCardId(cardInfo.cardId());
+                                            pp.capture();
+                                            EventBus.getDefault().post(new PassEvent());
+                                            iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                                        } else {
+                                            tv_info.setText("请不要连续输入相同的管理员信息");
+                                        }
+                                    } else if (getState(Door_Open_OperateState.class)) {
+                                        tv_info.setText("仓库门已解锁");
+                                    }
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+//                            try {
+//                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
+//                                        new TypeToken<HashMap<String, String>>() {
+//                                        }.getType());
+//                                if (infoMap.size() > 0) {
+//                                    if (infoMap.get("status").equals(String.valueOf(0))) {
+//                                        if (infoMap.get("courType").equals(PersonType.KuGuan)) {
+//                                            if (getState(No_one_OperateState.class)) {
+//                                                global_Operation.setState(new One_man_OperateState());
+//                                                cg_User1.setCourIds(infoMap.get("courIds"));
+//                                                cg_User1.setName(infoMap.get("name"));
+//                                                cg_User1.setCardId(cardInfo.cardId());
+//                                                pp.capture();
+//                                            } else if (getState(Two_man_OperateState.class)) {
+//                                                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+//                                                    cg_User2.setCourIds(infoMap.get("courIds"));
+//                                                    cg_User2.setName(infoMap.get("name"));
+//                                                    cg_User2.setCardId(cardInfo.cardId());
+//                                                    pp.capture();
+//                                                    EventBus.getDefault().post(new PassEvent());
+//                                                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+//                                                } else {
+//                                                    tv_info.setText("请不要连续输入相同的管理员信息");
+//                                                }
+//                                            } else if (getState(Door_Open_OperateState.class)) {
+//                                                tv_info.setText("仓库门已解锁");
+//                                            }
+//                                        } else if (infoMap.get("courType").equals(PersonType.XunJian)) {
+//                                            if (checkChange != null) {
+//                                                checkChange.dispose();
+//                                            }
+//                                            cg_User1.setCourIds(infoMap.get("courIds"));
+//                                            cg_User1.setName(infoMap.get("name"));
+//                                            cg_User1.setCardId(cardInfo.cardId());
+//                                            checkRecord(String.valueOf(2));
+//                                        }
+//                                    } else {
+//                                        unknownUser.setName(cardInfo.name());
+//                                        unknownUser.setCardId(cardInfo.cardId());
+//                                        pp.capture();
+//                                    }
+//                                } else {
+//                                    unknownUser.setName(cardInfo.name());
+//                                    unknownUser.setCardId(cardInfo.cardId());
+//                                    pp.capture();
+//                                }
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            } catch (NullPointerException e) {
+//                                e.printStackTrace();
+//                            } catch (JsonSyntaxException e){
+//                                try {
+//                                    Log.e("jsonErr",responseBody.string());
+//                                }catch (Exception e1){
+//                                    e.printStackTrace();
+//                                }
+//                            }
+                        }
+                    });
+        }
+    }
 
     @Override
     public void onsetCardImg(Bitmap bmp) {
 
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
     }
 
     private Boolean getState(Class stateClass) {
@@ -800,7 +809,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     }
 
     private void syncTime() {
-        RetrofitGenerator.getConnectApi().noData("getTime", config.getString("key"))
+        RetrofitGenerator.getCommonApi().noData("getTime", config.getString("key"))
                 .subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io()).subscribe(new Observer<String>() {
             @Override
@@ -820,7 +829,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             Integer.parseInt(datetime.substring(17, 19)));
                 } catch (Exception e) {
                     e.printStackTrace();
-//                    ToastUtils.showLong(e.toString());
                 }
             }
 
@@ -843,12 +851,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getConnectApi().withDataRs("deleteFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getCommonApi().withDataRs("deleteFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new MyObserver<String>(this, true) {
-
                     @Override
                     public void onNext(String s) {
                         if (s.equals("true")) {
@@ -871,7 +878,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             ToastUtils.showLong("数据库出错");
                         }
                     }
-
                 });
     }
 
@@ -886,12 +892,12 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getConnectApi().withDataRs("checkRecord", config.getString("key"), checkRecordJson.toString())
+
+        RetrofitGenerator.getCommonApi().withDataRs("checkRecord", config.getString("key"), checkRecordJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new MyObserver<String>(this) {
-
                     @Override
                     public void onNext(String s) {
                         if (s.equals("true")) {
@@ -913,7 +919,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     @Override
                     public void onError(@NonNull Throwable e) {
                         super.onError(e);
-                        tv_info.setText("无法连接到服务器");
                         mdaoSession.insert(new ReUploadBean(null, "checkRecord", checkRecordJson.toString()));
 
                     }
@@ -939,7 +944,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getConnectApi().withDataRs("saveVisit", config.getString("key"), unknownPeopleJson.toString())
+        RetrofitGenerator.getCommonApi().withDataRs("saveVisit", config.getString("key"), unknownPeopleJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -951,7 +956,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             global_Operation.setState(new No_one_OperateState());
                         }
                         if (s.equals("true")) {
-                            tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功,指纹号为" + unknownUser.getFingerprintId());
+                            if (unknownUser.getFingerprintId() != null) {
+                                tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功,指纹号为" + unknownUser.getFingerprintId());
+                            } else {
+                                tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功");
+                            }
                         } else if (s.equals("false")) {
                             tv_info.setText("访问人上传失败");
                         } else if (s.equals("dataErr")) {
@@ -982,66 +991,86 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     private void equipment_sync(final String old_devid) {
         JSONObject jsonObject = new JSONObject();
         try {
+//            JSONObject jsonKey = new JSONObject();
+//            jsonKey.put("daid", old_devid);
+//            jsonKey.put("check", DESX.encrypt(old_devid));
+//            config.put("daid", old_devid);
+//            config.put("key", DESX.encrypt(jsonKey.toString()));
             jsonObject.put("oldDaid", old_devid);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getCommonApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new MyObserver<ResponseBody>(this, true) {
+
                     @Override
                     public void onNext(ResponseBody responseBody) {
+//                        try {
+//                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
+//                            if (("true").equals(jsonObject.getString("result"))) {
+//                                JSONArray jsonArray = jsonObject.getJSONArray("data");
+//                                if (null != jsonArray && jsonArray.length() != 0) {
+//                                    for (int i = 0; i < jsonArray.length(); i++) {
+//                                        JSONObject item = jsonArray.getJSONObject(i);
+//                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
+//                                        fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
+//                                        user_sp.put("courIds", item.getString("personIds"));
+//                                        user_sp.put("name", item.getString("name"));
+//                                        user_sp.put("cardId", item.getString("idcard"));
+//                                        user_sp.put("courType", item.getString("courType"));
+//                                    }
+//                                    JSONObject jsonKey = new JSONObject();
+//                                    jsonKey.put("daid", old_devid);
+//                                    jsonKey.put("check", DESX.encrypt(old_devid));
+//                                    config.put("daid", old_devid);
+//                                    config.put("key", DESX.encrypt(jsonKey.toString()));
+//                                    ToastUtils.showLong("设备数据更新成功");
+//                                } else {
+//                                    ToastUtils.showLong("该设备号无人员数据");
+//                                }
+//                            } else {
+//                                ToastUtils.showLong("设备号有误");
+//                            }
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
                         try {
-                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
-                            if (("true").equals(jsonObject.getString("result"))) {
-                                final JSONArray jsonArray = jsonObject.getJSONArray("data");
-                                if (null != jsonArray && jsonArray.length() != 0) {
-                                    fpp.fpRemoveAll();
-                                    Observable.timer(1, TimeUnit.SECONDS)
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .subscribe(new Consumer<Long>() {
-                                                @Override
-                                                public void accept(Long aLong) throws Exception {
-                                                    for (int i = 0; i < jsonArray.length(); i++) {
-                                                        JSONObject item = jsonArray.getJSONObject(i);
-                                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
-                                                        fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
-                                                        user_sp.put("courIds", item.getString("personIds"));
-                                                        user_sp.put("name", item.getString("name"));
-                                                        user_sp.put("cardId", item.getString("idcard"));
-                                                        user_sp.put("courType", item.getString("courType"));
-                                                    }
-                                                    JSONObject jsonKey = new JSONObject();
-                                                    try {
-                                                        jsonKey.put("daid", old_devid);
-                                                        jsonKey.put("check", DESX.encrypt(old_devid));
-                                                    } catch (JSONException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                    config.put("daid", old_devid);
-                                                    config.put("key", DESX.encrypt(jsonKey.toString()));
-                                                    ToastUtils.showLong("设备数据更新成功");
-                                                    config.put("sync29", false);
-                                                    fpp.fpIdentify();
-                                                }
-                                            });
-                                } else {
-                                    ToastUtils.showLong("该设备号无人员数据");
-                                    config.put("sync29", false);
-                                    fpp.fpIdentify();
+                            JSONArray jsonArray = new JSONArray(responseBody.string().toString());
+                            if (null != jsonArray && jsonArray.length() != 0) {
+                                for (int i = 0; i < jsonArray.length(); i++) {
+                                    JSONObject item = jsonArray.getJSONObject(i);
+                                    SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
+                                    fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
+                                    user_sp.put("courIds", item.getString("courIds"));
+                                    user_sp.put("name", item.getString("name"));
+                                    user_sp.put("cardId", item.getString("cardId"));
+                                    user_sp.put("courType", item.getString("courType"));
 
+                                    SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+                                    user_id.put("courIds", item.getString("courIds"));
+                                    user_id.put("name", item.getString("name"));
+                                    user_id.put("fingerprintId", item.getString("pfpIds"));
+                                    user_id.put("courType", item.getString("courType"));
                                 }
+                                JSONObject jsonKey = new JSONObject();
+                                jsonKey.put("daid", old_devid);
+                                jsonKey.put("check", DESX.encrypt(old_devid));
+                                config.put("daid", old_devid);
+                                config.put("key", DESX.encrypt(jsonKey.toString()));
+                                ToastUtils.showLong("设备数据更新成功");
                             } else {
-                                ToastUtils.showLong("设备号有误");
-                                config.put("sync29", false);
-
-                                fpp.fpIdentify();
+                                ToastUtils.showLong("该设备号无人员数据");
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -1049,16 +1078,17 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     @Override
                     public void onError(@NonNull Throwable e) {
                         super.onError(e);
+                        //tv_info.setText("无法连接到服务器");
                         fpp.fpIdentify();
                     }
 
                     @Override
                     public void onComplete() {
                         super.onComplete();
+                        fpp.fpIdentify();
                     }
                 });
     }
-
 
     private void OpenDoorRecord(boolean leagl) {
         final JSONObject OpenDoorJson = new JSONObject();
@@ -1086,7 +1116,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                 e.printStackTrace();
             }
         }
-        RetrofitGenerator.getConnectApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorJson.toString())
+        RetrofitGenerator.getCommonApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -1127,21 +1157,4 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     }
                 });
     }
-
-    private void sync() {
-        Observable.timer(5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<Long>bindUntilEvent(ActivityEvent.PAUSE))
-                .subscribe(new Consumer<Long>() {
-                    @Override
-                    public void accept(@NonNull Long aLong) throws Exception {
-                        if (config.getBoolean("sync29", true) &&
-                                AppInit.getInstrumentConfig().getClass().getName().equals(SZ_Config.class.getName())) {
-                            fpp.fpCancel(true);
-                            equipment_sync(config.getString("daid"));
-                        }
-                    }
-                });
-    }
-
 }
-

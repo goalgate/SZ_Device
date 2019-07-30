@@ -7,6 +7,11 @@ import android.widget.TextView;
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.sz_device.Tools.DESX;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.regex.Pattern;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -36,6 +41,15 @@ public class StartActivity extends Activity {
             config.put("firstStart", false);
             config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
             config.put("daid", dev_prefix.getText().toString() + dev_suffix.getText().toString());
+
+            JSONObject jsonKey = new JSONObject();
+            try {
+                jsonKey.put("daid",AppInit.getInstrumentConfig().getServerId());
+                jsonKey.put("check", DESX.encrypt(AppInit.getInstrumentConfig().getServerId()));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            config.put("key", DESX.encrypt(jsonKey.toString()));
             ActivityUtils.startActivity(getPackageName(),getPackageName()+ AppInit.getInstrumentConfig().getMainActivity());
             StartActivity.this.finish();
             ToastUtils.showLong("设备ID设置成功");

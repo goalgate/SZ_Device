@@ -8,7 +8,7 @@ import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
 
-public interface WYYConnectApi{
+public interface WYYConnectApi {
 
     @FormUrlEncoded
     @POST("wbyCjy/s/updata")
@@ -18,6 +18,10 @@ public interface WYYConnectApi{
     @POST("wbyCjy/s/updata")
     Observable<ResponseBody> withDataRr(@Field("dataType") String dataType, @Field("key") String key, @Field("jsonData") String jsonData);
 
+//    @FormUrlEncoded
+//    @POST("wbyCjy/s/updata")
+//    Observable<String> noData(@Field("dataType") String dataType, @Field("key") String key);
+
     @FormUrlEncoded
     @POST("wbyCjy/s/updata")
     Observable<String> noData(@Field("dataType") String dataType, @Field("key") String key);
@@ -25,4 +29,5 @@ public interface WYYConnectApi{
     @FormUrlEncoded
     @POST("wbyCjy/s/updata")
     Observable<ResponseBody> queryPersonInfo(@Field("dataType") String dataType, @Field("key") String key, @Field("idcard") String id);
+
 }

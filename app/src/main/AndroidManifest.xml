@@ -28,6 +28,9 @@
         <activity android:name=".ZJYZBActivity"></activity>
         <activity android:name=".HNMBYActivity"></activity>
         <activity android:name=".StartActivity"></activity>
+        <activity android:name=".TestActivity.MainActivity"></activity>
+        <activity android:name=".TestActivity.AddPersonActivity"></activity>
+        <service android:name=".TestActivity.SwitchService"></service>
         <service android:name=".Service.HNMBYService"></service>
         <service android:name=".Service.SwitchService"></service>
         <service android:name=".Service.WYYService"></service>

@@ -8,6 +8,7 @@ import okhttp3.ResponseBody;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 public interface ConnectApi {
     @FormUrlEncoded
@@ -23,9 +24,12 @@ public interface ConnectApi {
     Observable<String> noData(@Field("dataType") String dataType, @Field("key") String key);
 
     @FormUrlEncoded
+    @POST("{prefix}")
+    Observable<String> noData1(@Path ("prefix") String prefix,@Field("dataType") String dataType, @Field("key") String key);
+
+    @FormUrlEncoded
     @POST("cjy_updata")
     Observable<ResponseBody> queryPersonInfo(@Field("dataType") String dataType, @Field("key") String key, @Field("id") String id);
-
 
 
 //    @FormUrlEncoded

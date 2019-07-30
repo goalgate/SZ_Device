@@ -1,8 +1,5 @@
 package com.sz_device.Function.Fun_FingerPrint.mvp.module;
 
-import android.app.Activity;
-import android.app.Application;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
@@ -10,7 +7,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.Base64;
-
 import com.drv.fingerprint.DevComm;
 import com.drv.fingerprint.IUsbConnState;
 import com.sz_device.AppInit;
@@ -20,9 +16,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-
-
-
 /**
  * Created by zbsz on 2017/6/2.
  */
