@@ -2,11 +2,15 @@ package com.sz_device.Config;
 
 import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 
-public class WYY_Config extends BaseConfig{
+public class WYY_Config extends BaseConfig {
     @Override
+//    public String getServerId() {
+//        return "http://129.204.110.143:8102/";
+//    }
     public String getServerId() {
-        return "http://129.204.110.143:8102/";
+        return "http://yzbyun.wxhxp.cn:81/";
     }
+
 
     @Override
     public String getProject() {

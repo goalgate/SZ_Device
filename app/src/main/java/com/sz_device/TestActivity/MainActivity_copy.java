@@ -1,6 +1,5 @@
-package com.sz_device;
+package com.sz_device.TestActivity;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.gesture.Gesture;
 import android.gesture.GestureLibraries;
@@ -13,7 +12,6 @@ import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
@@ -31,16 +29,14 @@ import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
-import com.drv.card.CardInfoRk123x;
 import com.drv.card.ICardInfo;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.sz_device.Alerts.Alarm;
 import com.sz_device.Alerts.Alert_IP;
 import com.sz_device.Alerts.Alert_Message;
 import com.sz_device.Alerts.Alert_Password;
 import com.sz_device.Alerts.Alert_Server;
+import com.sz_device.AppInit;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.Config.BaseConfig;
 import com.sz_device.EventBus.AlarmEvent;
@@ -50,9 +46,9 @@ import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.EventBus.PassEvent;
 import com.sz_device.EventBus.TemHumEvent;
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
+import com.sz_device.FunctionActivity;
+import com.sz_device.R;
 import com.sz_device.Retrofit.RetrofitGenerator;
-import com.sz_device.Service.SwitchService;
-import com.sz_device.Service.WYYService;
 import com.sz_device.State.OperationState.Door_Open_OperateState;
 import com.sz_device.State.OperationState.No_one_OperateState;
 import com.sz_device.State.OperationState.One_man_OperateState;
@@ -81,8 +77,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -99,7 +93,7 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
-public class WYYActivity extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
+public class MainActivity_copy extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -174,7 +168,6 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
         EventBus.getDefault().register(this);
         autoUpdate();
         openService();
-        network_state = false;
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         disposableTips = RxTextView.textChanges(tv_info)
                 .debounce(60, TimeUnit.SECONDS)
@@ -203,15 +196,15 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
         alert_password.PasswordViewInit(new Alert_Password.Callback() {
             @Override
             public void normal_call() {
-                normalWindow = new NormalWindow(WYYActivity.this);
-                normalWindow.setOptionTypeListener(WYYActivity.this);
+                normalWindow = new NormalWindow(MainActivity_copy.this);
+                normalWindow.setOptionTypeListener(MainActivity_copy.this);
                 normalWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
 
             @Override
             public void super_call() {
-                superWindow = new SuperWindow(WYYActivity.this);
-                superWindow.setOptionTypeListener(WYYActivity.this);
+                superWindow = new SuperWindow(MainActivity_copy.this);
+                superWindow.setOptionTypeListener(MainActivity_copy.this);
                 superWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
         });
@@ -263,7 +256,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
     }
 
     void openService() {
-        intent = new Intent(WYYActivity.this, WYYService.class);
+        intent = new Intent(MainActivity_copy.this, SwitchService.class);
         startService(intent);
     }
 
@@ -319,6 +312,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
         cg_User2 = new User();
         global_Operation.setState(no_one_operateState);
         tv_info.setText("等待用户操作...");
+        network_state = false;
         Observable.interval(0, 1, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.<Long>bindUntilEvent(ActivityEvent.PAUSE))
@@ -355,7 +349,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
         } else if (type == 3) {
             ViewGroup extView2 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputdevid_form, null);
             final EditText et_devid = (EditText) extView2.findViewById(R.id.devid_input);
-            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, WYYActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, MainActivity_copy.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
@@ -375,7 +369,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
             ViewGroup deleteView = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.delete_person_form, null);
             final EditText et_idcard = (EditText) deleteView.findViewById(R.id.idcard_input);
             final EditText et_finger = (EditText) deleteView.findViewById(R.id.et_finger);
-            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, WYYActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, MainActivity_copy.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
@@ -431,7 +425,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
 
             @Override
             public void onSucc() {
-                Alarm.getInstance(WYYActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                Alarm.getInstance(MainActivity_copy.this).networkAlarm(network_state, new Alarm.networkCallback() {
                     @Override
                     public void onIsKnown() {
                         loadMessage(msg.substring(3, msg.length()));
@@ -439,7 +433,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
 
                     @Override
                     public void onTextBack(String msg) {
-                        Alarm.getInstance(WYYActivity.this).setKnown(true);
+                        Alarm.getInstance(MainActivity_copy.this).setKnown(true);
                         tv_info.setText(msg);
                     }
                 });
@@ -576,7 +570,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
 
                 @Override
                 public void onSucc() {
-                    Alarm.getInstance(WYYActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                    Alarm.getInstance(MainActivity_copy.this).networkAlarm(network_state, new Alarm.networkCallback() {
                         @Override
                         public void onIsKnown() {
                             if (AppInit.getInstrumentConfig().CardFunction().equals(BaseConfig.IC)) {
@@ -589,7 +583,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
 
                         @Override
                         public void onTextBack(String msg) {
-                            Alarm.getInstance(WYYActivity.this).setKnown(true);
+                            Alarm.getInstance(MainActivity_copy.this).setKnown(true);
                             tv_info.setText(msg);
                         }
                     });
@@ -599,6 +593,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
 
         }
     }
+
     private void iccard_operation(ICardInfo cardInfo) {
         JSONObject jsonObject = new JSONObject();
         try {
@@ -607,7 +602,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getWyyConnectApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getCommonApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -665,6 +660,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
 
                 });
     }
+
     private void idcard_operation(final ICardInfo cardInfo) {
         SPUtils sp = SPUtils.getInstance(cardInfo.cardId());
         if (sp.getString("courType").equals(PersonType.KuGuan)) {
@@ -697,7 +693,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
             cg_User1.setCardId(cardInfo.cardId());
             checkRecord(String.valueOf(2));
         } else {
-            RetrofitGenerator.getWyyConnectApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId())
+            RetrofitGenerator.getCommonApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId())
                     .subscribeOn(Schedulers.io())
                     .unsubscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -705,132 +701,96 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                         @Override
                         public void onNext(ResponseBody responseBody) {
                             try {
-                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
-                                        new TypeToken<HashMap<String, String>>() {
-                                        }.getType());
-                                if (infoMap.size() > 0) {
-                                    if (infoMap.get("status").equals(String.valueOf(0))) {
-                                        if (infoMap.get("courType").equals(PersonType.KuGuan)) {
-                                            if (getState(No_one_OperateState.class)) {
-                                                global_Operation.setState(new One_man_OperateState());
-
-                                                cg_User1.setCourIds(infoMap.get("courIds"));
-                                                cg_User1.setName(infoMap.get("name"));
-                                                cg_User1.setCardId(cardInfo.cardId());
-                                                pp.capture();
-                                            } else if (getState(Two_man_OperateState.class)) {
-                                                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
-                                                    cg_User2.setCourIds(infoMap.get("courIds"));
-                                                    cg_User2.setName(infoMap.get("name"));
-                                                    cg_User2.setCardId(cardInfo.cardId());
-                                                    pp.capture();
-                                                    EventBus.getDefault().post(new PassEvent());
-                                                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-                                                } else {
-                                                    tv_info.setText("请不要连续输入相同的管理员信息");
-                                                }
-                                            } else if (getState(Door_Open_OperateState.class)) {
-                                                tv_info.setText("仓库门已解锁");
-                                            }
-                                        } else if (infoMap.get("courType").equals(PersonType.XunJian)) {
-                                            if (checkChange != null) {
-                                                checkChange.dispose();
-                                            }
-                                            cg_User1.setCourIds(infoMap.get("courIds"));
-                                            cg_User1.setName(infoMap.get("name"));
-                                            cg_User1.setCardId(cardInfo.cardId());
-                                            checkRecord(String.valueOf(2));
-                                        }
-                                    } else {
-                                        unknownUser.setName(cardInfo.name());
-                                        unknownUser.setCardId(cardInfo.cardId());
+                                if (responseBody.string().equals("true")) {
+                                    if (getState(No_one_OperateState.class)) {
+                                        global_Operation.setState(new One_man_OperateState());
+//                                                cg_User1.setCourIds(infoMap.get("courIds"));
+                                        cg_User1.setName(cardInfo.name());
+                                        cg_User1.setCardId(cardInfo.cardId());
                                         pp.capture();
+                                    } else if (getState(Two_man_OperateState.class)) {
+                                        if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                                            cg_User2.setName(cardInfo.name());
+                                            cg_User2.setCardId(cardInfo.cardId());
+                                            pp.capture();
+                                            EventBus.getDefault().post(new PassEvent());
+                                            iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                                        } else {
+                                            tv_info.setText("请不要连续输入相同的管理员信息");
+                                        }
+                                    } else if (getState(Door_Open_OperateState.class)) {
+                                        tv_info.setText("仓库门已解锁");
                                     }
-                                } else {
-                                    unknownUser.setName(cardInfo.name());
-                                    unknownUser.setCardId(cardInfo.cardId());
-                                    pp.capture();
                                 }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (NullPointerException e) {
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
+//                            try {
+//                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
+//                                        new TypeToken<HashMap<String, String>>() {
+//                                        }.getType());
+//                                if (infoMap.size() > 0) {
+//                                    if (infoMap.get("status").equals(String.valueOf(0))) {
+//                                        if (infoMap.get("courType").equals(PersonType.KuGuan)) {
+//                                            if (getState(No_one_OperateState.class)) {
+//                                                global_Operation.setState(new One_man_OperateState());
+//                                                cg_User1.setCourIds(infoMap.get("courIds"));
+//                                                cg_User1.setName(infoMap.get("name"));
+//                                                cg_User1.setCardId(cardInfo.cardId());
+//                                                pp.capture();
+//                                            } else if (getState(Two_man_OperateState.class)) {
+//                                                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+//                                                    cg_User2.setCourIds(infoMap.get("courIds"));
+//                                                    cg_User2.setName(infoMap.get("name"));
+//                                                    cg_User2.setCardId(cardInfo.cardId());
+//                                                    pp.capture();
+//                                                    EventBus.getDefault().post(new PassEvent());
+//                                                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+//                                                } else {
+//                                                    tv_info.setText("请不要连续输入相同的管理员信息");
+//                                                }
+//                                            } else if (getState(Door_Open_OperateState.class)) {
+//                                                tv_info.setText("仓库门已解锁");
+//                                            }
+//                                        } else if (infoMap.get("courType").equals(PersonType.XunJian)) {
+//                                            if (checkChange != null) {
+//                                                checkChange.dispose();
+//                                            }
+//                                            cg_User1.setCourIds(infoMap.get("courIds"));
+//                                            cg_User1.setName(infoMap.get("name"));
+//                                            cg_User1.setCardId(cardInfo.cardId());
+//                                            checkRecord(String.valueOf(2));
+//                                        }
+//                                    } else {
+//                                        unknownUser.setName(cardInfo.name());
+//                                        unknownUser.setCardId(cardInfo.cardId());
+//                                        pp.capture();
+//                                    }
+//                                } else {
+//                                    unknownUser.setName(cardInfo.name());
+//                                    unknownUser.setCardId(cardInfo.cardId());
+//                                    pp.capture();
+//                                }
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            } catch (NullPointerException e) {
+//                                e.printStackTrace();
+//                            } catch (JsonSyntaxException e){
+//                                try {
+//                                    Log.e("jsonErr",responseBody.string());
+//                                }catch (Exception e1){
+//                                    e.printStackTrace();
+//                                }
+//                            }
                         }
                     });
-
-//            unknownUser.setFingerprintId(sp);
-
         }
-
-//        JSONObject jsonObject = new JSONObject();
-//        try {
-//            jsonObject.put("ickBh", cardInfo.getUid());
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//
-//        RetrofitGenerator.getWyyConnectApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
-//                .subscribeOn(Schedulers.io())
-//                .unsubscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new MyObserver<ResponseBody>(this) {
-//
-//
-//                    @Override
-//                    public void onNext(ResponseBody responseBody) {
-//                        try {
-//                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
-//                            if (jsonObject.getString("result").equals("true")) {
-//                                JSONObject jsonArray = jsonObject.getJSONObject("data");
-//                                if (Integer.parseInt(jsonArray.getString("courType")) == 2) {
-//                                    cg_User1.setCourIds(jsonArray.getString("courIds"));
-//                                    cg_User1.setCardId(jsonArray.getString("idcard"));
-//                                    cg_User1.setName(jsonArray.getString("name"));
-//                                    checkRecord(jsonArray.getString("courType"));
-//                                } else if (Integer.parseInt(jsonArray.getString("courType")) == 1) {
-//                                    if (getState(No_one_OperateState.class)) {
-//                                        global_Operation.setState(new One_man_OperateState());
-//                                        pp.capture();
-//                                        cg_User1.setCourIds(jsonArray.getString("courIds"));
-//                                        cg_User1.setName(jsonArray.getString("name"));
-//                                        cg_User1.setCardId(jsonArray.getString("idcard"));
-//                                    } else if (getState(Two_man_OperateState.class)) {
-//                                        if (!jsonArray.getString("idcard").equals(cg_User1.getCardId())) {
-//                                            cg_User2.setCourIds(jsonArray.getString("courIds"));
-//                                            cg_User2.setName(jsonArray.getString("name"));
-//                                            cg_User2.setCardId(jsonArray.getString("idcard"));
-//                                            pp.capture();
-//                                            EventBus.getDefault().post(new PassEvent());
-//                                            iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-//                                        } else {
-//                                            tv_info.setText("请不要连续输入相同的管理员信息");
-//                                        }
-//                                    } else if (getState(Door_Open_OperateState.class)) {
-//                                        tv_info.setText("仓库门已解锁");
-//                                    }
-//                                }
-//                            } else {
-//                                tv_info.setText("您的IC卡没有登记备案，请更换IC卡重试");
-//                            }
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        } catch (JSONException exception) {
-//                            exception.printStackTrace();
-//                        }
-//
-//                    }
-//
-//                });
     }
-
 
     @Override
     public void onsetCardImg(Bitmap bmp) {
 
     }
-
-
 
     private Boolean getState(Class stateClass) {
         if (global_Operation.getState().getClass().getName().equals(stateClass.getName())) {
@@ -841,7 +801,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
     }
 
     private void syncTime() {
-        RetrofitGenerator.getWyyConnectApi().noData("getTime", config.getString("key"))
+        RetrofitGenerator.getCommonApi().noData("getTime", config.getString("key"))
                 .subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io()).subscribe(new Observer<String>() {
             @Override
@@ -860,7 +820,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                             Integer.parseInt(datetime.substring(14, 16)),
                             Integer.parseInt(datetime.substring(17, 19)));
                 } catch (Exception e) {
-                    ToastUtils.showLong(e.toString());
+                    e.printStackTrace();
                 }
             }
 
@@ -883,7 +843,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getWyyConnectApi().withDataRs("deleteFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getCommonApi().withDataRs("deleteFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -925,7 +885,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getWyyConnectApi().withDataRs("checkRecord", config.getString("key"), checkRecordJson.toString())
+        RetrofitGenerator.getCommonApi().withDataRs("checkRecord", config.getString("key"), checkRecordJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -976,7 +936,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getWyyConnectApi().withDataRs("saveVisit", config.getString("key"), unknownPeopleJson.toString())
+        RetrofitGenerator.getCommonApi().withDataRs("saveVisit", config.getString("key"), unknownPeopleJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -988,9 +948,9 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                             global_Operation.setState(new No_one_OperateState());
                         }
                         if (s.equals("true")) {
-                            if(unknownUser.getFingerprintId()!=null){
+                            if (unknownUser.getFingerprintId() != null) {
                                 tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功,指纹号为" + unknownUser.getFingerprintId());
-                            }else{
+                            } else {
                                 tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功");
                             }
                         } else if (s.equals("false")) {
@@ -1032,7 +992,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getWyyConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getCommonApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -1083,11 +1043,11 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                                     user_sp.put("cardId", item.getString("cardId"));
                                     user_sp.put("courType", item.getString("courType"));
 
-//                                    SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
-//                                    user_id.put("courIds", item.getString("courIds"));
-//                                    user_id.put("name", item.getString("name"));
-//                                    user_id.put("fingerprintId", item.getString("pfpIds"));
-//                                    user_id.put("courType", item.getString("courType"));
+                                    SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+                                    user_id.put("courIds", item.getString("courIds"));
+                                    user_id.put("name", item.getString("name"));
+                                    user_id.put("fingerprintId", item.getString("pfpIds"));
+                                    user_id.put("courType", item.getString("courType"));
                                 }
                                 JSONObject jsonKey = new JSONObject();
                                 jsonKey.put("daid", old_devid);
@@ -1102,7 +1062,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                             e.printStackTrace();
                         } catch (IOException e) {
                             e.printStackTrace();
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -1148,7 +1108,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                 e.printStackTrace();
             }
         }
-        RetrofitGenerator.getWyyConnectApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorJson.toString())
+        RetrofitGenerator.getCommonApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

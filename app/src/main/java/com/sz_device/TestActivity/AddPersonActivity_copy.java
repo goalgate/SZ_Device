@@ -1,4 +1,4 @@
-package com.sz_device;
+package com.sz_device.TestActivity;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -20,10 +20,12 @@ import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.view.RxView;
 import com.log.Lg;
 import com.sz_device.Alerts.Alarm;
+import com.sz_device.AppInit;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Function.Fun_FingerPrint.mvp.view.IFingerPrintView;
+import com.sz_device.R;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Tools.FileUtils;
 import com.sz_device.Tools.MyObserver;
@@ -51,9 +53,9 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
-public class WYYAddActivity2 extends Activity implements IFingerPrintView {
+public class AddPersonActivity_copy extends Activity implements IFingerPrintView {
 
-    private String TAG = WYYAddActivity2.class.getSimpleName();
+    private String TAG = AddPersonActivity_copy.class.getSimpleName();
 
     SPUtils config = SPUtils.getInstance("config");
 
@@ -84,7 +86,7 @@ public class WYYAddActivity2 extends Activity implements IFingerPrintView {
 
     @OnClick(R.id.btn_query)
     void queryPerson() {
-        RetrofitGenerator.getWyyConnectApi().queryPersonInfo("queryPersonInfo", config.getString("key"), et_idcard.getText().toString().toUpperCase())
+        RetrofitGenerator.getCommonApi().queryPersonInfo("queryPersonInfo", config.getString("key"), et_idcard.getText().toString().toUpperCase())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -95,13 +97,13 @@ public class WYYAddActivity2 extends Activity implements IFingerPrintView {
                             Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
                                     new TypeToken<HashMap<String, String>>() {
                                     }.getType());
-                            if (infoMap.size() > 0) {
+                            if (infoMap.get("result").equals("true")) {
                                 if (infoMap.get("status").equals(String.valueOf(0))) {
+                                    fp_id = infoMap.get("data");
                                     img_finger.setClickable(false);
-                                    fp_id = String.valueOf(fpp.fpGetEmptyID());
                                     fpp.fpEnroll(fp_id);
                                     user = new User();
-                                    user.setCardId(infoMap.get("idcard"));
+                                    user.setCardId(et_idcard.getText().toString().toUpperCase());
                                     user.setName(infoMap.get("name"));
                                     user.setFingerprintId(fp_id);
                                     user.setCourIds(infoMap.get("courIds"));
@@ -109,17 +111,17 @@ public class WYYAddActivity2 extends Activity implements IFingerPrintView {
                                     query.setText(infoMap.get("name") + ",欢迎您！");
                                     query.setClickable(false);
                                 } else {
-                                    Alarm.getInstance(WYYAddActivity2.this).messageAlarm("您的身份有误，如有疑问请联系客服处理");
+                                    Alarm.getInstance(AddPersonActivity_copy.this).messageAlarm("您的身份有误，如有疑问请联系客服处理");
                                 }
+                            } else if (infoMap.get("result").equals("false")) {
+                                Alarm.getInstance(AddPersonActivity_copy.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");
                             } else {
-                                Alarm.getInstance(WYYAddActivity2.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");
+                                Alarm.getInstance(AddPersonActivity_copy.this).messageAlarm(infoMap.get("result"));
                             }
                         } catch (IOException e) {
-                            Lg.e(TAG, e.toString());
-                        } catch (NullPointerException e) {
-                            Lg.e(TAG, e.toString());
-                        } catch (Exception e) {
-                            Lg.e(TAG, e.toString());
+                            Lg.e(TAG,e.toString());
+                        } catch (Exception e){
+                            Lg.e(TAG,e.toString());
                         }
                     }
                 });
@@ -137,56 +139,49 @@ public class WYYAddActivity2 extends Activity implements IFingerPrintView {
                     jsonObject.put("name", user.getName());
                     jsonObject.put("courType", user.getCourType());
                     jsonObject.put("fingerprintPhoto", user.getFingerprintPhoto());
-//                    jsonObject.put("fingerprintPhoto", "null");
                     jsonObject.put("fingerprintId", user.getFingerprintId());
-//                    jsonObject.put("fingerprintKey","null");
                     jsonObject.put("fingerprintKey", fpp.fpUpTemlate(user.getFingerprintId()));
                     jsonObject.put("datetime", TimeUtils.getNowString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                RetrofitGenerator.getWyyConnectApi().withDataRs("fingerLog", config.getString("key"), jsonObject.toString())
+                RetrofitGenerator.getCommonApi().withDataRs("fingerLog", config.getString("key"), jsonObject.toString())
                         .subscribeOn(Schedulers.io())
                         .unsubscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new MyObserver<String>(this) {
                             @Override
                             public void onNext(String s) {
-                                try {
+                                try{
                                     if (s.equals("true")) {
                                         SPUtils user_sp = SPUtils.getInstance(user.getFingerprintId());
                                         user_sp.put("courIds", user.getCourIds());
                                         user_sp.put("name", user.getName());
                                         user_sp.put("cardId", user.getCardId());
                                         user_sp.put("courType", user.getCourType());
-//                                        SPUtils user_id = SPUtils.getInstance(user.getCardId());
-//                                        user_id.put("courIds", user.getCourIds());
-//                                        user_id.put("name", user.getName());
-//                                        user_id.put("fingerprintId", user.getFingerprintId());
-//                                        user_id.put("courType", user.getCourType());
                                         fp_id = "0";
                                         ToastUtils.showLong("人员插入成功");
                                         cancel();
                                     } else {
-                                        Alarm.getInstance(WYYAddActivity2.this).messageAlarm("数据插入有错");
+                                        Alarm.getInstance(AddPersonActivity_copy.this).messageAlarm("数据插入有错");
                                     }
-                                } catch (Exception e) {
-                                    Lg.e(TAG, e.toString());
+                                }catch (Exception e){
+                                    Lg.e(TAG,e.toString());
                                 }
                             }
                         });
             } else {
-                Alarm.getInstance(WYYAddActivity2.this).messageAlarm("您的操作有误，请重试");
+                Alarm.getInstance(AddPersonActivity_copy.this).messageAlarm("您的操作有误，请重试");
 
             }
         } else {
-            Alarm.getInstance(WYYAddActivity2.this).messageAlarm("您还有信息未登记，如需退出请按取消");
+            Alarm.getInstance(AddPersonActivity_copy.this).messageAlarm("您还有信息未登记，如需退出请按取消");
         }
     }
 
     @OnClick(R.id.btn_cancel)
     void cancel() {
-        new AlertView("请选择接下来的操作", null, null, new String[]{"重置并继续录入指纹", "退出至主桌面"}, null, WYYAddActivity2.this, AlertView.Style.Alert, new OnItemClickListener() {
+        new AlertView("请选择接下来的操作", null, null, new String[]{"重置并继续录入指纹", "退出至主桌面"}, null, AddPersonActivity_copy.this, AlertView.Style.Alert, new OnItemClickListener() {
             @Override
             public void onItemClick(Object o, int position) {
                 if (position == 0) {
@@ -278,7 +273,7 @@ public class WYYAddActivity2 extends Activity implements IFingerPrintView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getWyyConnectApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorjson.toString())
+        RetrofitGenerator.getCommonApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorjson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

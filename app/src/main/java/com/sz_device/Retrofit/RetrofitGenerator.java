@@ -39,7 +39,7 @@ public class RetrofitGenerator {
 
     private HNMBYApi testHnmbyApi;
 
-    private  CommonApi testCommonApi;
+    private CommonApi testCommonApi;
 
     private static OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder();
     private static Gson gson = new GsonBuilder()
@@ -65,7 +65,8 @@ public class RetrofitGenerator {
         Retrofit retrofit = new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .baseUrl(SPUtils.getInstance("config").getString("ServerId")).client(client).build();
+                .baseUrl(AppInit.getInstrumentConfig().getServerId()).client(client).build();
+//                .baseUrl(SPUtils.getInstance("config").getString("ServerId")).client(client).build();
         return retrofit.create(serviceClass);
     }
 
@@ -109,12 +110,13 @@ public class RetrofitGenerator {
         return wyyConnectApi;
     }
 
-    public HNMBYApi getHnmbyApi(String url){
+    public HNMBYApi getHnmbyApi(String url) {
         if (testHnmbyApi == null) {
             testHnmbyApi = createService(HNMBYApi.class, url);
         }
         return testHnmbyApi;
     }
+
     public static HNMBYApi getHnmbyApi() {
         if (hnmbyApi == null) {
             hnmbyApi = createService(HNMBYApi.class);
@@ -129,7 +131,7 @@ public class RetrofitGenerator {
         return commonApi;
     }
 
-    public CommonApi getCommonApi(String url){
+    public CommonApi getCommonApi(String url) {
         if (testCommonApi == null) {
             testCommonApi = createService(CommonApi.class, url);
         }
