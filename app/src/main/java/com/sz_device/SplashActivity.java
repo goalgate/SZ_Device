@@ -6,6 +6,8 @@ import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.sz_device.Config.HNMBY_Config;
+import com.sz_device.Config.Hebei_Config;
+import com.sz_device.Config.LN_Config;
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Tools.AssetsUtils;
 import com.sz_device.Tools.DESX;
@@ -50,13 +52,16 @@ public class SplashActivity extends RxActivity {
             if (config.getBoolean("firstStart", true)) {
                 JSONObject jsonKey = new JSONObject();
                 try {
-                    jsonKey.put("daid", new NetInfo().getMacId());
-                    jsonKey.put("check", DESX.encrypt(new NetInfo().getMacId()));
+                    jsonKey.put("daid", "042162-079043-230210");
+                    jsonKey.put("check", DESX.encrypt("042162-079043-230210"));
+//                    jsonKey.put("daid", new NetInfo().getMacId());
+//                    jsonKey.put("check", DESX.encrypt(new NetInfo().getMacId()));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
                 config.put("firstStart", false);
-                config.put("daid", new NetInfo().getMacId());
+                config.put("daid", "042162-079043-230210");
+//                config.put("daid", new NetInfo().getMacId());
                 config.put("key", DESX.encrypt(jsonKey.toString()));
                 config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
                 AssetsUtils.getInstance(AppInit.getContext()).copyAssetsToSD("wltlib", "wltlib");
@@ -76,6 +81,11 @@ public class SplashActivity extends RxActivity {
 
                         @Override
                         public void onNext(@NonNull Long aLong) {
+                            if(AppInit.getInstrumentConfig().getClass().getName().equals(Hebei_Config.class.getName())){
+                                if(config.getString("ServerId").equals("http://124.172.232.89:8050/daServer/")){
+                                    config.put("ServerId","http://121.28.252.22:8001/");
+                                }
+                            }
                             fpp.fpInit();
                             fpp.fpOpen();
                             if (config.getBoolean("firstStart", true)) {

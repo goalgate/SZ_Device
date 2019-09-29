@@ -5,6 +5,10 @@ public abstract class BaseConfig {
 
     public static String ID = "ID";
 
+    public static String Hongwai = "Hongwai";
+
+    public static String Menci = "Menci";
+
     public abstract boolean face();
 
     public abstract String getServerId();
@@ -26,6 +30,8 @@ public abstract class BaseConfig {
     public abstract String getServiceName();
 
     public abstract String getModel();
+
+    public abstract String LockMethod();
 
 
 }

@@ -252,6 +252,7 @@
                     android:layout_margin="0.5dip">
 
                     <TextView
+                        android:id="@+id/describe_doorState"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="仓库门状态判断："

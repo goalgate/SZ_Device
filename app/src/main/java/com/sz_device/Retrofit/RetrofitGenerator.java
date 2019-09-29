@@ -1,12 +1,11 @@
 package com.sz_device.Retrofit;
 
-import com.blankj.utilcode.util.SPUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sz_device.AppInit;
-import com.sz_device.Config.WYY_Config;
-import com.sz_device.Retrofit.InterfaceApi.CommonApi;
+import com.sz_device.Retrofit.InterfaceApi.ShaoXingApi;
 import com.sz_device.Retrofit.InterfaceApi.ConnectApi;
+import com.sz_device.Retrofit.InterfaceApi.GDYZBConnectApi;
 import com.sz_device.Retrofit.InterfaceApi.HNMBYApi;
 import com.sz_device.Retrofit.InterfaceApi.WYYConnectApi;
 
@@ -25,13 +24,18 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Retrofit变量初始化
  */
 public class RetrofitGenerator {
+
+    private static int outTime = 60;
+
     private static ConnectApi connectApi;
 
     private static WYYConnectApi wyyConnectApi;
 
     private static HNMBYApi hnmbyApi;
 
-    private static CommonApi commonApi;
+    private static ShaoXingApi commonApi;
+
+    private static GDYZBConnectApi gdyzbConnectApi;
 
     private ConnectApi testConnectApi;
 
@@ -39,7 +43,9 @@ public class RetrofitGenerator {
 
     private HNMBYApi testHnmbyApi;
 
-    private CommonApi testCommonApi;
+    private ShaoXingApi testCommonApi;
+
+    private GDYZBConnectApi testGDYZBConnectApi;
 
     private static OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder();
     private static Gson gson = new GsonBuilder()
@@ -48,8 +54,8 @@ public class RetrofitGenerator {
 
     private static <S> S createService(Class<S> serviceClass) {
         OkHttpClient client = okHttpClient.connectTimeout(15, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(outTime, TimeUnit.SECONDS)
+                .readTimeout(outTime, TimeUnit.SECONDS)
                 .addInterceptor(new Interceptor() {
                     @Override
                     public Response intercept(Chain chain) throws IOException {
@@ -72,8 +78,8 @@ public class RetrofitGenerator {
 
     private <S> S createService(Class<S> serviceClass, String url) {
         OkHttpClient client = okHttpClient.connectTimeout(15, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(outTime, TimeUnit.SECONDS)
+                .readTimeout(outTime, TimeUnit.SECONDS)
                 .build();
         Retrofit retrofit = new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create(gson))
@@ -124,17 +130,31 @@ public class RetrofitGenerator {
         return hnmbyApi;
     }
 
-    public static CommonApi getCommonApi() {
+    public static ShaoXingApi getShaoXingApi() {
         if (commonApi == null) {
-            commonApi = createService(CommonApi.class);
+            commonApi = createService(ShaoXingApi.class);
         }
         return commonApi;
     }
 
-    public CommonApi getCommonApi(String url) {
+    public ShaoXingApi getShaoXingApi(String url) {
         if (testCommonApi == null) {
-            testCommonApi = createService(CommonApi.class, url);
+            testCommonApi = createService(ShaoXingApi.class, url);
         }
         return testCommonApi;
+    }
+
+    public static GDYZBConnectApi getGdyzbConnectApi() {
+        if (gdyzbConnectApi == null) {
+            gdyzbConnectApi = createService(GDYZBConnectApi.class);
+        }
+        return gdyzbConnectApi;
+    }
+
+    public GDYZBConnectApi getGdyzbConnectApi(String url) {
+        if (testGDYZBConnectApi == null) {
+            testGDYZBConnectApi = createService(GDYZBConnectApi.class, url);
+        }
+        return testGDYZBConnectApi;
     }
 }

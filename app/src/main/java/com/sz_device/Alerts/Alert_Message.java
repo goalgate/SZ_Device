@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -26,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import static com.sz_device.Config.BaseConfig.Hongwai;
+
 
 public class Alert_Message {
 
@@ -46,6 +49,7 @@ public class Alert_Message {
     private TextView msg_iccard;
     private TextView msg_lockState;
     private TextView msg_doorState;
+    private TextView describe_doorState;
 
     public void messageInit() {
         ViewGroup messageView = (ViewGroup) LayoutInflater.from(this.context).inflate(R.layout.message_form, null);
@@ -58,6 +62,11 @@ public class Alert_Message {
         msg_iccard = (TextView) messageView.findViewById(R.id.msg_iccard);
         msg_lockState = (TextView) messageView.findViewById(R.id.msg_lockState);
         msg_doorState = (TextView) messageView.findViewById(R.id.msg_doorState);
+        describe_doorState =(TextView) messageView.findViewById(R.id.describe_doorState);
+        if(AppInit.getInstrumentConfig().LockMethod().equals(Hongwai)){
+            msg_doorState.setVisibility(View.GONE);
+            describe_doorState.setVisibility(View.GONE);
+        }
         messageAlert = new AlertView("信息显示", null, null, new String[]{"确定"}, null, this.context, AlertView.Style.Alert, new OnItemClickListener() {
             @Override
             public void onItemClick(Object o, int position) {

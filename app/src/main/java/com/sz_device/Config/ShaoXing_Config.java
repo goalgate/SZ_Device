@@ -2,20 +2,16 @@ package com.sz_device.Config;
 
 import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 
-public class SYJ_Config extends BaseConfig {
+public class ShaoXing_Config extends BaseConfig {
+
     @Override
     public String getProject() {
         return "SYJ";
     }
 
-//    @Override
-//    public String getServerId() {
-//        return "http://192.168.11.124:8111/";
-//    }
-
     @Override
     public String getServerId() {
-        return "http://14.23.69.2:1162/";
+        return "http://14.23.69.2:1152/";
     }
 
     @Override
@@ -25,12 +21,12 @@ public class SYJ_Config extends BaseConfig {
 
     @Override
     public String getMainActivity() {
-        return ".TestActivity.MainActivity";
+        return ".Activity_SX.MainActivity4";
     }
 
     @Override
     public String getAddActivity() {
-        return ".TestActivity.AddPersonActivity";
+        return ".Activity_SX.AddPersonActivity2";
     }
 
     @Override
@@ -61,5 +57,10 @@ public class SYJ_Config extends BaseConfig {
     @Override
     public String getModel() {
         return "CBDI-P-IC";
+    }
+
+    @Override
+    public String LockMethod() {
+        return Menci;
     }
 }

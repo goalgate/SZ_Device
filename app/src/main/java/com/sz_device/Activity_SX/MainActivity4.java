@@ -1,4 +1,4 @@
-package com.sz_device.TestActivity;
+package com.sz_device.Activity_SX;
 
 import android.content.Intent;
 import android.gesture.Gesture;
@@ -30,6 +30,8 @@ import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.drv.card.ICardInfo;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.sz_device.Alerts.Alarm;
 import com.sz_device.Alerts.Alert_IP;
@@ -37,6 +39,7 @@ import com.sz_device.Alerts.Alert_Message;
 import com.sz_device.Alerts.Alert_Password;
 import com.sz_device.Alerts.Alert_Server;
 import com.sz_device.AppInit;
+import com.sz_device.Bean.FingerprintUser;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.Config.BaseConfig;
 import com.sz_device.EventBus.AlarmEvent;
@@ -77,6 +80,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -93,8 +98,7 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
-public class MainActivity_copy extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
-
+public class MainActivity4 extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private SPUtils config = SPUtils.getInstance("config");
@@ -196,15 +200,15 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
         alert_password.PasswordViewInit(new Alert_Password.Callback() {
             @Override
             public void normal_call() {
-                normalWindow = new NormalWindow(MainActivity_copy.this);
-                normalWindow.setOptionTypeListener(MainActivity_copy.this);
+                normalWindow = new NormalWindow(MainActivity4.this);
+                normalWindow.setOptionTypeListener(MainActivity4.this);
                 normalWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
 
             @Override
             public void super_call() {
-                superWindow = new SuperWindow(MainActivity_copy.this);
-                superWindow.setOptionTypeListener(MainActivity_copy.this);
+                superWindow = new SuperWindow(MainActivity4.this);
+                superWindow.setOptionTypeListener(MainActivity4.this);
                 superWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
         });
@@ -256,7 +260,7 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
     }
 
     void openService() {
-        intent = new Intent(MainActivity_copy.this, SwitchService.class);
+        intent = new Intent(MainActivity4.this, SXService.class);
         startService(intent);
     }
 
@@ -349,7 +353,8 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
         } else if (type == 3) {
             ViewGroup extView2 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputdevid_form, null);
             final EditText et_devid = (EditText) extView2.findViewById(R.id.devid_input);
-            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, MainActivity_copy.this, AlertView.Style.Alert, new OnItemClickListener() {
+            et_devid.setText(config.getString("daid"));
+            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, MainActivity4.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
@@ -369,7 +374,7 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
             ViewGroup deleteView = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.delete_person_form, null);
             final EditText et_idcard = (EditText) deleteView.findViewById(R.id.idcard_input);
             final EditText et_finger = (EditText) deleteView.findViewById(R.id.et_finger);
-            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, MainActivity_copy.this, AlertView.Style.Alert, new OnItemClickListener() {
+            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, MainActivity4.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
@@ -425,7 +430,7 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
 
             @Override
             public void onSucc() {
-                Alarm.getInstance(MainActivity_copy.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                Alarm.getInstance(MainActivity4.this).networkAlarm(network_state, new Alarm.networkCallback() {
                     @Override
                     public void onIsKnown() {
                         loadMessage(msg.substring(3, msg.length()));
@@ -433,7 +438,7 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onTextBack(String msg) {
-                        Alarm.getInstance(MainActivity_copy.this).setKnown(true);
+                        Alarm.getInstance(MainActivity4.this).setKnown(true);
                         tv_info.setText(msg);
                     }
                 });
@@ -443,45 +448,68 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
     }
 
     private void loadMessage(String sp) {
-        if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.KuGuan)) {
-            if (getState(No_one_OperateState.class)) {
-                global_Operation.setState(new One_man_OperateState());
-                pp.capture();
-                cg_User1.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
-                cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
-                cg_User1.setCardId(SPUtils.getInstance(sp).getString("cardId"));
-                cg_User1.setFingerprintId(sp);
-                cg_User1.setCourType(SPUtils.getInstance(sp).getString("courType"));
-            } else if (getState(Two_man_OperateState.class)) {
-                if (!SPUtils.getInstance(sp).getString("cardId").equals(cg_User1.getCardId())) {
-                    cg_User2.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
-                    cg_User2.setName(SPUtils.getInstance(sp).getString("name"));
-                    cg_User2.setCardId(SPUtils.getInstance(sp).getString("cardId"));
-                    cg_User2.setFingerprintId(sp);
+        try {
+            FingerprintUser fpUser = mdaoSession.queryRaw(FingerprintUser.class, "where FINGERPRINT_ID =" + sp).get(0);
+            if (fpUser.getCourType().equals(PersonType.KuGuan)) {
+                //            if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.KuGuan)) {
+                if (getState(No_one_OperateState.class)) {
+                    global_Operation.setState(new One_man_OperateState());
                     pp.capture();
-                    EventBus.getDefault().post(new PassEvent());
-                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-                } else {
-                    tv_info.setText("请不要连续输入相同的管理员信息");
+                    cg_User1.setCourIds(fpUser.getCourIds());
+                    cg_User1.setName(fpUser.getName());
+                    cg_User1.setCardId(fpUser.getCardId());
+                    cg_User1.setFingerprintId(sp);
+                    cg_User1.setCourType(fpUser.getCourType());
+//                    cg_User1.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
+//                    cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
+//                    cg_User1.setCardId(SPUtils.getInstance(sp).getString("cardId"));
+//                    cg_User1.setFingerprintId(sp);
+//                    cg_User1.setCourType(SPUtils.getInstance(sp).getString("courType"));
+                } else if (getState(Two_man_OperateState.class)) {
+                    if (!fpUser.getCardId().equals(cg_User1.getCardId())) {
+//                    if (!SPUtils.getInstance(sp).getString("cardId").equals(cg_User1.getCardId())) {
+//                        cg_User2.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
+//                        cg_User2.setName(SPUtils.getInstance(sp).getString("name"));
+//                        cg_User2.setCardId(SPUtils.getInstance(sp).getString("cardId"));
+                        cg_User2.setCourIds(fpUser.getCourIds());
+                        cg_User2.setName(fpUser.getName());
+                        cg_User2.setCardId(fpUser.getCardId());
+                        cg_User2.setFingerprintId(sp);
+                        pp.capture();
+                        EventBus.getDefault().post(new PassEvent());
+                        iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                    } else {
+                        tv_info.setText("请不要连续输入相同的管理员信息");
+                    }
+                } else if (getState(Door_Open_OperateState.class)) {
+                    tv_info.setText("仓库门已解锁");
                 }
-            } else if (getState(Door_Open_OperateState.class)) {
-                tv_info.setText("仓库门已解锁");
+//            } else if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.XunJian)) {
+            } else if (fpUser.getCourType().equals(PersonType.XunJian)) {
+                if (checkChange != null) {
+                    checkChange.dispose();
+                }
+                cg_User1.setCourIds(fpUser.getCourIds());
+                cg_User1.setName(fpUser.getName());
+                cg_User1.setCardId(fpUser.getCardId());
+                cg_User1.setFingerprintId(sp);
+                cg_User1.setCourType(fpUser.getCourType());
+//                cg_User1.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
+//                cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
+//                cg_User1.setCardId(SPUtils.getInstance(sp).getString("cardId"));
+//                cg_User1.setFingerprintId(sp);
+//                cg_User1.setCourType(SPUtils.getInstance(sp).getString("courType"));
+                checkRecord(String.valueOf(2));
+            } else {
+//                unknownUser.setName(SPUtils.getInstance(sp).getString("name"));
+//                unknownUser.setCardId(SPUtils.getInstance(sp).getString("cardId"));
+                unknownUser.setName(fpUser.getName());
+                unknownUser.setCardId(fpUser.getCardId());
+                unknownUser.setFingerprintId(sp);
+                pp.capture();
             }
-        } else if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.XunJian)) {
-            if (checkChange != null) {
-                checkChange.dispose();
-            }
-            cg_User1.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
-            cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
-            cg_User1.setCardId(SPUtils.getInstance(sp).getString("cardId"));
-            cg_User1.setFingerprintId(sp);
-            cg_User1.setCourType(SPUtils.getInstance(sp).getString("courType"));
-            checkRecord(String.valueOf(2));
-        } else {
-            unknownUser.setName(SPUtils.getInstance(sp).getString("name"));
-            unknownUser.setCardId(SPUtils.getInstance(sp).getString("cardId"));
-            unknownUser.setFingerprintId(sp);
-            pp.capture();
+        } catch (Exception e) {
+            ToastUtils.showLong(e.toString());
         }
     }
 
@@ -570,7 +598,7 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
 
                 @Override
                 public void onSucc() {
-                    Alarm.getInstance(MainActivity_copy.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                    Alarm.getInstance(MainActivity4.this).networkAlarm(network_state, new Alarm.networkCallback() {
                         @Override
                         public void onIsKnown() {
                             if (AppInit.getInstrumentConfig().CardFunction().equals(BaseConfig.IC)) {
@@ -583,7 +611,7 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
 
                         @Override
                         public void onTextBack(String msg) {
-                            Alarm.getInstance(MainActivity_copy.this).setKnown(true);
+                            Alarm.getInstance(MainActivity4.this).setKnown(true);
                             tv_info.setText(msg);
                         }
                     });
@@ -595,196 +623,119 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
     }
 
     private void iccard_operation(ICardInfo cardInfo) {
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("ickBh", cardInfo.getUid());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
-        RetrofitGenerator.getCommonApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver<ResponseBody>(this) {
-                    @Override
-                    public void onNext(ResponseBody responseBody) {
-                        try {
-                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
-                            if (jsonObject.getString("result").equals("true")) {
-                                JSONObject jsonArray = jsonObject.getJSONObject("data");
-                                if (TextUtils.isEmpty(jsonArray.getString("courType")) || Integer.parseInt(jsonArray.getString("courType")) == 2) {
-                                    cg_User1.setCourIds(jsonArray.getString("courids"));
-                                    cg_User1.setCardId(jsonArray.getString("idcard"));
-                                    cg_User1.setName(jsonArray.getString("name"));
-                                    checkRecord(jsonArray.getString("courType"));
-                                } else if (Integer.parseInt(jsonArray.getString("courType")) == 1) {
-                                    if (getState(No_one_OperateState.class)) {
-                                        global_Operation.setState(new One_man_OperateState());
-                                        pp.capture();
-                                        cg_User1.setCourIds(jsonArray.getString("courids"));
-                                        cg_User1.setName(jsonArray.getString("name"));
-                                        cg_User1.setCardId(jsonArray.getString("idcard"));
-                                    } else if (getState(Two_man_OperateState.class)) {
-                                        if (!jsonArray.getString("idcard").equals(cg_User1.getCardId())) {
-                                            cg_User2.setCourIds(jsonArray.getString("courids"));
-                                            cg_User2.setName(jsonArray.getString("name"));
-                                            cg_User2.setCardId(jsonArray.getString("idcard"));
-                                            pp.capture();
-                                            EventBus.getDefault().post(new PassEvent());
-                                            iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-                                        } else {
-                                            tv_info.setText("请不要连续输入相同的管理员信息");
-                                        }
-                                    } else if (getState(Door_Open_OperateState.class)) {
-                                        tv_info.setText("仓库门已解锁");
-                                    }
-                                }
-                            } else {
-                                tv_info.setText("您的IC卡没有登记备案，请更换IC卡重试");
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (JSONException exception) {
-                            exception.printStackTrace();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        super.onError(e);
-                        tv_info.setText("服务器连接失败，无法辨别IC卡的有效性");
-                    }
-
-                });
     }
 
     private void idcard_operation(final ICardInfo cardInfo) {
-        SPUtils sp = SPUtils.getInstance(cardInfo.cardId());
-        if (sp.getString("courType").equals(PersonType.KuGuan)) {
-            if (getState(No_one_OperateState.class)) {
-                global_Operation.setState(new One_man_OperateState());
-                cg_User1.setCourIds(sp.getString("courIds"));
-                cg_User1.setName(sp.getString("name"));
-                cg_User1.setCardId(cardInfo.cardId());
-                pp.capture();
-            } else if (getState(Two_man_OperateState.class)) {
-                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
-                    cg_User2.setCourIds(sp.getString("courIds"));
-                    cg_User2.setName(sp.getString("name"));
-                    cg_User2.setCardId(cardInfo.cardId());
+        try {
+            FingerprintUser fpUser = mdaoSession.queryRaw(FingerprintUser.class, "where CARD_ID = '" + cardInfo.cardId().toUpperCase() + "'").get(0);
+            if (fpUser.getCourType().equals(PersonType.KuGuan)) {
+                if (getState(No_one_OperateState.class)) {
+                    global_Operation.setState(new One_man_OperateState());
+                    cg_User1.setName(cardInfo.name());
+                    cg_User1.setCardId(cardInfo.cardId());
                     pp.capture();
-                    EventBus.getDefault().post(new PassEvent());
-                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-                } else {
-                    tv_info.setText("请不要连续输入相同的管理员信息");
+                } else if (getState(Two_man_OperateState.class)) {
+                    if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                        cg_User2.setName(cardInfo.name());
+                        cg_User2.setCardId(cardInfo.cardId());
+                        pp.capture();
+                        EventBus.getDefault().post(new PassEvent());
+                        iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                    } else {
+                        tv_info.setText("请不要连续输入相同的管理员信息");
+                    }
+                } else if (getState(Door_Open_OperateState.class)) {
+                    tv_info.setText("仓库门已解锁");
                 }
-            } else if (getState(Door_Open_OperateState.class)) {
-                tv_info.setText("仓库门已解锁");
+            } else if (fpUser.getCourType().equals(PersonType.XunJian)) {
+                if (checkChange != null) {
+                    checkChange.dispose();
+                }
+//                cg_User1.setCourIds(infoMap.get("courIds"));
+                cg_User1.setName(cardInfo.name());
+                cg_User1.setCardId(cardInfo.cardId());
+                checkRecord(String.valueOf(2));
             }
-        } else if (sp.getString("courType").equals(PersonType.XunJian)) {
-            if (checkChange != null) {
-                checkChange.dispose();
-            }
-            cg_User1.setCourIds(sp.getString("courIds"));
-            cg_User1.setName(sp.getString("name"));
-            cg_User1.setCardId(cardInfo.cardId());
-            checkRecord(String.valueOf(2));
-        } else {
-            RetrofitGenerator.getCommonApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId())
+
+
+        } catch (IndexOutOfBoundsException e) {
+            RetrofitGenerator.getShaoXingApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId().toUpperCase())
                     .subscribeOn(Schedulers.io())
-                    .unsubscribeOn(Schedulers.io())
+                    .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new MyObserver<ResponseBody>(this) {
+                    .subscribe(new Observer<ResponseBody>() {
+                        @Override
+                        public void onSubscribe(Disposable d) {
+
+                        }
+
                         @Override
                         public void onNext(ResponseBody responseBody) {
                             try {
-                                if (responseBody.string().equals("true")) {
-                                    if (getState(No_one_OperateState.class)) {
-                                        global_Operation.setState(new One_man_OperateState());
-//                                                cg_User1.setCourIds(infoMap.get("courIds"));
-                                        cg_User1.setName(cardInfo.name());
-                                        cg_User1.setCardId(cardInfo.cardId());
-                                        pp.capture();
-                                    } else if (getState(Two_man_OperateState.class)) {
-                                        if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
-                                            cg_User2.setName(cardInfo.name());
-                                            cg_User2.setCardId(cardInfo.cardId());
-                                            pp.capture();
-                                            EventBus.getDefault().post(new PassEvent());
-                                            iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-                                        } else {
-                                            tv_info.setText("请不要连续输入相同的管理员信息");
+                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
+                                        new TypeToken<HashMap<String, String>>() {
+                                        }.getType());
+                                if (infoMap.size() > 0) {
+                                    if (infoMap.get("status").equals(String.valueOf(0))) {
+                                        if (infoMap.get("courType").equals(PersonType.KuGuan)) {
+                                            if (getState(No_one_OperateState.class)) {
+                                                global_Operation.setState(new One_man_OperateState());
+                                                cg_User1.setName(cardInfo.name());
+                                                cg_User1.setCardId(cardInfo.cardId());
+                                                pp.capture();
+                                            } else if (getState(Two_man_OperateState.class)) {
+                                                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                                                    cg_User2.setName(cardInfo.name());
+                                                    cg_User2.setCardId(cardInfo.cardId());
+                                                    pp.capture();
+                                                    EventBus.getDefault().post(new PassEvent());
+                                                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                                                } else {
+                                                    tv_info.setText("请不要连续输入相同的管理员信息");
+                                                }
+                                            } else if (getState(Door_Open_OperateState.class)) {
+                                                tv_info.setText("仓库门已解锁");
+                                            }
+                                        } else if (infoMap.get("courType").equals(PersonType.XunJian)) {
+                                            if (checkChange != null) {
+                                                checkChange.dispose();
+                                            }
+                                            cg_User1.setCourIds(infoMap.get("courIds"));
+                                            cg_User1.setName(infoMap.get("name"));
+                                            cg_User1.setCardId(cardInfo.cardId());
+                                            checkRecord(String.valueOf(2));
                                         }
-                                    } else if (getState(Door_Open_OperateState.class)) {
-                                        tv_info.setText("仓库门已解锁");
+                                    } else {
+                                        unknownUser.setName(cardInfo.name());
+                                        unknownUser.setCardId(cardInfo.cardId());
+                                        pp.capture();
                                     }
+                                } else {
+                                    unknownUser.setName(cardInfo.name());
+                                    unknownUser.setCardId(cardInfo.cardId());
+                                    pp.capture();
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-//                            try {
-//                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
-//                                        new TypeToken<HashMap<String, String>>() {
-//                                        }.getType());
-//                                if (infoMap.size() > 0) {
-//                                    if (infoMap.get("status").equals(String.valueOf(0))) {
-//                                        if (infoMap.get("courType").equals(PersonType.KuGuan)) {
-//                                            if (getState(No_one_OperateState.class)) {
-//                                                global_Operation.setState(new One_man_OperateState());
-//                                                cg_User1.setCourIds(infoMap.get("courIds"));
-//                                                cg_User1.setName(infoMap.get("name"));
-//                                                cg_User1.setCardId(cardInfo.cardId());
-//                                                pp.capture();
-//                                            } else if (getState(Two_man_OperateState.class)) {
-//                                                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
-//                                                    cg_User2.setCourIds(infoMap.get("courIds"));
-//                                                    cg_User2.setName(infoMap.get("name"));
-//                                                    cg_User2.setCardId(cardInfo.cardId());
-//                                                    pp.capture();
-//                                                    EventBus.getDefault().post(new PassEvent());
-//                                                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-//                                                } else {
-//                                                    tv_info.setText("请不要连续输入相同的管理员信息");
-//                                                }
-//                                            } else if (getState(Door_Open_OperateState.class)) {
-//                                                tv_info.setText("仓库门已解锁");
-//                                            }
-//                                        } else if (infoMap.get("courType").equals(PersonType.XunJian)) {
-//                                            if (checkChange != null) {
-//                                                checkChange.dispose();
-//                                            }
-//                                            cg_User1.setCourIds(infoMap.get("courIds"));
-//                                            cg_User1.setName(infoMap.get("name"));
-//                                            cg_User1.setCardId(cardInfo.cardId());
-//                                            checkRecord(String.valueOf(2));
-//                                        }
-//                                    } else {
-//                                        unknownUser.setName(cardInfo.name());
-//                                        unknownUser.setCardId(cardInfo.cardId());
-//                                        pp.capture();
-//                                    }
-//                                } else {
-//                                    unknownUser.setName(cardInfo.name());
-//                                    unknownUser.setCardId(cardInfo.cardId());
-//                                    pp.capture();
-//                                }
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                            } catch (NullPointerException e) {
-//                                e.printStackTrace();
-//                            } catch (JsonSyntaxException e){
-//                                try {
-//                                    Log.e("jsonErr",responseBody.string());
-//                                }catch (Exception e1){
-//                                    e.printStackTrace();
-//                                }
-//                            }
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+//                            ToastUtils.showLong("无法连接服务器");
+                            Alarm.getInstance(MainActivity4.this).messageAlarm("无法连接服务器,无法核对该人员身份");
+                        }
+
+                        @Override
+                        public void onComplete() {
+
                         }
                     });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
     @Override
@@ -801,7 +752,7 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
     }
 
     private void syncTime() {
-        RetrofitGenerator.getCommonApi().noData("getTime", config.getString("key"))
+        RetrofitGenerator.getShaoXingApi().noData("getTime", config.getString("key"))
                 .subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io()).subscribe(new Observer<String>() {
             @Override
@@ -843,7 +794,7 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getCommonApi().withDataRs("deleteFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getShaoXingApi().withDataRs("deleteFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -857,7 +808,13 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
                                         @Override
                                         public void accept(Long aLong) throws Exception {
                                             fpp.fpRemoveTmpl(fingerId);
-                                            SPUtils.getInstance(fingerId).clear();
+                                            try {
+                                                FingerprintUser fpUser = mdaoSession.queryRaw(FingerprintUser.class, "where FINGERPRINT_ID=" + fingerId + "and CARD_ID='" + idcard + "'").get(0);
+                                                mdaoSession.getFingerprintUserDao().delete(fpUser);
+                                            } catch (Exception e) {
+                                                ToastUtils.showLong(e.toString());
+                                            }
+//                                            SPUtils.getInstance(fingerId).clear();
                                             fpp.fpIdentify();
                                         }
                                     });
@@ -885,7 +842,7 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getCommonApi().withDataRs("checkRecord", config.getString("key"), checkRecordJson.toString())
+        RetrofitGenerator.getShaoXingApi().withDataRs("checkRecord", config.getString("key"), checkRecordJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -936,7 +893,7 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getCommonApi().withDataRs("saveVisit", config.getString("key"), unknownPeopleJson.toString())
+        RetrofitGenerator.getShaoXingApi().withDataRs("saveVisit", config.getString("key"), unknownPeopleJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -983,16 +940,11 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
     private void equipment_sync(final String old_devid) {
         JSONObject jsonObject = new JSONObject();
         try {
-//            JSONObject jsonKey = new JSONObject();
-//            jsonKey.put("daid", old_devid);
-//            jsonKey.put("check", DESX.encrypt(old_devid));
-//            config.put("daid", old_devid);
-//            config.put("key", DESX.encrypt(jsonKey.toString()));
             jsonObject.put("oldDaid", old_devid);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getCommonApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getShaoXingApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -1000,54 +952,32 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onNext(ResponseBody responseBody) {
-//                        try {
-//                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
-//                            if (("true").equals(jsonObject.getString("result"))) {
-//                                JSONArray jsonArray = jsonObject.getJSONArray("data");
-//                                if (null != jsonArray && jsonArray.length() != 0) {
-//                                    for (int i = 0; i < jsonArray.length(); i++) {
-//                                        JSONObject item = jsonArray.getJSONObject(i);
-//                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
-//                                        fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
-//                                        user_sp.put("courIds", item.getString("personIds"));
-//                                        user_sp.put("name", item.getString("name"));
-//                                        user_sp.put("cardId", item.getString("idcard"));
-//                                        user_sp.put("courType", item.getString("courType"));
-//                                    }
-//                                    JSONObject jsonKey = new JSONObject();
-//                                    jsonKey.put("daid", old_devid);
-//                                    jsonKey.put("check", DESX.encrypt(old_devid));
-//                                    config.put("daid", old_devid);
-//                                    config.put("key", DESX.encrypt(jsonKey.toString()));
-//                                    ToastUtils.showLong("设备数据更新成功");
-//                                } else {
-//                                    ToastUtils.showLong("该设备号无人员数据");
-//                                }
-//                            } else {
-//                                ToastUtils.showLong("设备号有误");
-//                            }
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
                         try {
                             JSONArray jsonArray = new JSONArray(responseBody.string().toString());
                             if (null != jsonArray && jsonArray.length() != 0) {
+                                mdaoSession.getFingerprintUserDao().deleteAll();
                                 for (int i = 0; i < jsonArray.length(); i++) {
                                     JSONObject item = jsonArray.getJSONObject(i);
-                                    SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
-                                    fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
-                                    user_sp.put("courIds", item.getString("courIds"));
-                                    user_sp.put("name", item.getString("name"));
-                                    user_sp.put("cardId", item.getString("cardId"));
-                                    user_sp.put("courType", item.getString("courType"));
+                                    FingerprintUser fingerprintUser = new FingerprintUser();
+                                    fingerprintUser.setCourIds(item.getString("courIds"));
+                                    fingerprintUser.setCardId(item.getString("cardId"));
+                                    fingerprintUser.setName(item.getString("name"));
+                                    fingerprintUser.setCourType(item.getString("courType"));
+                                    fingerprintUser.setFingerprintId(item.getString("pfpIds"));
 
-                                    SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
-                                    user_id.put("courIds", item.getString("courIds"));
-                                    user_id.put("name", item.getString("name"));
-                                    user_id.put("fingerprintId", item.getString("pfpIds"));
-                                    user_id.put("courType", item.getString("courType"));
+                                    mdaoSession.insertOrReplace(fingerprintUser);
+//                                    SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
+//                                    fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
+//                                    user_sp.put("courIds", item.getString("courIds"));
+//                                    user_sp.put("name", item.getString("name"));
+//                                    user_sp.put("cardId", item.getString("cardId"));
+//                                    user_sp.put("courType", item.getString("courType"));
+//
+//                                    SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+//                                    user_id.put("courIds", item.getString("courIds"));
+//                                    user_id.put("name", item.getString("name"));
+//                                    user_id.put("fingerprintId", item.getString("pfpIds"));
+//                                    user_id.put("courType", item.getString("courType"));
                                 }
                                 JSONObject jsonKey = new JSONObject();
                                 jsonKey.put("daid", old_devid);
@@ -1108,7 +1038,7 @@ public class MainActivity_copy extends FunctionActivity implements NormalWindow.
                 e.printStackTrace();
             }
         }
-        RetrofitGenerator.getCommonApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorJson.toString())
+        RetrofitGenerator.getShaoXingApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

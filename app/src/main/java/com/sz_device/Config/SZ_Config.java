@@ -58,5 +58,10 @@ public class SZ_Config extends BaseConfig{
     public String getModel() {
         return "CBDI-P-IC";
     }
+
+    @Override
+    public String LockMethod() {
+        return Menci;
+    }
 }
 

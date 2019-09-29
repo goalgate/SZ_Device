@@ -19,5 +19,6 @@ public interface ICardInfo {
     String birthday();
     String address();
     String getUid();
-
+    public void readIC();
+    public void stopReadIC();
 }

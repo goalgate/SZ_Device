@@ -17,6 +17,7 @@ import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.sz_device.AppInit;
 import com.sz_device.Config.HNMBY_Config;
+import com.sz_device.Config.ShaoXing_Config;
 import com.sz_device.Config.WYY_Config;
 import com.sz_device.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.sz_device.R;
@@ -144,7 +145,45 @@ public class Alert_Server {
 
                                 }
                             });
-                }else {
+                }else if(AppInit.getInstrumentConfig().getClass().getName().equals(ShaoXing_Config.class.getName())){
+                    new RetrofitGenerator().getShaoXingApi(url).noData("testNet", config.getString("key"))
+                            .subscribeOn(Schedulers.io())
+                            .unsubscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<String>() {
+                                @Override
+                                public void onSubscribe(@NonNull Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(String s) {
+                                    try {
+                                        if (s.equals("true")) {
+                                            config.put("ServerId", url);
+                                            ToastUtils.showLong("连接服务器成功,请点击确定立即启用");
+                                            callback.setNetworkBmp();
+                                        } else {
+                                            ToastUtils.showLong("连接服务器失败");
+                                        }
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                @Override
+                                public void onError(@NonNull Throwable e) {
+                                    ToastUtils.showLong("服务器连接失败");
+                                }
+
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
+
+
+                } else {
                     new RetrofitGenerator().getConnectApi(url).noData1("cjy_updata","testNet", config.getString("key"))
                             .subscribeOn(Schedulers.io())
                             .unsubscribeOn(Schedulers.io())

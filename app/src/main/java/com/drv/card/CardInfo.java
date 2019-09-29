@@ -1045,4 +1045,15 @@ public boolean isReadOk()
     public String getUid() {
         return null;
     }
+
+    @Override
+    public void stopReadIC() {
+
+    }
+
+    @Override
+    public void readIC() {
+
+    }
 }
+

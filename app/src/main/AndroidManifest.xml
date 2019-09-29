@@ -28,9 +28,18 @@
         <activity android:name=".ZJYZBActivity"></activity>
         <activity android:name=".HNMBYActivity"></activity>
         <activity android:name=".StartActivity"></activity>
-        <activity android:name=".TestActivity.MainActivity"></activity>
-        <activity android:name=".TestActivity.AddPersonActivity"></activity>
-        <service android:name=".TestActivity.SwitchService"></service>
+        <activity android:name=".Activity_SX.MainActivity4"></activity>
+        <activity android:name=".Activity_SX.AddPersonActivity2"></activity>
+
+        <activity android:name=".Activity_GDYZB.MainActivity"></activity>
+        <activity android:name=".Activity_GDYZB.AddPersonActivity"></activity>
+        <service android:name=".Activity_GDYZB.SwitchService"></service>
+
+        <activity android:name=".Activity_HEBEI.IndexActivity"></activity>
+        <activity android:name=".Activity_HEBEI.AddPersonActivity"></activity>
+        <service android:name=".Activity_HEBEI.HebeiSwitchService"></service>
+
+        <service android:name=".Activity_SX.SXService"></service>
         <service android:name=".Service.HNMBYService"></service>
         <service android:name=".Service.SwitchService"></service>
         <service android:name=".Service.WYYService"></service>

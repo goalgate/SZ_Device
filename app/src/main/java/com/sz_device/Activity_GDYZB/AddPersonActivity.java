@@ -1,15 +1,9 @@
-package com.sz_device.TestActivity;
+package com.sz_device.Activity_GDYZB;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.text.TextUtils;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -18,10 +12,7 @@ import android.widget.TextView;
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
 import com.blankj.utilcode.util.BarUtils;
-
-import com.blankj.utilcode.util.RegexUtils;
 import com.blankj.utilcode.util.SPUtils;
-import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
@@ -31,7 +22,6 @@ import com.log.Lg;
 import com.sz_device.Alerts.Alarm;
 import com.sz_device.AppInit;
 import com.sz_device.Bean.ReUploadBean;
-import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Function.Fun_FingerPrint.mvp.view.IFingerPrintView;
@@ -42,13 +32,11 @@ import com.sz_device.Tools.MyObserver;
 import com.sz_device.Tools.User;
 import com.sz_device.greendao.DaoSession;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,6 +52,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
+
 
 public class AddPersonActivity extends Activity implements IFingerPrintView {
 
@@ -98,7 +87,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
 
     @OnClick(R.id.btn_query)
     void queryPerson() {
-        RetrofitGenerator.getCommonApi().queryPersonInfo("queryPersonInfo", config.getString("key"), et_idcard.getText().toString().toUpperCase())
+        RetrofitGenerator.getGdyzbConnectApi().queryPersonInfo("queryPersonInfo", config.getString("key"), et_idcard.getText().toString().toUpperCase())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -109,13 +98,13 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                             Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
                                     new TypeToken<HashMap<String, String>>() {
                                     }.getType());
-                            if (infoMap.get("result").equals("true")) {
+                            if (infoMap.size() > 0) {
                                 if (infoMap.get("status").equals(String.valueOf(0))) {
-                                    fp_id = infoMap.get("data");
                                     img_finger.setClickable(false);
+                                    fp_id = String.valueOf(fpp.fpGetEmptyID());
                                     fpp.fpEnroll(fp_id);
                                     user = new User();
-                                    user.setCardId(et_idcard.getText().toString().toUpperCase());
+                                    user.setCardId(infoMap.get("idcard"));
                                     user.setName(infoMap.get("name"));
                                     user.setFingerprintId(fp_id);
                                     user.setCourIds(infoMap.get("courIds"));
@@ -125,15 +114,15 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                                 } else {
                                     Alarm.getInstance(AddPersonActivity.this).messageAlarm("您的身份有误，如有疑问请联系客服处理");
                                 }
-                            } else if (infoMap.get("result").equals("false")) {
-                                Alarm.getInstance(AddPersonActivity.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");
                             } else {
-                                Alarm.getInstance(AddPersonActivity.this).messageAlarm(infoMap.get("result"));
+                                Alarm.getInstance(AddPersonActivity.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");
                             }
                         } catch (IOException e) {
-                            Lg.e(TAG,e.toString());
-                        } catch (Exception e){
-                            Lg.e(TAG,e.toString());
+                            Lg.e(TAG, e.toString());
+                        } catch (NullPointerException e) {
+                            Lg.e(TAG, e.toString());
+                        } catch (Exception e) {
+                            Lg.e(TAG, e.toString());
                         }
                     }
                 });
@@ -151,34 +140,41 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
                     jsonObject.put("name", user.getName());
                     jsonObject.put("courType", user.getCourType());
                     jsonObject.put("fingerprintPhoto", user.getFingerprintPhoto());
+//                    jsonObject.put("fingerprintPhoto", "null");
                     jsonObject.put("fingerprintId", user.getFingerprintId());
+//                    jsonObject.put("fingerprintKey","null");
                     jsonObject.put("fingerprintKey", fpp.fpUpTemlate(user.getFingerprintId()));
                     jsonObject.put("datetime", TimeUtils.getNowString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                RetrofitGenerator.getCommonApi().withDataRs("fingerLog", config.getString("key"), jsonObject.toString())
+                RetrofitGenerator.getGdyzbConnectApi().withDataRs("fingerLog", config.getString("key"), jsonObject.toString())
                         .subscribeOn(Schedulers.io())
                         .unsubscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new MyObserver<String>(this) {
                             @Override
                             public void onNext(String s) {
-                                try{
+                                try {
                                     if (s.equals("true")) {
                                         SPUtils user_sp = SPUtils.getInstance(user.getFingerprintId());
                                         user_sp.put("courIds", user.getCourIds());
                                         user_sp.put("name", user.getName());
                                         user_sp.put("cardId", user.getCardId());
                                         user_sp.put("courType", user.getCourType());
+//                                        SPUtils user_id = SPUtils.getInstance(user.getCardId());
+//                                        user_id.put("courIds", user.getCourIds());
+//                                        user_id.put("name", user.getName());
+//                                        user_id.put("fingerprintId", user.getFingerprintId());
+//                                        user_id.put("courType", user.getCourType());
                                         fp_id = "0";
                                         ToastUtils.showLong("人员插入成功");
                                         cancel();
                                     } else {
                                         Alarm.getInstance(AddPersonActivity.this).messageAlarm("数据插入有错");
                                     }
-                                }catch (Exception e){
-                                    Lg.e(TAG,e.toString());
+                                } catch (Exception e) {
+                                    Lg.e(TAG, e.toString());
                                 }
                             }
                         });
@@ -285,7 +281,7 @@ public class AddPersonActivity extends Activity implements IFingerPrintView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getCommonApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorjson.toString())
+        RetrofitGenerator.getGdyzbConnectApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorjson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

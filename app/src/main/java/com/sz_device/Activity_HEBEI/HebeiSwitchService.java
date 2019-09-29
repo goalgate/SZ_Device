@@ -1,54 +1,41 @@
-package com.sz_device.Service;
+package com.sz_device.Activity_HEBEI;
 
-import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.util.Log;
 
+import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
-
-import com.blankj.utilcode.util.ToastUtils;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.log.Lg;
-import com.sz_device.Alerts.Alarm;
 import com.sz_device.AppInit;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.EventBus.AlarmEvent;
+import com.sz_device.EventBus.CloseDoorEvent;
 import com.sz_device.EventBus.LockUpEvent;
-
 import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
+import com.sz_device.EventBus.PassEvent;
+import com.sz_device.EventBus.TemHumEvent;
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.sz_device.Function.Func_Switch.mvp.view.ISwitchView;
-import com.sz_device.IndexActivity;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.State.DoorState.Door;
-
 import com.sz_device.State.DoorState.DoorState;
 import com.sz_device.State.DoorState.State_Close;
 import com.sz_device.State.DoorState.State_Open;
-
-import com.sz_device.EventBus.PassEvent;
-import com.sz_device.EventBus.TemHumEvent;
-
 import com.sz_device.State.LockState.Lock;
 import com.sz_device.State.LockState.State_Lockup;
 import com.sz_device.State.LockState.State_Unlock;
-import com.sz_device.Tools.DESX;
 import com.sz_device.greendao.DaoSession;
 import com.sz_device.greendao.ReUploadBeanDao;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.greenrobot.greendao.query.QueryBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,9 +44,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -74,12 +59,15 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
+import static com.sz_device.Config.BaseConfig.Hongwai;
+import static com.sz_device.Config.BaseConfig.Menci;
+
 
 /**
  * Created by zbsz on 2017/8/28.
  */
 
-public class SwitchService extends Service implements ISwitchView {
+public class HebeiSwitchService extends Service implements ISwitchView {
 
     SwitchPresenter sp = SwitchPresenter.getInstance();
 
@@ -121,7 +109,6 @@ public class SwitchService extends Service implements ISwitchView {
                         reboot();
                     }
                 });
-
         Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Long>() {
                     @Override
@@ -136,7 +123,7 @@ public class SwitchService extends Service implements ISwitchView {
                         testNet();
                     }
                 });
-        Observable.interval(10, 600, TimeUnit.SECONDS).observeOn(Schedulers.io())
+        Observable.interval(10, 3600, TimeUnit.SECONDS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
@@ -176,14 +163,11 @@ public class SwitchService extends Service implements ISwitchView {
                         public void onNext(@NonNull String s) {
                             Log.e("信息提示", bean.getMethod());
                             reUploadBeanDao.delete(bean);
-
-
                         }
 
                         @Override
                         public void onError(@NonNull Throwable e) {
                             Log.e("信息提示error", bean.getMethod());
-
                         }
 
                         @Override
@@ -194,37 +178,42 @@ public class SwitchService extends Service implements ISwitchView {
 
         }
     }
-//        }).start();
-
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetPassEvent(PassEvent event) {
         lock.setLockState(new State_Unlock(sp));
         lock.doNext();
-        Observable.timer(120, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
-                .subscribe(new Observer<Long>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                        unlock_noOpen = d;
-                    }
+        if(AppInit.getInstrumentConfig().LockMethod().equals(Menci)){
+            Observable.timer(120, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
+                    .subscribe(new Observer<Long>() {
+                        @Override
+                        public void onSubscribe(Disposable d) {
+                            unlock_noOpen = d;
+                        }
 
-                    @Override
-                    public void onNext(Long aLong) {
-                        lock.setLockState(new State_Lockup(sp));
-                        sp.buzz(SwitchImpl.Hex.H2);
-                        EventBus.getDefault().post(new LockUpEvent());
-                    }
+                        @Override
+                        public void onNext(Long aLong) {
+                            lock.setLockState(new State_Lockup(sp));
+                            sp.buzz(SwitchImpl.Hex.H2);
+                            EventBus.getDefault().post(new LockUpEvent());
+                        }
 
-                    @Override
-                    public void onError(Throwable e) {
+                        @Override
+                        public void onError(Throwable e) {
 
-                    }
+                        }
 
-                    @Override
-                    public void onComplete() {
-                    }
-                });
-
+                        @Override
+                        public void onComplete() {
+                        }
+                    });
+        }
+    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onGetCloseEvent(CloseDoorEvent event) {
+        lock.setLockState(new State_Lockup(sp));
+        CloseDoorRecord(TimeUtils.getNowString());
+        sp.buzz(SwitchImpl.Hex.H2);
     }
 
     @Override
@@ -240,78 +229,96 @@ public class SwitchService extends Service implements ISwitchView {
 
     @Override
     public void onSwitchingText(String value) {
-        if ((Last_Value == null || Last_Value.equals(""))) {
-            if (value.startsWith("AAAAAA")) {
-                Last_Value = value;
-                if (value.equals("AAAAAA000000000000")) {
-                    door.setDoorState(door_open);
-                    door.doNext();
-                    alarmRecord();
-                }
-            }
-        } else {
-            if (value.startsWith("AAAAAA")) {
-                if (!value.equals(Last_Value)) {
+        if(AppInit.getInstrumentConfig().LockMethod().equals(Menci)){
+            if ((Last_Value == null || Last_Value.equals(""))) {
+                if (value.startsWith("AAAAAA")) {
                     Last_Value = value;
-                    if (Last_Value.equals("AAAAAA000000000000")) {
-                        if (getDoorState(State_Close.class)) {
-                            door.setDoorState(door_open);
-                            door.doNext();
-                            if (getLockState(State_Lockup.class)) {
-                                alarmRecord();
-                            }
-                        }
-                        if (unlock_noOpen != null) {
-                            unlock_noOpen.dispose();
-                        }
-                        if (rx_delay != null) {
-                            rx_delay.dispose();
-                        }
-                    } else if (Last_Value.equals("AAAAAA000001000000")) {
-                        //door.setDoorState(new State_Close());
-                        if (getLockState(State_Unlock.class)) {
-                            final String closeDoorTime = TimeUtils.getNowString();
-                            Observable.timer(10, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
-                                    .subscribe(new Observer<Long>() {
-                                        @Override
-                                        public void onSubscribe(Disposable d) {
-                                            rx_delay = d;
-                                        }
-
-                                        @Override
-                                        public void onNext(Long aLong) {
-                                            lock.setLockState(new State_Lockup(sp));
-                                            door.setDoorState(new State_Close());
-                                            sp.buzz(SwitchImpl.Hex.H2);
-                                            if (unlock_noOpen != null) {
-                                                unlock_noOpen.dispose();
-                                            }
-                                            CloseDoorRecord(closeDoorTime);
-                                            EventBus.getDefault().post(new LockUpEvent());
-                                        }
-
-                                        @Override
-                                        public void onError(Throwable e) {
-
-                                        }
-
-                                        @Override
-                                        public void onComplete() {
-
-                                        }
-                                    });
-                        } else {
-                            CloseDoorRecord(TimeUtils.getNowString());
-                            door.setDoorState(new State_Close());
-                        }
+                    if (value.equals("AAAAAA000000000000")) {
+                        door.setDoorState(door_open);
+                        door.doNext();
+                        alarmRecord();
                     }
                 }
             } else {
-                if (value.startsWith("BBBBBB") && value.endsWith("C1EF")) {
-                    THSwitchValue = value;
+                if (value.startsWith("AAAAAA")) {
+                    if (!value.equals(Last_Value)) {
+                        Last_Value = value;
+                        if (Last_Value.equals("AAAAAA000000000000")) {
+                            if (getDoorState(State_Close.class)) {
+                                door.setDoorState(door_open);
+                                door.doNext();
+                                if (getLockState(State_Lockup.class)) {
+                                    alarmRecord();
+                                }
+                            }
+                            if (unlock_noOpen != null) {
+                                unlock_noOpen.dispose();
+                            }
+                            if (rx_delay != null) {
+                                rx_delay.dispose();
+                            }
+                        } else if (Last_Value.equals("AAAAAA000001000000")) {
+                            //door.setDoorState(new State_Close());
+                            if (getLockState(State_Unlock.class)) {
+                                final String closeDoorTime = TimeUtils.getNowString();
+                                Observable.timer(10, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
+                                        .subscribe(new Observer<Long>() {
+                                            @Override
+                                            public void onSubscribe(Disposable d) {
+                                                rx_delay = d;
+                                            }
+
+                                            @Override
+                                            public void onNext(Long aLong) {
+                                                lock.setLockState(new State_Lockup(sp));
+                                                door.setDoorState(new State_Close());
+                                                sp.buzz(SwitchImpl.Hex.H2);
+                                                if (unlock_noOpen != null) {
+                                                    unlock_noOpen.dispose();
+                                                }
+                                                CloseDoorRecord(closeDoorTime);
+                                                EventBus.getDefault().post(new LockUpEvent());
+                                            }
+
+                                            @Override
+                                            public void onError(Throwable e) {
+
+                                            }
+
+                                            @Override
+                                            public void onComplete() {
+
+                                            }
+                                        });
+                            } else {
+//                            CloseDoorRecord(TimeUtils.getNowString());
+                                door.setDoorState(new State_Close());
+                            }
+                        }
+                    }
+                } else {
+                    if (value.startsWith("BBBBBB") && value.endsWith("C1EF")) {
+                        THSwitchValue = value;
+                    }
+                }
+            }
+        }else if(AppInit.getInstrumentConfig().LockMethod().equals(Hongwai)){
+            if (value.startsWith("AAAAAA")) {
+                if ((Last_Value == null || Last_Value.equals(""))) {
+                    Last_Value = value;
+                }
+                if (!value.equals(Last_Value)) {
+                    Last_Value = value;
+                    if (Last_Value.equals("AAAAAA000000000000")) {
+                        if (getLockState(State_Lockup.class)) {
+                            lock.doNext();
+                            alarmRecord();
+                        }
+                    }
                 }
             }
         }
+
     }
 
     @Override
@@ -380,9 +387,9 @@ public class SwitchService extends Service implements ISwitchView {
         EventBus.getDefault().post(new AlarmEvent());
         final JSONObject alarmRecordJson = new JSONObject();
         try {
-            alarmRecordJson.put("datetime", TimeUtils.getNowString());// 报警时间
-            alarmRecordJson.put("alarmType", String.valueOf(1));  //报警类型
-            alarmRecordJson.put("alarmValue", String.valueOf(0));  //报警值
+            alarmRecordJson.put("datetime", TimeUtils.getNowString());
+            alarmRecordJson.put("alarmType", String.valueOf(1));
+            alarmRecordJson.put("alarmValue", String.valueOf(0));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -488,33 +495,6 @@ public class SwitchService extends Service implements ISwitchView {
     }
 
     private void reboot() {
-//        long daySpan = 24 * 60 * 60 * 1000;
-//// 规定的每天时间，某时刻运行
-//        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '03:00:00'");
-//        // 首次运行时间
-//        try {
-//            Date startTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
-//            if (System.currentTimeMillis() > startTime.getTime()){
-//                startTime = new Date(startTime.getTime() + daySpan);
-//            }else if(startTime.getHours() == new Date().getHours()){
-//                startTime = new Date(startTime.getTime() + daySpan);
-//            }
-//            final Timer t = new Timer();
-//            TimerTask task = new TimerTask() {
-//                @Override
-//                public void run() {
-//                    // 要执行的代码
-//                    Lg.d("message", "equipment");
-//                    FingerPrintPresenter.getInstance().fpCancel(true);
-//                    equipment_sync(config.getString("daid"));
-//
-//                }
-//            };
-//            t.scheduleAtFixedRate(task, startTime, daySpan);
-//        } catch (ParseException e) {
-//            e.printStackTrace();
-//        }
-
         long daySpan = 24 * 60 * 60 * 1000 * 1;
         // 规定的每天时间，某时刻运行
         int randomTime = new Random().nextInt(50) + 10;
@@ -547,6 +527,7 @@ public class SwitchService extends Service implements ISwitchView {
         }
     }
 
+
     private void equipment_sync(String old_devid) {
         JSONObject jsonObject = new JSONObject();
         try {
@@ -554,7 +535,7 @@ public class SwitchService extends Service implements ISwitchView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-            RetrofitGenerator.getConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -566,28 +547,6 @@ public class SwitchService extends Service implements ISwitchView {
 
                     @Override
                     public void onNext(ResponseBody responseBody) {
-//                        try {
-//                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
-//                            if (jsonObject.getString("result").equals("true")) {
-//                                JSONArray jsonArray = jsonObject.getJSONArray("data");
-//                                if (null != jsonArray && jsonArray.length() != 0) {
-//                                    for (int i = 0; i < jsonArray.length(); i++) {
-//                                        JSONObject item = jsonArray.getJSONObject(i);
-//                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
-//                                        FingerPrintPresenter.getInstance().fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
-//                                        user_sp.put("courIds", item.getString("personIds"));
-//                                        user_sp.put("name", item.getString("name"));
-//                                        user_sp.put("cardId", item.getString("idcard"));
-//                                        user_sp.put("courType", item.getString("courType"));
-//                                    }
-//                                }
-//                            }
-//
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
                         try {
                             JSONObject jsonObject = new JSONObject(responseBody.string().toString());
                             if (("true").equals(jsonObject.getString("result"))) {
@@ -607,6 +566,12 @@ public class SwitchService extends Service implements ISwitchView {
                                                         user_sp.put("name", item.getString("name"));
                                                         user_sp.put("cardId", item.getString("idcard"));
                                                         user_sp.put("courType", item.getString("courType"));
+
+                                                        SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+                                                        user_id.put("courIds", item.getString("courIds"));
+                                                        user_id.put("name", item.getString("name"));
+                                                        user_id.put("fingerprintId", item.getString("pfpIds"));
+                                                        user_id.put("courType", item.getString("courType"));
                                                     }
                                                     AppInit.getMyManager().reboot();
                                                 }

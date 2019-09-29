@@ -1025,7 +1025,7 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                                                     config.put("daid", old_devid);
                                                     config.put("key", DESX.encrypt(jsonKey.toString()));
                                                     ToastUtils.showLong("设备数据更新成功");
-                                                    config.put("sync15", false);
+
                                                     fpp.fpIdentify();
                                                 }
                                             });
@@ -1049,11 +1049,13 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                     public void onError(@NonNull Throwable e) {
                         super.onError(e);
                         fpp.fpIdentify();
+                        config.put("sync15", false);
                     }
 
                     @Override
                     public void onComplete() {
                         super.onComplete();
+                        config.put("sync15", false);
                     }
                 });
     }

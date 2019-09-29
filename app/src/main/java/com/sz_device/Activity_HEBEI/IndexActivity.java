@@ -1,4 +1,4 @@
-package com.sz_device;
+package com.sz_device.Activity_HEBEI;
 
 import android.content.Intent;
 import android.gesture.Gesture;
@@ -34,30 +34,32 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.log.Lg;
+import com.sz_device.Alerts.Alarm;
 import com.sz_device.Alerts.Alert_IP;
 import com.sz_device.Alerts.Alert_Message;
 import com.sz_device.Alerts.Alert_Password;
 import com.sz_device.Alerts.Alert_Server;
+import com.sz_device.AppInit;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.Config.BaseConfig;
 import com.sz_device.Config.SZ_Config;
 import com.sz_device.EventBus.AlarmEvent;
+import com.sz_device.EventBus.CloseDoorEvent;
 import com.sz_device.EventBus.LockUpEvent;
 import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.EventBus.PassEvent;
 import com.sz_device.EventBus.TemHumEvent;
-import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
+import com.sz_device.FunctionActivity;
+import com.sz_device.R;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.State.OperationState.Door_Open_OperateState;
 import com.sz_device.State.OperationState.No_one_OperateState;
 import com.sz_device.State.OperationState.One_man_OperateState;
 import com.sz_device.State.OperationState.Operation;
 import com.sz_device.State.OperationState.Two_man_OperateState;
-import com.sz_device.Service.SwitchService;
-import com.sz_device.Alerts.Alarm;
 import com.sz_device.Tools.DESX;
 import com.sz_device.Tools.FileUtils;
 import com.sz_device.Tools.MyObserver;
@@ -99,13 +101,16 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
+import static com.sz_device.Config.BaseConfig.Hongwai;
+import static com.sz_device.Config.BaseConfig.Menci;
+
 
 /**
  * Created by zbsz on 2017/8/25.
  */
 
 
-public class New_IndexActivity extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
+public class IndexActivity extends FunctionActivity implements NormalWindow.OptionTypeListener, SuperWindow.OptionTypeListener {
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -170,8 +175,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     @OnClick(R.id.lay_network)
     void showMessage() {
         alert_message.showMessage();
-//        Alarm.getInstance(this).messageAlarm("请注意，该人员为巡检员，无法正常解锁\n如需解锁还请两名仓管员到现场重新操作");
-//        SwitchPresenter.getInstance().buzz(SwitchImpl.Hex.H2);
     }
 
     @Override
@@ -212,15 +215,15 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         alert_password.PasswordViewInit(new Alert_Password.Callback() {
             @Override
             public void normal_call() {
-                normalWindow = new NormalWindow(New_IndexActivity.this);
-                normalWindow.setOptionTypeListener(New_IndexActivity.this);
+                normalWindow = new NormalWindow(IndexActivity.this);
+                normalWindow.setOptionTypeListener(IndexActivity.this);
                 normalWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
 
             @Override
             public void super_call() {
-                superWindow = new SuperWindow(New_IndexActivity.this);
-                superWindow.setOptionTypeListener(New_IndexActivity.this);
+                superWindow = new SuperWindow(IndexActivity.this);
+                superWindow.setOptionTypeListener(IndexActivity.this);
                 superWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
             }
         });
@@ -272,7 +275,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
 
     void openService() {
-        intent = new Intent(New_IndexActivity.this, SwitchService.class);
+        intent = new Intent(IndexActivity.this, HebeiSwitchService.class);
         startService(intent);
     }
 
@@ -297,7 +300,11 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetAlarmEvent(AlarmEvent event) {
-        Alarm.getInstance(this).messageAlarm("门磁打开报警，请检查门磁情况");
+        if (AppInit.getInstrumentConfig().LockMethod().equals(Menci)){
+            Alarm.getInstance(this).messageAlarm("门磁打开报警，请检查门磁情况");
+        }else if(AppInit.getInstrumentConfig().LockMethod().equals(Hongwai)){
+            Alarm.getInstance(this).messageAlarm("开门报警已被触发");
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -367,7 +374,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
             ViewGroup extView2 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputdevid_form, null);
             final EditText et_devid = (EditText) extView2.findViewById(R.id.devid_input);
             et_devid.setText(config.getString("daid"));
-            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, New_IndexActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, IndexActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
@@ -386,7 +393,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
             ViewGroup deleteView = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.delete_person_form, null);
             final EditText et_idcard = (EditText) deleteView.findViewById(R.id.idcard_input);
             final EditText et_finger = (EditText) deleteView.findViewById(R.id.et_finger);
-            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, New_IndexActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, IndexActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
@@ -443,7 +450,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
             @Override
             public void onSucc() {
-                Alarm.getInstance(New_IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                Alarm.getInstance(IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
                     @Override
                     public void onIsKnown() {
                         loadMessage(msg.substring(3, msg.length()));
@@ -451,7 +458,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                     @Override
                     public void onTextBack(String msg) {
-                        Alarm.getInstance(New_IndexActivity.this).setKnown(true);
+                        Alarm.getInstance(IndexActivity.this).setKnown(true);
                         tv_info.setText(msg);
                     }
                 });
@@ -478,12 +485,25 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     cg_User2.setFingerprintId(sp);
                     pp.capture();
                     EventBus.getDefault().post(new PassEvent());
+                    if(AppInit.getInstrumentConfig().LockMethod().equals(Hongwai)){
+                        OpenDoorRecord(true);
+                    }
                     iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
                 } else {
                     tv_info.setText("请不要连续输入相同的管理员信息");
                 }
             } else if (getState(Door_Open_OperateState.class)) {
-                tv_info.setText("仓库门已解锁");
+                if (AppInit.getInstrumentConfig().LockMethod().equals(Menci)){
+                    tv_info.setText("仓库门已解锁");
+                }else if(AppInit.getInstrumentConfig().LockMethod().equals(Hongwai)){
+                    EventBus.getDefault().post(new CloseDoorEvent());
+                    Alarm.getInstance(this).setKnown(false);
+                    tv_info.setText("仓库已重新上锁");
+                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj));
+                    cg_User1 = new User();
+                    cg_User2 = new User();
+                    global_Operation.setState(no_one_operateState);
+                }
             }
         } else if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.XunJian)) {
             if (checkChange != null) {
@@ -606,7 +626,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                 @Override
                 public void onSucc() {
-                    Alarm.getInstance(New_IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
+                    Alarm.getInstance(IndexActivity.this).networkAlarm(network_state, new Alarm.networkCallback() {
                         @Override
                         public void onIsKnown() {
                             if (AppInit.getInstrumentConfig().CardFunction().equals(BaseConfig.IC)) {
@@ -619,7 +639,7 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
 
                         @Override
                         public void onTextBack(String msg) {
-                            Alarm.getInstance(New_IndexActivity.this).setKnown(true);
+                            Alarm.getInstance(IndexActivity.this).setKnown(true);
                             tv_info.setText(msg);
                         }
                     });
@@ -1072,7 +1092,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     }
                 });
     }
-
 
     private void OpenDoorRecord(boolean leagl) {
         final JSONObject OpenDoorJson = new JSONObject();

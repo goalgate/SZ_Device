@@ -315,7 +315,7 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
                                     user.setFingerprintId(fp_id);
                                     user.setCourIds(infoMap.get("courIds"));
                                     user.setCourType(infoMap.get("courType"));
-
+                                    AppInit.getInstrumentConfig().stopReadCard();
                                 } else {
                                     Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm("您的身份有误，如有疑问请联系客服处理");
                                 }

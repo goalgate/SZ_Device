@@ -57,4 +57,9 @@ public class ZJYZB_Config extends BaseConfig {
     public String getModel() {
         return "CBDI-P-ID";
     }
+
+    @Override
+    public String LockMethod() {
+        return Menci;
+    }
 }

@@ -21,12 +21,12 @@ public class Hebei_Config extends BaseConfig{
 
     @Override
     public String getMainActivity() {
-        return ".New_IndexActivity";
+        return ".Activity_HEBEI.IndexActivity";
     }
 
     @Override
     public String getAddActivity() {
-        return ".AddPersonActivity";
+        return ".Activity_HEBEI.AddPersonActivity";
     }
 
     @Override
@@ -57,5 +57,10 @@ public class Hebei_Config extends BaseConfig{
     @Override
     public String getModel() {
         return "CBDI-P-IC";
+    }
+
+    @Override
+    public String LockMethod() {
+        return Hongwai;
     }
 }
