@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -100,35 +101,45 @@ public class AddPersonActivity2 extends Activity implements IFingerPrintView, II
                     @Override
                     public void onNext(ResponseBody responseBody) {
                         try {
-                            Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
-                                    new TypeToken<HashMap<String, String>>() {
-                                    }.getType());
-                            if (infoMap.get("result").equals("true")) {
-                                if (infoMap.get("status").equals(String.valueOf(0))) {
-                                    fp_id = String.valueOf(fpp.fpGetEmptyID());
-                                    img_finger.setClickable(false);
-                                    fpp.fpEnroll(fp_id);
-                                    user = new User();
-                                    user.setCardId(cardInfo.cardId());
-                                    user.setName(infoMap.get("name"));
-                                    user.setFingerprintId(fp_id);
-                                    user.setCourIds(infoMap.get("courIds"));
-                                    user.setCourType(infoMap.get("courType"));
-
-                                    AppInit.getInstrumentConfig().stopReadCard();
-
-                                } else {
-                                    Alarm.getInstance(AddPersonActivity2.this).messageAlarm("您的身份有误，如有疑问请联系客服处理");
-                                }
-                            } else if (infoMap.get("result").equals("false")) {
-                                Alarm.getInstance(AddPersonActivity2.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");
+                            if (responseBody.string().equals("true")) {
+                                fp_id = String.valueOf(fpp.fpGetEmptyID());
+                                img_finger.setClickable(false);
+                                fpp.fpEnroll(fp_id);
+                                user = new User();
+                                user.setCardId(cardInfo.cardId());
+                                user.setName(cardInfo.name());
+                                user.setFingerprintId(fp_id);
+                                AppInit.getInstrumentConfig().stopReadCard();
                             } else {
-                                Alarm.getInstance(AddPersonActivity2.this).messageAlarm(infoMap.get("result"));
+                                Alarm.getInstance(AddPersonActivity2.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");
                             }
-                        } catch (IOException e) {
-                            Lg.e(TAG,e.toString());
-                        } catch (Exception e){
-                            Lg.e(TAG,e.toString());
+//                            Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
+//                                    new TypeToken<HashMap<String, String>>() {
+//                                    }.getType());
+//                            if (infoMap.get("result").equals("true")) {
+//                                if (infoMap.get("status").equals(String.valueOf(0))) {
+//                                    fp_id = String.valueOf(fpp.fpGetEmptyID());
+//                                    img_finger.setClickable(false);
+//                                    fpp.fpEnroll(fp_id);
+//                                    user = new User();
+//                                    user.setCardId(cardInfo.cardId());
+//                                    user.setName(infoMap.get("name"));
+//                                    user.setFingerprintId(fp_id);
+//                                    user.setCourIds(infoMap.get("courIds"));
+//                                    user.setCourType(infoMap.get("courType"));
+//
+//                                    AppInit.getInstrumentConfig().stopReadCard();
+//
+//                                } else {
+//                                    Alarm.getInstance(AddPersonActivity2.this).messageAlarm("您的身份有误，如有疑问请联系客服处理");
+//                                }
+//                            } else if (infoMap.get("result").equals("false")) {
+//                                Alarm.getInstance(AddPersonActivity2.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");
+//                            } else {
+//                                Alarm.getInstance(AddPersonActivity2.this).messageAlarm(infoMap.get("result"));
+//                            }
+                        } catch (Exception e) {
+                            Lg.e(TAG, e.toString());
                         }
                     }
                 });
@@ -141,10 +152,10 @@ public class AddPersonActivity2 extends Activity implements IFingerPrintView, II
                 JSONObject jsonObject = new JSONObject();
                 try {
                     jsonObject.put("id", user.getCardId());
-                    jsonObject.put("courIds", user.getCourIds());
+//                    jsonObject.put("courIds", user.getCourIds());
                     jsonObject.put("dataType", "1");
                     jsonObject.put("name", user.getName());
-                    jsonObject.put("courType", user.getCourType());
+//                    jsonObject.put("courType", user.getCourType());
                     jsonObject.put("fingerprintPhoto", user.getFingerprintPhoto());
                     jsonObject.put("fingerprintId", user.getFingerprintId());
                     jsonObject.put("fingerprintKey", fpp.fpUpTemlate(user.getFingerprintId()));
@@ -162,10 +173,10 @@ public class AddPersonActivity2 extends Activity implements IFingerPrintView, II
                                 try {
                                     if (s.equals("true")) {
                                         FingerprintUser fingerprintUser = new FingerprintUser();
-                                        fingerprintUser.setCourIds(user.getCourIds());
+//                                        fingerprintUser.setCourIds(user.getCourIds());
                                         fingerprintUser.setCardId(user.getCardId());
                                         fingerprintUser.setName(user.getName());
-                                        fingerprintUser.setCourType(user.getCourType());
+//                                        fingerprintUser.setCourType(user.getCourType());
                                         fingerprintUser.setFingerprintId(user.getFingerprintId());
                                         fingerprintUser.setFingerprintPhoto(user.getFingerprintPhoto());
                                         fingerprintUser.setFingerprintKey(fpp.fpUpTemlate(user.getFingerprintId()));
@@ -186,8 +197,8 @@ public class AddPersonActivity2 extends Activity implements IFingerPrintView, II
                                     } else {
                                         Alarm.getInstance(AddPersonActivity2.this).messageAlarm("数据插入有错");
                                     }
-                                }catch (Exception e){
-                                    Lg.e(TAG,e.toString());
+                                } catch (Exception e) {
+                                    Lg.e(TAG, e.toString());
                                 }
                             }
                         });

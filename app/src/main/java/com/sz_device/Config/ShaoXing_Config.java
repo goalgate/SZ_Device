@@ -6,7 +6,7 @@ public class ShaoXing_Config extends BaseConfig {
 
     @Override
     public String getProject() {
-        return "SYJ";
+        return "ShaoXing";
     }
 
     @Override

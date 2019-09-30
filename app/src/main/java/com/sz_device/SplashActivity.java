@@ -8,6 +8,8 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.sz_device.Config.HNMBY_Config;
 import com.sz_device.Config.Hebei_Config;
 import com.sz_device.Config.LN_Config;
+import com.sz_device.Config.ShaoXing_Config;
+import com.sz_device.Config.ZJYZB_Config;
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Tools.AssetsUtils;
 import com.sz_device.Tools.DESX;
@@ -84,6 +86,10 @@ public class SplashActivity extends RxActivity {
                             if(AppInit.getInstrumentConfig().getClass().getName().equals(Hebei_Config.class.getName())){
                                 if(config.getString("ServerId").equals("http://124.172.232.89:8050/daServer/")){
                                     config.put("ServerId","http://121.28.252.22:8001/");
+                                }
+                            } else if(AppInit.getInstrumentConfig().getClass().getName().equals(ShaoXing_Config.class.getName())){
+                                if(config.getString("ServerId").equals(new ZJYZB_Config().getServerId())){
+                                    config.put("ServerId",new ShaoXing_Config().getServerId());
                                 }
                             }
                             fpp.fpInit();

@@ -358,13 +358,14 @@ public class MainActivity4 extends FunctionActivity implements NormalWindow.Opti
                 @Override
                 public void onItemClick(Object o, int position) {
                     if (position == 0) {
-                        if (TextUtils.isEmpty(et_devid.getText().toString())) {
-                            ToastUtils.showLong("您的输入为空请重试");
-                        } else {
-                            fpp.fpCancel(true);
-                            fpp.fpRemoveAll();
-                            equipment_sync(et_devid.getText().toString());
-                        }
+                        ToastUtils.showLong("设备信息同步功能尚未开放");
+//                        if (TextUtils.isEmpty(et_devid.getText().toString())) {
+//                            ToastUtils.showLong("您的输入为空请重试");
+//                        } else {
+//                            fpp.fpCancel(true);
+//                            fpp.fpRemoveAll();
+//                            equipment_sync(et_devid.getText().toString());
+//                        }
                     }
                 }
             }).addExtView(extView2).show();
@@ -450,64 +451,64 @@ public class MainActivity4 extends FunctionActivity implements NormalWindow.Opti
     private void loadMessage(String sp) {
         try {
             FingerprintUser fpUser = mdaoSession.queryRaw(FingerprintUser.class, "where FINGERPRINT_ID =" + sp).get(0);
-            if (fpUser.getCourType().equals(PersonType.KuGuan)) {
-                //            if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.KuGuan)) {
-                if (getState(No_one_OperateState.class)) {
-                    global_Operation.setState(new One_man_OperateState());
-                    pp.capture();
-                    cg_User1.setCourIds(fpUser.getCourIds());
-                    cg_User1.setName(fpUser.getName());
-                    cg_User1.setCardId(fpUser.getCardId());
-                    cg_User1.setFingerprintId(sp);
-                    cg_User1.setCourType(fpUser.getCourType());
+//            if (fpUser.getCourType().equals(PersonType.KuGuan)) {
+            //            if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.KuGuan)) {
+            if (getState(No_one_OperateState.class)) {
+                global_Operation.setState(new One_man_OperateState());
+                pp.capture();
+//                    cg_User1.setCourIds(fpUser.getCourIds());
+                cg_User1.setName(fpUser.getName());
+                cg_User1.setCardId(fpUser.getCardId());
+                cg_User1.setFingerprintId(sp);
+//                cg_User1.setCourType(fpUser.getCourType());
 //                    cg_User1.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
 //                    cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
 //                    cg_User1.setCardId(SPUtils.getInstance(sp).getString("cardId"));
 //                    cg_User1.setFingerprintId(sp);
 //                    cg_User1.setCourType(SPUtils.getInstance(sp).getString("courType"));
-                } else if (getState(Two_man_OperateState.class)) {
-                    if (!fpUser.getCardId().equals(cg_User1.getCardId())) {
+            } else if (getState(Two_man_OperateState.class)) {
+                if (!fpUser.getCardId().equals(cg_User1.getCardId())) {
 //                    if (!SPUtils.getInstance(sp).getString("cardId").equals(cg_User1.getCardId())) {
 //                        cg_User2.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
 //                        cg_User2.setName(SPUtils.getInstance(sp).getString("name"));
 //                        cg_User2.setCardId(SPUtils.getInstance(sp).getString("cardId"));
-                        cg_User2.setCourIds(fpUser.getCourIds());
-                        cg_User2.setName(fpUser.getName());
-                        cg_User2.setCardId(fpUser.getCardId());
-                        cg_User2.setFingerprintId(sp);
-                        pp.capture();
-                        EventBus.getDefault().post(new PassEvent());
-                        iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-                    } else {
-                        tv_info.setText("请不要连续输入相同的管理员信息");
-                    }
-                } else if (getState(Door_Open_OperateState.class)) {
-                    tv_info.setText("仓库门已解锁");
+//                        cg_User2.setCourIds(fpUser.getCourIds());
+                    cg_User2.setName(fpUser.getName());
+                    cg_User2.setCardId(fpUser.getCardId());
+                    cg_User2.setFingerprintId(sp);
+                    pp.capture();
+                    EventBus.getDefault().post(new PassEvent());
+                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                } else {
+                    tv_info.setText("请不要连续输入相同的管理员信息");
                 }
-//            } else if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.XunJian)) {
-            } else if (fpUser.getCourType().equals(PersonType.XunJian)) {
-                if (checkChange != null) {
-                    checkChange.dispose();
-                }
-                cg_User1.setCourIds(fpUser.getCourIds());
-                cg_User1.setName(fpUser.getName());
-                cg_User1.setCardId(fpUser.getCardId());
-                cg_User1.setFingerprintId(sp);
-                cg_User1.setCourType(fpUser.getCourType());
-//                cg_User1.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
-//                cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
-//                cg_User1.setCardId(SPUtils.getInstance(sp).getString("cardId"));
-//                cg_User1.setFingerprintId(sp);
-//                cg_User1.setCourType(SPUtils.getInstance(sp).getString("courType"));
-                checkRecord(String.valueOf(2));
-            } else {
-//                unknownUser.setName(SPUtils.getInstance(sp).getString("name"));
-//                unknownUser.setCardId(SPUtils.getInstance(sp).getString("cardId"));
-                unknownUser.setName(fpUser.getName());
-                unknownUser.setCardId(fpUser.getCardId());
-                unknownUser.setFingerprintId(sp);
-                pp.capture();
+            } else if (getState(Door_Open_OperateState.class)) {
+                tv_info.setText("仓库门已解锁");
             }
+//            } else if (SPUtils.getInstance(sp).getString("courType").equals(PersonType.XunJian)) {
+//            } else if (fpUser.getCourType().equals(PersonType.XunJian)) {
+//                if (checkChange != null) {
+//                    checkChange.dispose();
+//                }
+//                cg_User1.setCourIds(fpUser.getCourIds());
+//                cg_User1.setName(fpUser.getName());
+//                cg_User1.setCardId(fpUser.getCardId());
+//                cg_User1.setFingerprintId(sp);
+//                cg_User1.setCourType(fpUser.getCourType());
+////                cg_User1.setCourIds(SPUtils.getInstance(sp).getString("courIds"));
+////                cg_User1.setName(SPUtils.getInstance(sp).getString("name"));
+////                cg_User1.setCardId(SPUtils.getInstance(sp).getString("cardId"));
+////                cg_User1.setFingerprintId(sp);
+////                cg_User1.setCourType(SPUtils.getInstance(sp).getString("courType"));
+//                checkRecord(String.valueOf(2));
+//            }else {
+////                unknownUser.setName(SPUtils.getInstance(sp).getString("name"));
+////                unknownUser.setCardId(SPUtils.getInstance(sp).getString("cardId"));
+//                unknownUser.setName(fpUser.getName());
+//                unknownUser.setCardId(fpUser.getCardId());
+//                unknownUser.setFingerprintId(sp);
+//                pp.capture();
+//            }
         } catch (Exception e) {
             ToastUtils.showLong(e.toString());
         }
@@ -629,7 +630,7 @@ public class MainActivity4 extends FunctionActivity implements NormalWindow.Opti
     private void idcard_operation(final ICardInfo cardInfo) {
         try {
             FingerprintUser fpUser = mdaoSession.queryRaw(FingerprintUser.class, "where CARD_ID = '" + cardInfo.cardId().toUpperCase() + "'").get(0);
-            if (fpUser.getCourType().equals(PersonType.KuGuan)) {
+//            if (fpUser.getCourType().equals(PersonType.KuGuan)) {
                 if (getState(No_one_OperateState.class)) {
                     global_Operation.setState(new One_man_OperateState());
                     cg_User1.setName(cardInfo.name());
@@ -648,15 +649,15 @@ public class MainActivity4 extends FunctionActivity implements NormalWindow.Opti
                 } else if (getState(Door_Open_OperateState.class)) {
                     tv_info.setText("仓库门已解锁");
                 }
-            } else if (fpUser.getCourType().equals(PersonType.XunJian)) {
-                if (checkChange != null) {
-                    checkChange.dispose();
-                }
-//                cg_User1.setCourIds(infoMap.get("courIds"));
-                cg_User1.setName(cardInfo.name());
-                cg_User1.setCardId(cardInfo.cardId());
-                checkRecord(String.valueOf(2));
-            }
+//            }else if (fpUser.getCourType().equals(PersonType.XunJian)) {
+//                if (checkChange != null) {
+//                    checkChange.dispose();
+//                }
+////                cg_User1.setCourIds(infoMap.get("courIds"));
+//                cg_User1.setName(cardInfo.name());
+//                cg_User1.setCardId(cardInfo.cardId());
+//                checkRecord(String.valueOf(2));
+//            }
 
 
         } catch (IndexOutOfBoundsException e) {
@@ -673,49 +674,73 @@ public class MainActivity4 extends FunctionActivity implements NormalWindow.Opti
                         @Override
                         public void onNext(ResponseBody responseBody) {
                             try {
-                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
-                                        new TypeToken<HashMap<String, String>>() {
-                                        }.getType());
-                                if (infoMap.size() > 0) {
-                                    if (infoMap.get("status").equals(String.valueOf(0))) {
-                                        if (infoMap.get("courType").equals(PersonType.KuGuan)) {
-                                            if (getState(No_one_OperateState.class)) {
-                                                global_Operation.setState(new One_man_OperateState());
-                                                cg_User1.setName(cardInfo.name());
-                                                cg_User1.setCardId(cardInfo.cardId());
-                                                pp.capture();
-                                            } else if (getState(Two_man_OperateState.class)) {
-                                                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
-                                                    cg_User2.setName(cardInfo.name());
-                                                    cg_User2.setCardId(cardInfo.cardId());
-                                                    pp.capture();
-                                                    EventBus.getDefault().post(new PassEvent());
-                                                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
-                                                } else {
-                                                    tv_info.setText("请不要连续输入相同的管理员信息");
-                                                }
-                                            } else if (getState(Door_Open_OperateState.class)) {
-                                                tv_info.setText("仓库门已解锁");
-                                            }
-                                        } else if (infoMap.get("courType").equals(PersonType.XunJian)) {
-                                            if (checkChange != null) {
-                                                checkChange.dispose();
-                                            }
-                                            cg_User1.setCourIds(infoMap.get("courIds"));
-                                            cg_User1.setName(infoMap.get("name"));
-                                            cg_User1.setCardId(cardInfo.cardId());
-                                            checkRecord(String.valueOf(2));
-                                        }
-                                    } else {
-                                        unknownUser.setName(cardInfo.name());
-                                        unknownUser.setCardId(cardInfo.cardId());
+                                if (responseBody.string().equals("true")) {
+                                    if (getState(No_one_OperateState.class)) {
+                                        global_Operation.setState(new One_man_OperateState());
+                                        cg_User1.setName(cardInfo.name());
+                                        cg_User1.setCardId(cardInfo.cardId());
                                         pp.capture();
+                                    } else if (getState(Two_man_OperateState.class)) {
+                                        if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+                                            cg_User2.setName(cardInfo.name());
+                                            cg_User2.setCardId(cardInfo.cardId());
+                                            pp.capture();
+                                            EventBus.getDefault().post(new PassEvent());
+                                            iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+                                        } else {
+                                            tv_info.setText("请不要连续输入相同的管理员信息");
+                                        }
+                                    } else if (getState(Door_Open_OperateState.class)) {
+                                        tv_info.setText("仓库门已解锁");
                                     }
                                 } else {
                                     unknownUser.setName(cardInfo.name());
                                     unknownUser.setCardId(cardInfo.cardId());
                                     pp.capture();
                                 }
+//                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
+//                                        new TypeToken<HashMap<String, String>>() {
+//                                        }.getType());
+//                                if (infoMap.size() > 0) {
+//                                    if (infoMap.get("status").equals(String.valueOf(0))) {
+//                                        if (infoMap.get("courType").equals(PersonType.KuGuan)) {
+//                                            if (getState(No_one_OperateState.class)) {
+//                                                global_Operation.setState(new One_man_OperateState());
+//                                                cg_User1.setName(cardInfo.name());
+//                                                cg_User1.setCardId(cardInfo.cardId());
+//                                                pp.capture();
+//                                            } else if (getState(Two_man_OperateState.class)) {
+//                                                if (!cardInfo.cardId().equals(cg_User1.getCardId())) {
+//                                                    cg_User2.setName(cardInfo.name());
+//                                                    cg_User2.setCardId(cardInfo.cardId());
+//                                                    pp.capture();
+//                                                    EventBus.getDefault().post(new PassEvent());
+//                                                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.newui_mj1));
+//                                                } else {
+//                                                    tv_info.setText("请不要连续输入相同的管理员信息");
+//                                                }
+//                                            } else if (getState(Door_Open_OperateState.class)) {
+//                                                tv_info.setText("仓库门已解锁");
+//                                            }
+//                                        } else if (infoMap.get("courType").equals(PersonType.XunJian)) {
+//                                            if (checkChange != null) {
+//                                                checkChange.dispose();
+//                                            }
+//                                            cg_User1.setCourIds(infoMap.get("courIds"));
+//                                            cg_User1.setName(infoMap.get("name"));
+//                                            cg_User1.setCardId(cardInfo.cardId());
+//                                            checkRecord(String.valueOf(2));
+//                                        }
+//                                    } else {
+//                                        unknownUser.setName(cardInfo.name());
+//                                        unknownUser.setCardId(cardInfo.cardId());
+//                                        pp.capture();
+//                                    }
+//                                } else {
+//                                    unknownUser.setName(cardInfo.name());
+//                                    unknownUser.setCardId(cardInfo.cardId());
+//                                    pp.capture();
+//                                }
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -1016,8 +1041,8 @@ public class MainActivity4 extends FunctionActivity implements NormalWindow.Opti
         final JSONObject OpenDoorJson = new JSONObject();
         if (leagl) {
             try {
-                OpenDoorJson.put("courIds1", cg_User1.getCourIds());
-                OpenDoorJson.put("courIds2", cg_User2.getCourIds());
+//                OpenDoorJson.put("courIds1", cg_User1.getCourIds());
+//                OpenDoorJson.put("courIds2", cg_User2.getCourIds());
                 OpenDoorJson.put("id1", cg_User1.getCardId());
                 OpenDoorJson.put("id2", cg_User2.getCardId());
                 OpenDoorJson.put("name1", cg_User1.getName());

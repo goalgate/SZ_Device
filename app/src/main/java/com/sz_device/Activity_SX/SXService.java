@@ -527,7 +527,7 @@ public class SXService extends Service implements ISwitchView {
                     Lg.d("message", "equipment");
                     FingerPrintPresenter.getInstance().fpCancel(true);
 //                    FingerPrintPresenter.getInstance().fpRemoveAll();
-                    equipment_sync(config.getString("daid"));
+//                    equipment_sync(config.getString("daid"));
                 }
             };
             t.scheduleAtFixedRate(task, startTime, daySpan);
@@ -575,7 +575,6 @@ public class SXService extends Service implements ISwitchView {
                                                         }catch (Exception e){
                                                             e.printStackTrace();
                                                         }
-
 //                                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
 //                                                        FingerPrintPresenter.getInstance().fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
 //                                                        user_sp.put("courIds", item.getString("personIds"));
