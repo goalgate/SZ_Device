@@ -168,7 +168,7 @@ public class MainActivity extends FunctionActivity implements NormalWindow.Optio
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_newindex);
+        setContentView(R.layout.activity_main_adapter);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
         autoUpdate();

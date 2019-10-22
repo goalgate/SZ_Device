@@ -8,6 +8,9 @@ import com.drv.card.ICardInfo;
 import com.drv.card.ICardState;
 import com.drv.card.ReadCard2;
 import com.log.Lg;
+import com.sz_device.AppInit;
+
+import static com.sz_device.Config.BaseConfig.IC;
 
 
 /**
@@ -27,8 +30,12 @@ public class IDCardImpl implements IIDCard {
         try {
             //cardInfo =new CardInfo("/dev/ttyAMA2",m_onCardState);
 //            cardInfo = new CardInfoRk123x("/dev/ttyS1", m_onCardState);
-            cardInfo = new ReadCard2(115200,"/dev/ttyS1", m_onCardState);
-            cardInfo.setDevType("rk3368");
+            if (AppInit.getInstrumentConfig().CardFunction().equals(IC)) {
+                cardInfo = new CardInfoRk123x("/dev/ttyS1", m_onCardState);
+            }else {
+                cardInfo = new ReadCard2(115200, "/dev/ttyS1", m_onCardState);
+                cardInfo.setDevType("rk3368");
+            }
             cdevfd = cardInfo.open();
             if (cdevfd >= 0) {
                 Log.e(TAG, "打开身份证读卡器成功");
@@ -75,8 +82,7 @@ public class IDCardImpl implements IIDCard {
                     Lg.e("信息提示", "没有照片");
                 }
                 cardInfo.clearIsReadOk();
-            }else if(itype==14)
-            {
+            } else if (itype == 14) {
                 mylistener.onSetInfo(cardInfo);
             }
 

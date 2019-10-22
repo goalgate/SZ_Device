@@ -1,7 +1,9 @@
 package com.sz_device.Function.Func_Switch.mvp.presenter;
 
+import com.sz_device.AppInit;
 import com.sz_device.Function.Func_Switch.mvp.module.ISwitching;
 import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
+import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl4;
 import com.sz_device.Function.Func_Switch.mvp.view.ISwitchView;
 
 /**
@@ -12,7 +14,16 @@ public class SwitchPresenter {
 
     private ISwitchView view;
 
-    private SwitchPresenter(){}
+    ISwitching switchingModule;
+
+    private SwitchPresenter(){
+        if (AppInit.getMyManager().getAndroidDisplay().startsWith("x3128")){
+            this.switchingModule = new SwitchImpl4();
+        }else {
+            this.switchingModule = new SwitchImpl();
+        }
+
+    }
 
     private static SwitchPresenter instance = null;
 
@@ -26,7 +37,7 @@ public class SwitchPresenter {
         this.view = view;
     }
 
-    ISwitching switchingModule = new SwitchImpl();
+
 
     public void switch_Open(){
         switchingModule.onOpen(new ISwitching.ISwitchingListener() {

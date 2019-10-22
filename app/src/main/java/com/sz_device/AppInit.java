@@ -73,7 +73,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        config = new ShaoXing_Config();
+        config = new SZ_Config();
 
         manager = WZWManager.getInstance(this);
 

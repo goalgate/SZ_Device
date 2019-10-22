@@ -12,6 +12,7 @@ import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
@@ -27,6 +28,7 @@ import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
+import com.blankj.utilcode.util.ScreenUtils;
 import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.drv.card.ICardInfo;
@@ -177,11 +179,14 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_newindex);
+        setContentView(R.layout.activity_main_adapter);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
         autoUpdate();
         Lg.e("key", config.getString("key"));
+        Log.d("width", String.valueOf(ScreenUtils.getScreenWidth()));
+        Log.d("height", String.valueOf(ScreenUtils.getScreenHeight()));
+
         openService();
         network_state = false;
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);

@@ -13,6 +13,11 @@
         <item name="android:windowExitAnimation">@anim/people_type_dismiss</item>
     </style>
 
+    <style name="ImageTranslucentTheme" parent="AppTheme">
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+
     <style name="AppBaseTheme" parent="android:Theme.Holo.Light.DarkActionBar">
 
         <!-- API 19 theme customizations can go here. -->

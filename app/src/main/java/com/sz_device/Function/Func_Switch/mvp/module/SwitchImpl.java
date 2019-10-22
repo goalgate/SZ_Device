@@ -18,7 +18,7 @@ import java.util.Timer;
 public class SwitchImpl extends SerialPortCom implements ISwitching {
 
     public enum Hex{
-        H1,H2,H3,H4,H5,H6,H7,H8,H9,HA,HB,HC,HD,HE,HF
+        H0,H1,H2,H3,H4,H5,H6,H7,H8,H9,HA,HB,HC,HD,HE,HF
     }
 
     private byte[] buf_ = new byte[2048];

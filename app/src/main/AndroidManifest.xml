@@ -18,25 +18,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".AddPersonActivity" ></activity>
-        <activity android:name=".IndexActivity"></activity>
-        <activity android:name=".New_IndexActivity"></activity>
-        <activity android:name=".WYYActivity"></activity>
-        <activity android:name=".WYYAddPersonActivity"></activity>
-        <activity android:name=".WYYAddActivity2"></activity>
-        <activity android:name=".ZJYZBAddActivity"></activity>
-        <activity android:name=".ZJYZBActivity"></activity>
-        <activity android:name=".HNMBYActivity"></activity>
-        <activity android:name=".StartActivity"></activity>
-        <activity android:name=".Activity_SX.MainActivity4"></activity>
-        <activity android:name=".Activity_SX.AddPersonActivity2"></activity>
+        <activity android:name=".AddPersonActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".IndexActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".New_IndexActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".WYYActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".WYYAddPersonActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".WYYAddActivity2" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".ZJYZBAddActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".ZJYZBActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".HNMBYActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".StartActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".Activity_SX.MainActivity4" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".Activity_SX.AddPersonActivity2" android:theme="@style/ImageTranslucentTheme"></activity>
 
-        <activity android:name=".Activity_GDYZB.MainActivity"></activity>
-        <activity android:name=".Activity_GDYZB.AddPersonActivity"></activity>
+        <activity android:name=".Activity_GDYZB.MainActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".Activity_GDYZB.AddPersonActivity" android:theme="@style/ImageTranslucentTheme"></activity>
         <service android:name=".Activity_GDYZB.SwitchService"></service>
 
-        <activity android:name=".Activity_HEBEI.IndexActivity"></activity>
-        <activity android:name=".Activity_HEBEI.AddPersonActivity"></activity>
+        <activity android:name=".Activity_HEBEI.IndexActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".Activity_HEBEI.AddPersonActivity" android:theme="@style/ImageTranslucentTheme"></activity>
         <service android:name=".Activity_HEBEI.HebeiSwitchService"></service>
 
         <service android:name=".Activity_SX.SXService"></service>

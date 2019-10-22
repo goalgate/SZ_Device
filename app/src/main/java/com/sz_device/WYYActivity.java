@@ -169,7 +169,7 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_newindex);
+        setContentView(R.layout.activity_main_adapter);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
         autoUpdate();

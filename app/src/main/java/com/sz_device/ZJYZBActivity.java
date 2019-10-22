@@ -170,7 +170,7 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_newindex);
+        setContentView(R.layout.activity_main_adapter);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
         autoUpdate();
