@@ -54,16 +54,16 @@ public class SplashActivity extends RxActivity {
             if (config.getBoolean("firstStart", true)) {
                 JSONObject jsonKey = new JSONObject();
                 try {
-                    jsonKey.put("daid", "042162-079043-230210");
-                    jsonKey.put("check", DESX.encrypt("042162-079043-230210"));
-//                    jsonKey.put("daid", new NetInfo().getMacId());
-//                    jsonKey.put("check", DESX.encrypt(new NetInfo().getMacId()));
+//                    jsonKey.put("daid", "048031-154100-076041");
+//                    jsonKey.put("check", DESX.encrypt("048031-154100-076041"));
+                    jsonKey.put("daid", new NetInfo().getMacId());
+                    jsonKey.put("check", DESX.encrypt(new NetInfo().getMacId()));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
                 config.put("firstStart", false);
-                config.put("daid", "042162-079043-230210");
-//                config.put("daid", new NetInfo().getMacId());
+//                config.put("daid", "048031-154100-076041");
+                config.put("daid", new NetInfo().getMacId());
                 config.put("key", DESX.encrypt(jsonKey.toString()));
                 config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
                 AssetsUtils.getInstance(AppInit.getContext()).copyAssetsToSD("wltlib", "wltlib");

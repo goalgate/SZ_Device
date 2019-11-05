@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -250,8 +251,8 @@ public class WYYActivity extends FunctionActivity implements NormalWindow.Option
                     // 匹配的手势
                     if (prediction.score > 1.0) { // 越匹配score的值越大，最大为10
                         if (prediction.name.equals("setting")) {
-                            NetworkUtils.openWirelessSettings();
-                        }
+                            Intent intent = new Intent(Settings.ACTION_SETTINGS);
+                            startActivity(intent);                        }
                     }
                 }
             }

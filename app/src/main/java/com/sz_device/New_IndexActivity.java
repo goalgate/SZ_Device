@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -49,7 +50,6 @@ import com.sz_device.EventBus.NetworkEvent;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.EventBus.PassEvent;
 import com.sz_device.EventBus.TemHumEvent;
-import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.sz_device.Retrofit.RetrofitGenerator;
@@ -186,7 +186,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
         Lg.e("key", config.getString("key"));
         Log.d("width", String.valueOf(ScreenUtils.getScreenWidth()));
         Log.d("height", String.valueOf(ScreenUtils.getScreenHeight()));
-
         openService();
         network_state = false;
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
@@ -263,7 +262,9 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                     // 匹配的手势
                     if (prediction.score > 1.0) { // 越匹配score的值越大，最大为10
                         if (prediction.name.equals("setting")) {
-                            NetworkUtils.openWirelessSettings();
+                            Intent intent = new Intent(Settings.ACTION_SETTINGS);
+                            startActivity(intent);
+//                            NetworkUtils.openWirelessSettings();
                         }
                     }
                 }
@@ -1055,7 +1056,6 @@ public class New_IndexActivity extends FunctionActivity implements NormalWindow.
                             } else {
                                 ToastUtils.showLong("设备号有误");
                                 config.put("sync29", false);
-
                                 fpp.fpIdentify();
                             }
                         } catch (JSONException e) {

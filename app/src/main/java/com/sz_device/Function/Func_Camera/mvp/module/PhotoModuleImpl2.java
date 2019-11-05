@@ -1,5 +1,6 @@
 package com.sz_device.Function.Func_Camera.mvp.module;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -10,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.widget.Toast;
 
@@ -17,6 +19,9 @@ import com.sz_device.AppInit;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
+import static android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK;
+import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
 
 public class PhotoModuleImpl2 implements IPhotoModule, Camera.PreviewCallback {
     final static String ApplicationName = "PhotoModule_";
@@ -195,4 +200,5 @@ public class PhotoModuleImpl2 implements IPhotoModule, Camera.PreviewCallback {
             }
         }
     };
+
 }

@@ -8,6 +8,7 @@ import com.blankj.utilcode.util.Utils;
 import com.log.Lg;
 import com.squareup.leakcanary.LeakCanary;
 import com.sz_device.Config.BaseConfig;
+import com.sz_device.Config.LN_Config;
 import com.sz_device.Config.SZ_Config;
 import com.sz_device.Config.ShaoXing_Config;
 import com.sz_device.Config.ZJYZB_Config;

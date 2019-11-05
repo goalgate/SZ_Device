@@ -3,6 +3,22 @@ apply plugin: 'org.greenrobot.greendao'
 android {
     compileSdkVersion 25
     buildToolsVersion '28.0.2'
+    signingConfigs {
+        release {
+            storeFile file("../Signature/SZ_Devices.jks")
+            storePassword '159357'
+            keyAlias 'key0'
+            keyPassword '159357'
+        }
+        debug {
+            storeFile file("../Signature/SZ_Devices.jks")
+            storePassword '159357'
+            keyAlias 'key0'
+            keyPassword '159357'
+        }
+    }
+
+
     defaultConfig {
         applicationId "com.sz_device"
         minSdkVersion 19

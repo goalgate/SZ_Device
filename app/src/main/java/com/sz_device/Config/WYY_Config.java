@@ -59,7 +59,7 @@ public class WYY_Config extends BaseConfig {
 
     @Override
     public String getModel() {
-        return "CBDI-P-ID";
+        return "CBDI-P-IC";
     }
 
     @Override
