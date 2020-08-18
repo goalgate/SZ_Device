@@ -30,7 +30,12 @@ public class IDCardImpl implements IIDCard {
         try {
             //cardInfo =new CardInfo("/dev/ttyAMA2",m_onCardState);
 //            cardInfo = new CardInfoRk123x("/dev/ttyS1", m_onCardState);
-            if (AppInit.getInstrumentConfig().CardFunction().equals(IC)) {
+            if(AppInit.getMyManager().getAndroidDisplay().startsWith("x3128")){
+                cardInfo = new ReadCard2(115200, "/dev/ttyS1", m_onCardState);
+                cardInfo.setDevType("rk3368");
+            }else if (AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")) {
+                cardInfo = new ReadCard2(115200,"/dev/ttyS1", m_onCardState);
+            }else if (AppInit.getInstrumentConfig().CardFunction().equals(IC)) {
                 cardInfo = new CardInfoRk123x("/dev/ttyS1", m_onCardState);
             }else {
                 cardInfo = new ReadCard2(115200, "/dev/ttyS1", m_onCardState);

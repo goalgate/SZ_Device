@@ -54,15 +54,15 @@ public class SplashActivity extends RxActivity {
             if (config.getBoolean("firstStart", true)) {
                 JSONObject jsonKey = new JSONObject();
                 try {
-//                    jsonKey.put("daid", "048031-154100-076041");
-//                    jsonKey.put("check", DESX.encrypt("048031-154100-076041"));
+//                    jsonKey.put("daid", "130214-057232-081228");
+//                    jsonKey.put("check", DESX.encrypt("130214-057232-081228"));
                     jsonKey.put("daid", new NetInfo().getMacId());
                     jsonKey.put("check", DESX.encrypt(new NetInfo().getMacId()));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
                 config.put("firstStart", false);
-//                config.put("daid", "048031-154100-076041");
+//                config.put("daid", "130214-057232-081228");
                 config.put("daid", new NetInfo().getMacId());
                 config.put("key", DESX.encrypt(jsonKey.toString()));
                 config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
@@ -83,13 +83,25 @@ public class SplashActivity extends RxActivity {
 
                         @Override
                         public void onNext(@NonNull Long aLong) {
-                            if(AppInit.getInstrumentConfig().getClass().getName().equals(Hebei_Config.class.getName())){
-                                if(config.getString("ServerId").equals("http://124.172.232.89:8050/daServer/")){
-                                    config.put("ServerId","http://121.28.252.22:8001/");
+                            if (AppInit.getInstrumentConfig().getClass().getName().equals(Hebei_Config.class.getName())) {
+                                if (config.getString("ServerId").equals("http://124.172.232.89:8050/daServer/")) {
+                                    config.put("ServerId", "http://121.28.252.22:8001/");
                                 }
-                            } else if(AppInit.getInstrumentConfig().getClass().getName().equals(ShaoXing_Config.class.getName())){
-                                if(config.getString("ServerId").equals(new ZJYZB_Config().getServerId())){
-                                    config.put("ServerId",new ShaoXing_Config().getServerId());
+                            } else if (AppInit.getInstrumentConfig().getClass().getName().equals(ShaoXing_Config.class.getName())) {
+                                if (config.getString("ServerId").equals(new ZJYZB_Config().getServerId())) {
+                                    config.put("ServerId", new ShaoXing_Config().getServerId());
+                                }else{
+                                    if (config.getString("ServerId").equals("http://14.23.69.2:1162/")) {
+                                        config.put("ServerId", "http://220.191.224.57:8162/");
+                                    }
+                                }
+                            } else if (config.getString("ServerId").contains("192.168.11")) {
+                                config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
+                            } else if (config.getString("ServerId").equals("http://jdwp.szxhdz.com/")) {
+                                config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
+                            } else if (AppInit.getInstrumentConfig().getClass().getName().equals(ZJYZB_Config.class.getName())) {
+                                if (config.getString("ServerId").equals("http://113.140.1.136:7117/cjy/s/")) {
+                                    config.put("ServerId", "http://223.4.68.189:8003/");
                                 }
                             }
                             fpp.fpInit();
@@ -97,26 +109,21 @@ public class SplashActivity extends RxActivity {
                             if (config.getBoolean("firstStart", true)) {
                                 JSONObject jsonKey = new JSONObject();
                                 try {
-//                                    jsonKey.put("daid", "089031-154100-076116");
-//                                    jsonKey.put("check", DESX.encrypt("089031-154100-076116"));
+//                                    jsonKey.put("daid", "048031-154100-122165");
+//                                    jsonKey.put("check", DESX.encrypt("048031-154100-122165"));
                                     jsonKey.put("daid", new NetInfo().getMacId());
                                     jsonKey.put("check", DESX.encrypt(new NetInfo().getMacId()));
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
                                 config.put("firstStart", false);
-//                                config.put("daid","089031-154100-076116");
+//                                config.put("daid","048031-154100-122165");
                                 config.put("daid", new NetInfo().getMacId());
                                 config.put("key", DESX.encrypt(jsonKey.toString()));
                                 config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
                                 AssetsUtils.getInstance(AppInit.getContext()).copyAssetsToSD("wltlib", "wltlib");
                             }
-                            if (config.getString("ServerId").contains("192.168.11")) {
-                                config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
-                            }
-                            if (config.getString("ServerId").equals("http://jdwp.szxhdz.com/")) {
-                                config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
-                            }
+
                             Observable.timer(3, TimeUnit.SECONDS)
                                     .observeOn(AndroidSchedulers.mainThread())
                                     .compose(SplashActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))

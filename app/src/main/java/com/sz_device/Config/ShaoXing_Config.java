@@ -5,28 +5,32 @@ import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 public class ShaoXing_Config extends BaseConfig {
 
     @Override
+    public String getServerId() {
+//        return "http://223.4.68.189:8003/";
+//        return "http://192.168.12.163:9091/";
+        return "http://220.191.224.57:8162/";
+//        return "http://192.168.1.233:8162/";
+//        return "http://124.114.153.91:8162/";
+    }
+
+    @Override
     public String getProject() {
         return "ShaoXing";
     }
 
     @Override
-    public String getServerId() {
-        return "http://14.23.69.2:1152/";
-    }
-
-    @Override
     public String getVer() {
-        return "1.0";
+        return "1.9";
     }
 
     @Override
     public String getMainActivity() {
-        return ".Activity_SX.MainActivity4";
+        return ".Activity_ShaoXing.ShaoXingActivity";
     }
 
     @Override
     public String getAddActivity() {
-        return ".Activity_SX.AddPersonActivity2";
+        return ".Activity_ShaoXing.ShaoXingAddActivity";
     }
 
     @Override
@@ -50,13 +54,18 @@ public class ShaoXing_Config extends BaseConfig {
     }
 
     @Override
+    public boolean TemHum() {
+        return true;
+    }
+
+    @Override
     public String getServiceName() {
         return "数据采集器";
     }
 
     @Override
     public String getModel() {
-        return "CBDI-P-IC";
+        return "CBDI-P-ID";
     }
 
     @Override

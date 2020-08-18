@@ -2,31 +2,31 @@ package com.sz_device.Config;
 
 import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 
-public class Hebei_Config extends BaseConfig{
+public class YZBALARM_Config extends BaseConfig {
+
+    public String getServerId() {
+        return "http://yzbyun.wxhxp.cn:81/";
+    }
+
 
     @Override
     public String getProject() {
-        return "HeBei";
-    }
-
-    @Override
-    public String getServerId() {
-        return "http://121.28.252.22:8001/";
+        return "YUNALARM";
     }
 
     @Override
     public String getVer() {
-        return "1.5";
+        return "1.0";
     }
 
     @Override
     public String getMainActivity() {
-        return ".Activity_HEBEI.IndexActivity";
+        return ".Activity_YZBYUN.IndexActivity";
     }
 
     @Override
     public String getAddActivity() {
-        return ".Activity_HEBEI.AddPersonActivity";
+        return "";
     }
 
     @Override
@@ -66,6 +66,7 @@ public class Hebei_Config extends BaseConfig{
 
     @Override
     public String LockMethod() {
-        return Hongwai;
+        return Menci;
     }
+
 }

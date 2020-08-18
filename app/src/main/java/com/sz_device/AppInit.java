@@ -8,9 +8,13 @@ import com.blankj.utilcode.util.Utils;
 import com.log.Lg;
 import com.squareup.leakcanary.LeakCanary;
 import com.sz_device.Config.BaseConfig;
+import com.sz_device.Config.Hebei_Config;
+import com.sz_device.Config.JMZH_Config;
 import com.sz_device.Config.LN_Config;
 import com.sz_device.Config.SZ_Config;
 import com.sz_device.Config.ShaoXing_Config;
+import com.sz_device.Config.YZBALARM_Config;
+import com.sz_device.Config.YZBMCAlarm_Config;
 import com.sz_device.Config.ZJYZB_Config;
 import com.sz_device.Tools.WZWManager;
 import com.sz_device.greendao.DaoMaster;
@@ -74,7 +78,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        config = new SZ_Config();
+        config = new YZBMCAlarm_Config();
 
         manager = WZWManager.getInstance(this);
 

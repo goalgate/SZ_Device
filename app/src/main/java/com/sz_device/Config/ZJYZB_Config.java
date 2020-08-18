@@ -5,7 +5,7 @@ import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 public class ZJYZB_Config extends BaseConfig {
     @Override
     public String getServerId() {
-        return "http://113.140.1.136:7117/cjy/s/";
+        return "http://223.4.68.189:8003/";
     }
 
     @Override
@@ -15,17 +15,17 @@ public class ZJYZB_Config extends BaseConfig {
 
     @Override
     public String getVer() {
-        return "1.4";
+        return "1.6";
     }
 
     @Override
     public String getMainActivity() {
-        return ".ZJYZBActivity";
+        return ".Activity_ZheJiang.ZJYZBActivity";
     }
 
     @Override
     public String getAddActivity() {
-        return ".ZJYZBAddActivity";
+        return ".Activity_ZheJiang.ZJYZBAddActivity";
     }
 
     @Override
@@ -46,6 +46,11 @@ public class ZJYZB_Config extends BaseConfig {
     @Override
     public boolean face() {
         return false;
+    }
+
+    @Override
+    public boolean TemHum() {
+        return true;
     }
 
     @Override

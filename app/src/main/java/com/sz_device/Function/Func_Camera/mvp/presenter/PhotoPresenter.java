@@ -32,7 +32,7 @@ public class PhotoPresenter {
         this.view = view;
     }
 
-    IPhotoModule photoModule = new PhotoModuleImpl2();
+    IPhotoModule photoModule = new PhotoModuleImpl();
 
     public void initCamera() {
         photoModule.initCamera();

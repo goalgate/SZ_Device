@@ -10,7 +10,7 @@ public class LN_Config extends BaseConfig {
 
     @Override
     public String getServerId() {
-        return "http://124.172.232.89:8050/daServer/";
+            return "http://124.172.232.89:8050/daServer/";
     }
 
     @Override
@@ -20,7 +20,7 @@ public class LN_Config extends BaseConfig {
 
     @Override
     public String getMainActivity() {
-        return ".New_IndexActivity";
+        return ".IndexActivity";
     }
 
     @Override
@@ -46,6 +46,11 @@ public class LN_Config extends BaseConfig {
     @Override
     public boolean face() {
         return false;
+    }
+
+    @Override
+    public boolean TemHum() {
+        return true;
     }
 
     @Override

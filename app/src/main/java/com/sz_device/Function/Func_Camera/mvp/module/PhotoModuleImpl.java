@@ -109,14 +109,25 @@ public class PhotoModuleImpl implements IPhotoModule {
 
     @Override
     public void initCamera() {
+//        if (AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")) {
+//            safeCameraOpen(1);
+//        } else {
+//            safeCameraOpen(0);
+//        }
         safeCameraOpen(0);
 
     }
 
     private void safeCameraOpen(int id) {
         try {
-            releaseCameraAndPreview();
-            camera = Camera.open();
+            if (AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")) {
+                releaseCameraAndPreview();
+                camera = Camera.open(1);
+            } else {
+                releaseCameraAndPreview();
+                camera = Camera.open();
+            }
+
         } catch (Exception e) {
             Toast.makeText(AppInit.getContext(), "无法获取摄像头权限", Toast.LENGTH_LONG);
             e.printStackTrace();

@@ -19,6 +19,8 @@ public class SwitchPresenter {
     private SwitchPresenter(){
         if (AppInit.getMyManager().getAndroidDisplay().startsWith("x3128")){
             this.switchingModule = new SwitchImpl4();
+        }else if (AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")){
+            this.switchingModule = new SwitchImpl4();
         }else {
             this.switchingModule = new SwitchImpl();
         }

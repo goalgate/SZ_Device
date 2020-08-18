@@ -53,6 +53,11 @@ public class WYY_Config extends BaseConfig {
     }
 
     @Override
+    public boolean TemHum() {
+        return true;
+    }
+
+    @Override
     public String getServiceName() {
         return "数据采集器";
     }

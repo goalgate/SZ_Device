@@ -120,7 +120,7 @@ public abstract class FunctionActivity extends RxActivity implements IIDCardView
     protected void onDestroy() {
         super.onDestroy();
         fpp.fpClose();
-        pp.close_Camera();
+//        pp.close_Camera();
         idp.idCardClose();
     }
 

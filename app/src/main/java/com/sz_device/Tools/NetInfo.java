@@ -48,6 +48,8 @@ public class NetInfo {
     public String getMacId() {
         if(AppInit.getMyManager().getAndroidDisplay().startsWith("x3128")){
             return macToId(getWifiMac());
+        }else if (AppInit.getMyManager().getAndroidDisplay().startsWith("astar")){
+            return macToId(getWifiMac());
         }else{
             return macToId(getMac());
         }

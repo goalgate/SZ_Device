@@ -72,6 +72,7 @@ public class PhotoModuleImpl2 implements IPhotoModule, Camera.PreviewCallback {
                 // 如果camera不为null ,释放摄像头
                 if (camera != null) {
                     /*        if (isPreview) */
+                    holder.removeCallback(this);
                     camera.setPreviewCallback(null);
                     camera.stopPreview();
                     camera.release();

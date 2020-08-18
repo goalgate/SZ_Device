@@ -1,5 +1,6 @@
 package com.sz_device.Retrofit;
 
+import com.blankj.utilcode.util.SPUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sz_device.AppInit;
@@ -8,6 +9,7 @@ import com.sz_device.Retrofit.InterfaceApi.ConnectApi;
 import com.sz_device.Retrofit.InterfaceApi.GDYZBConnectApi;
 import com.sz_device.Retrofit.InterfaceApi.HNMBYApi;
 import com.sz_device.Retrofit.InterfaceApi.WYYConnectApi;
+import com.sz_device.Retrofit.InterfaceApi.ZJYJBApi;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -37,7 +39,9 @@ public class RetrofitGenerator {
 
     private static GDYZBConnectApi gdyzbConnectApi;
 
-    private ConnectApi testConnectApi;
+    private static ZJYJBApi zjyjbApi;
+
+   private ConnectApi testConnectApi;
 
     private WYYConnectApi testWYYConnectApi;
 
@@ -46,6 +50,9 @@ public class RetrofitGenerator {
     private ShaoXingApi testCommonApi;
 
     private GDYZBConnectApi testGDYZBConnectApi;
+
+    private static ZJYJBApi testZJYJBApi;
+
 
     private static OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder();
     private static Gson gson = new GsonBuilder()
@@ -71,8 +78,8 @@ public class RetrofitGenerator {
         Retrofit retrofit = new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .baseUrl(AppInit.getInstrumentConfig().getServerId()).client(client).build();
-//                .baseUrl(SPUtils.getInstance("config").getString("ServerId")).client(client).build();
+//                .baseUrl(AppInit.getInstrumentConfig().getServerId()).client(client).build();
+                .baseUrl(SPUtils.getInstance("config").getString("ServerId")).client(client).build();
         return retrofit.create(serviceClass);
     }
 
@@ -157,4 +164,20 @@ public class RetrofitGenerator {
         }
         return testGDYZBConnectApi;
     }
+
+
+    public static ZJYJBApi getZjyjbApi() {
+        if (zjyjbApi == null) {
+            zjyjbApi = createService(ZJYJBApi.class);
+        }
+        return zjyjbApi;
+    }
+
+    public ZJYJBApi getZJYJBApi(String url) {
+        if (testZJYJBApi == null) {
+            testZJYJBApi = createService(ZJYJBApi.class, url);
+        }
+        return testZJYJBApi;
+    }
+
 }

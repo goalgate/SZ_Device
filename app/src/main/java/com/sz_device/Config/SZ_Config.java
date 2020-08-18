@@ -20,7 +20,7 @@ public class SZ_Config extends BaseConfig{
 
     @Override
     public String getMainActivity() {
-        return ".New_IndexActivity";
+        return ".IndexActivity";
     }
 
     @Override
@@ -47,6 +47,11 @@ public class SZ_Config extends BaseConfig{
     @Override
     public boolean face() {
         return false;
+    }
+
+    @Override
+    public boolean TemHum() {
+        return true;
     }
 
     @Override

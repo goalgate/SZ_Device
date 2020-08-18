@@ -1,4 +1,4 @@
-package com.sz_device;
+package com.sz_device.Activity_ZheJiang;
 
 import android.content.Intent;
 import android.gesture.Gesture;
@@ -26,12 +26,12 @@ import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.AppUtils;
-import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.drv.card.ICardInfo;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.log.Lg;
@@ -40,9 +40,9 @@ import com.sz_device.Alerts.Alert_IP;
 import com.sz_device.Alerts.Alert_Message;
 import com.sz_device.Alerts.Alert_Password;
 import com.sz_device.Alerts.Alert_Server;
+import com.sz_device.AppInit;
 import com.sz_device.Bean.ReUploadBean;
 import com.sz_device.Config.BaseConfig;
-import com.sz_device.Config.SZ_Config;
 import com.sz_device.EventBus.AlarmEvent;
 import com.sz_device.EventBus.LockUpEvent;
 import com.sz_device.EventBus.NetworkEvent;
@@ -51,9 +51,9 @@ import com.sz_device.EventBus.PassEvent;
 import com.sz_device.EventBus.TemHumEvent;
 import com.sz_device.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.sz_device.Function.Func_Switch.mvp.presenter.SwitchPresenter;
+import com.sz_device.FunctionActivity;
+import com.sz_device.R;
 import com.sz_device.Retrofit.RetrofitGenerator;
-import com.sz_device.Service.SwitchService;
-import com.sz_device.Service.ZJYZBService;
 import com.sz_device.State.OperationState.Door_Open_OperateState;
 import com.sz_device.State.OperationState.No_one_OperateState;
 import com.sz_device.State.OperationState.One_man_OperateState;
@@ -219,7 +219,7 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
             }
         });
         alert_message.messageInit();
-        syncTime();
+//        syncTime();
     }
 
     private void autoUpdate() {
@@ -253,7 +253,8 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                     if (prediction.score > 1.0) { // 越匹配score的值越大，最大为10
                         if (prediction.name.equals("setting")) {
                             Intent intent = new Intent(Settings.ACTION_SETTINGS);
-                            startActivity(intent);                        }
+                            startActivity(intent);
+                        }
                     }
                 }
             }
@@ -360,6 +361,7 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
         } else if (type == 3) {
             ViewGroup extView2 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputdevid_form, null);
             final EditText et_devid = (EditText) extView2.findViewById(R.id.devid_input);
+            et_devid.setText(config.getString("daid"));
             new AlertView("设备信息同步", null, "取消", new String[]{"确定"}, null, ZJYZBActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
                 @Override
                 public void onItemClick(Object o, int position) {
@@ -376,21 +378,23 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
         } else if (type == 4) {
             alert_ip.show();
         } else if (type == 5) {
-            ViewGroup deleteView = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.delete_person_form, null);
-            final EditText et_idcard = (EditText) deleteView.findViewById(R.id.idcard_input);
-            final EditText et_finger = (EditText) deleteView.findViewById(R.id.et_finger);
-            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, ZJYZBActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
-                @Override
-                public void onItemClick(Object o, int position) {
-                    if (position == 0) {
-                        if (TextUtils.isEmpty(et_idcard.getText().toString()) || TextUtils.isEmpty(et_finger.getText().toString())) {
-                            ToastUtils.showLong("您的输入为空请重试");
-                        } else {
-                            deletePerson(et_idcard.getText().toString().toUpperCase(), et_finger.getText().toString());
-                        }
-                    }
-                }
-            }).addExtView(deleteView).show();
+
+            ToastUtils.showLong("目前删除人员功能没有开放");
+//            ViewGroup deleteView = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.delete_person_form, null);
+//            final EditText et_idcard = (EditText) deleteView.findViewById(R.id.idcard_input);
+//            final EditText et_finger = (EditText) deleteView.findViewById(R.id.et_finger);
+//            new AlertView("删除人员指纹信息", null, "取消", new String[]{"确定"}, null, ZJYZBActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+//                @Override
+//                public void onItemClick(Object o, int position) {
+//                    if (position == 0) {
+//                        if (TextUtils.isEmpty(et_idcard.getText().toString()) || TextUtils.isEmpty(et_finger.getText().toString())) {
+//                            ToastUtils.showLong("您的输入为空请重试");
+//                        } else {
+//                            deletePerson(et_idcard.getText().toString().toUpperCase(), et_finger.getText().toString());
+//                        }
+//                    }
+//                }
+//            }).addExtView(deleteView).show();
         }
     }
 
@@ -640,7 +644,7 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
             cg_User1.setCardId(cardInfo.cardId());
             checkRecord(String.valueOf(2));
         } else {
-            RetrofitGenerator.getConnectApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId())
+            RetrofitGenerator.getZjyjbApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId())
                     .subscribeOn(Schedulers.io())
                     .unsubscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -648,10 +652,18 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                         @Override
                         public void onNext(ResponseBody responseBody) {
                             try {
-                                Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
+                                String parsingData = ParsingTool.extractMainContent(responseBody);
+
+                                Map<String, String> infoMap = new Gson().fromJson(parsingData,
                                         new TypeToken<HashMap<String, String>>() {
                                         }.getType());
-                                if (infoMap.get("result").equals("true")) {
+                                if (infoMap.size() == 0) {
+                                    tv_info.setText("您的设备或身份证尚未在系统登记");
+                                    unknownUser.setName(cardInfo.name());
+                                    unknownUser.setCardId(cardInfo.cardId());
+                                    pp.capture();
+                                } else {
+//                                    if (infoMap.get("result").equals("true")) {
                                     if (infoMap.get("status").equals(String.valueOf(0))) {
                                         if (infoMap.get("courType").equals(PersonType.KuGuan)) {
                                             if (getState(No_one_OperateState.class)) {
@@ -688,18 +700,24 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                                         unknownUser.setCardId(cardInfo.cardId());
                                         pp.capture();
                                     }
-                                } else {
-                                    unknownUser.setName(cardInfo.name());
-                                    unknownUser.setCardId(cardInfo.cardId());
-                                    pp.capture();
+//                                    } else {
+//                                        unknownUser.setName(cardInfo.name());
+//                                        unknownUser.setCardId(cardInfo.cardId());
+//                                        pp.capture();
+//                                    }
                                 }
-                            } catch (IOException e) {
-                                e.printStackTrace();
+
                             } catch (NullPointerException e) {
                                 e.printStackTrace();
+                            } catch (JsonSyntaxException e) {
+                                tv_info.setText("您的设备或身份证尚未在系统登记");
+                                unknownUser.setName(cardInfo.name());
+                                unknownUser.setCardId(cardInfo.cardId());
+                                pp.capture();
                             }
                         }
                     });
+
 
 //            unknownUser.setFingerprintId(sp);
 
@@ -714,7 +732,7 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getConnectApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getZjyjbApi().withDataRr("searchICKBd", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -722,7 +740,10 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                     @Override
                     public void onNext(ResponseBody responseBody) {
                         try {
-                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
+
+                            String parsingData = ParsingTool.extractMainContent(responseBody);
+
+                            JSONObject jsonObject = new JSONObject(parsingData);
                             if (jsonObject.getString("result").equals("true")) {
                                 JSONObject jsonArray = jsonObject.getJSONObject("data");
                                 if (TextUtils.isEmpty(jsonArray.getString("courType")) || Integer.parseInt(jsonArray.getString("courType")) == 2) {
@@ -755,8 +776,6 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                             } else {
                                 tv_info.setText("您的IC卡没有登记备案，请更换IC卡重试");
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
                         } catch (JSONException exception) {
                             exception.printStackTrace();
                         } catch (Exception e) {
@@ -792,40 +811,6 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
         }
     }
 
-    private void syncTime() {
-        RetrofitGenerator.getConnectApi().noData("getTime", config.getString("key"))
-                .subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io()).subscribe(new Observer<String>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-
-            }
-
-            @Override
-            public void onNext(String s) {
-                try {
-                    String datetime = s;
-                    AppInit.getMyManager().setTime(Integer.parseInt(datetime.substring(0, 4)),
-                            Integer.parseInt(datetime.substring(5, 7)),
-                            Integer.parseInt(datetime.substring(8, 10)),
-                            Integer.parseInt(datetime.substring(11, 13)),
-                            Integer.parseInt(datetime.substring(14, 16)),
-                            Integer.parseInt(datetime.substring(17, 19)));
-                } catch (Exception e) {
-                    ToastUtils.showLong(e.toString());
-                }
-            }
-
-            @Override
-            public void onError(Throwable e) {
-            }
-
-            @Override
-            public void onComplete() {
-
-            }
-        });
-    }
 
     private void deletePerson(String idcard, final String fingerId) {
         JSONObject jsonObject = new JSONObject();
@@ -835,14 +820,16 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getConnectApi().withDataRs("deleteFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getZjyjbApi().withDataRr("deleteFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver<String>(this, true) {
+                .subscribe(new MyObserver<ResponseBody>(this, true) {
 
                     @Override
-                    public void onNext(String s) {
+                    public void onNext(ResponseBody responseBody) {
+
+                        String s = ParsingTool.extractMainContent(responseBody);
                         if (s.equals("true")) {
                             fpp.fpCancel(true);
                             Observable.timer(2, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
@@ -878,14 +865,17 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getConnectApi().withDataRs("checkRecord", config.getString("key"), checkRecordJson.toString())
+        RetrofitGenerator.getZjyjbApi().withDataRr("checkRecord", config.getString("key"), checkRecordJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver<String>(this) {
+                .subscribe(new MyObserver<ResponseBody>(this) {
 
                     @Override
-                    public void onNext(String s) {
+                    public void onNext(ResponseBody responseBody) {
+
+                        String s = ParsingTool.extractMainContent(responseBody);
+
                         if (s.equals("true")) {
                             if (cg_User1.getFingerprintId() != null) {
                                 tv_info.setText("巡检员" + cg_User1.getName() + "巡检成功,指纹ID为" + cg_User1.getFingerprintId());
@@ -931,21 +921,22 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getConnectApi().withDataRs("saveVisit", config.getString("key"), unknownPeopleJson.toString())
+        RetrofitGenerator.getZjyjbApi().withDataRr("saveVisit", config.getString("key"), unknownPeopleJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver<String>(this) {
+                .subscribe(new MyObserver<ResponseBody>(this) {
 
                     @Override
-                    public void onNext(String s) {
+                    public void onNext(ResponseBody responseBody) {
+                        String s = ParsingTool.extractMainContent(responseBody);
                         if (!getState(Two_man_OperateState.class) || !getState(Door_Open_OperateState.class)) {
                             global_Operation.setState(new No_one_OperateState());
                         }
                         if (s.equals("true")) {
-                            if(unknownUser.getFingerprintId()!=null){
+                            if (unknownUser.getFingerprintId() != null) {
                                 tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功,指纹号为" + unknownUser.getFingerprintId());
-                            }else{
+                            } else {
                                 tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功");
                             }
 //                            tv_info.setText("访问人" + unknownUser.getName() + "数据上传成功,指纹号为" + unknownUser.getFingerprintId());
@@ -983,7 +974,7 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getZjyjbApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -991,58 +982,58 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
                     @Override
                     public void onNext(ResponseBody responseBody) {
                         try {
-                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
-                            if (("true").equals(jsonObject.getString("result"))) {
-                                final JSONArray jsonArray = jsonObject.getJSONArray("data");
-                                if (null != jsonArray && jsonArray.length() != 0) {
-                                    fpp.fpRemoveAll();
-                                    Observable.timer(1, TimeUnit.SECONDS)
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .subscribe(new Consumer<Long>() {
-                                                @Override
-                                                public void accept(Long aLong) throws Exception {
-                                                    for (int i = 0; i < jsonArray.length(); i++) {
-                                                        JSONObject item = jsonArray.getJSONObject(i);
-                                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
-                                                        fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
-                                                        user_sp.put("courIds", item.getString("personIds"));
-                                                        user_sp.put("name", item.getString("name"));
-                                                        user_sp.put("cardId", item.getString("idcard"));
-                                                        user_sp.put("courType", item.getString("courType"));
+                            String s = ParsingTool.extractMainContent(responseBody);
 
-                                                        SPUtils user_id = SPUtils.getInstance(item.getString("idcard"));
-                                                        user_id.put("courIds", item.getString("personIds"));
-                                                        user_id.put("name", item.getString("name"));
-                                                        user_id.put("fingerprintId", item.getString("pfpIds"));
-                                                        user_id.put("courType", item.getString("courType"));
-                                                    }
-                                                    JSONObject jsonKey = new JSONObject();
-                                                    try {
-                                                        jsonKey.put("daid", old_devid);
-                                                        jsonKey.put("check", DESX.encrypt(old_devid));
-                                                    } catch (JSONException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                    config.put("daid", old_devid);
-                                                    config.put("key", DESX.encrypt(jsonKey.toString()));
-                                                    ToastUtils.showLong("设备数据更新成功");
+                            JSONArray jsonArray = new JSONArray(s);
+                            if (null != jsonArray && jsonArray.length() != 0) {
+                                fpp.fpRemoveAll();
+                                Observable.timer(1, TimeUnit.SECONDS)
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .subscribe(new Consumer<Long>() {
+                                            @Override
+                                            public void accept(Long aLong) throws Exception {
+                                                for (int i = 0; i < jsonArray.length(); i++) {
+                                                    JSONObject item = jsonArray.getJSONObject(i);
+                                                    SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
+                                                    fpp.fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
+                                                    user_sp.put("courIds", item.getString("courIds"));
+                                                    user_sp.put("name", item.getString("name"));
+                                                    user_sp.put("cardId", item.getString("cardId"));
+                                                    user_sp.put("courType", item.getString("courType"));
 
-                                                    fpp.fpIdentify();
+                                                    SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+                                                    user_id.put("courIds", item.getString("courIds"));
+                                                    user_id.put("name", item.getString("name"));
+                                                    user_id.put("fingerprintId", item.getString("pfpIds"));
+                                                    user_id.put("courType", item.getString("courType"));
                                                 }
-                                            });
-                                } else {
-                                    ToastUtils.showLong("该设备号无人员数据");
-                                    fpp.fpIdentify();
-
-                                }
+                                                JSONObject jsonKey = new JSONObject();
+                                                try {
+                                                    jsonKey.put("daid", old_devid);
+                                                    jsonKey.put("check", DESX.encrypt(old_devid));
+                                                } catch (JSONException e) {
+                                                    e.printStackTrace();
+                                                }
+                                                config.put("daid", old_devid);
+                                                config.put("key", DESX.encrypt(jsonKey.toString()));
+                                                ToastUtils.showLong("设备数据更新成功");
+                                                fpp.fpIdentify();
+                                            }
+                                        });
                             } else {
-                                ToastUtils.showLong("设备号有误");
+                                ToastUtils.showLong("该设备号无人员数据");
                                 fpp.fpIdentify();
                             }
                         } catch (JSONException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                            ToastUtils.showLong("设备号有误" + e.toString());
+                            fpp.fpIdentify();
+
+                        } catch (JsonSyntaxException e) {
+                            ToastUtils.showLong("设备号有误" + e.toString());
+                            fpp.fpIdentify();
+                        } catch (Exception e) {
+                            ToastUtils.showLong("设备号有误" + e.toString());
+                            fpp.fpIdentify();
                         }
                     }
 
@@ -1081,20 +1072,23 @@ public class ZJYZBActivity extends FunctionActivity implements NormalWindow.Opti
             }
 
         } else {
-            try {
-                OpenDoorJson.put("datetime", TimeUtils.getNowString());
-                OpenDoorJson.put("state", "n");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            return;
+//            try {
+//                OpenDoorJson.put("datetime", TimeUtils.getNowString());
+//                OpenDoorJson.put("state", "n");
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
         }
-        RetrofitGenerator.getConnectApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorJson.toString())
+        RetrofitGenerator.getZjyjbApi().withDataRr("openDoorRecord", config.getString("key"), OpenDoorJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new MyObserver<String>(this) {
+                .subscribe(new MyObserver<ResponseBody>(this) {
                     @Override
-                    public void onNext(String s) {
+                    public void onNext(ResponseBody responseBody) {
+                        String s = ParsingTool.extractMainContent(responseBody);
+
                         if (s.equals("true")) {
                             try {
                                 if (OpenDoorJson.getString("state").equals("y")) {

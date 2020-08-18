@@ -11,6 +11,8 @@ public abstract class BaseConfig {
 
     public abstract boolean face();
 
+    public abstract boolean TemHum();
+
     public abstract String getServerId();
 
     public abstract String getProject();

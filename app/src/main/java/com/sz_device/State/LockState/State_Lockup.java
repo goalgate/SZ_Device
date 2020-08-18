@@ -25,6 +25,11 @@ public class State_Lockup extends LockState {
     public State_Lockup(SwitchPresenter sp) {
         this.sp = sp;
     }
+
+
+    public State_Lockup() {
+
+    }
     @Override
     public void onHandle(Lock lock) {
         sp.OutD9(true);

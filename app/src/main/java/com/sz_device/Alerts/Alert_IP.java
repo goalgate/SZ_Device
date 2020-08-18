@@ -125,7 +125,7 @@ public class Alert_IP {
                             ToastUtils.showLong("IP地址输入格式有误，请重试");
                         }
                     } else {
-                        AppInit.getMyManager().setDhcpIpAddress(AppInit.getContext());
+                        AppInit.getMyManager().setDhcpIpAddress(context);
                         ToastUtils.showLong("已设置为动态IP获取模式");
                         staticIP.put("state", false);
                         Observable.interval(0, 1, TimeUnit.SECONDS)

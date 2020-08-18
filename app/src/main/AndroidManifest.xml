@@ -24,9 +24,13 @@
         <activity android:name=".WYYActivity" android:theme="@style/ImageTranslucentTheme"></activity>
         <activity android:name=".WYYAddPersonActivity" android:theme="@style/ImageTranslucentTheme"></activity>
         <activity android:name=".WYYAddActivity2" android:theme="@style/ImageTranslucentTheme"></activity>
-        <activity android:name=".ZJYZBAddActivity" android:theme="@style/ImageTranslucentTheme"></activity>
-        <activity android:name=".ZJYZBActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".Activity_ZheJiang.ZJYZBAddActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".Activity_ZheJiang.ZJYZBActivity" android:theme="@style/ImageTranslucentTheme"></activity>
         <activity android:name=".HNMBYActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+
+        <activity android:name=".Activity_YZBYUN.IndexActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".Activity_YZBYUN.MC.MCIndexActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+
         <activity android:name=".StartActivity" android:theme="@style/ImageTranslucentTheme"></activity>
         <activity android:name=".Activity_SX.MainActivity4" android:theme="@style/ImageTranslucentTheme"></activity>
         <activity android:name=".Activity_SX.AddPersonActivity2" android:theme="@style/ImageTranslucentTheme"></activity>
@@ -39,11 +43,17 @@
         <activity android:name=".Activity_HEBEI.AddPersonActivity" android:theme="@style/ImageTranslucentTheme"></activity>
         <service android:name=".Activity_HEBEI.HebeiSwitchService"></service>
 
+        <activity android:name=".Activity_ShaoXing.ShaoXingActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+        <activity android:name=".Activity_ShaoXing.ShaoXingAddActivity" android:theme="@style/ImageTranslucentTheme"></activity>
+
+        <service android:name=".Activity_ShaoXing.ShaoXingService"></service>
         <service android:name=".Activity_SX.SXService"></service>
         <service android:name=".Service.HNMBYService"></service>
         <service android:name=".Service.SwitchService"></service>
         <service android:name=".Service.WYYService"></service>
-        <service android:name=".Service.ZJYZBService"></service>
+        <service android:name=".Activity_YZBYUN.YunService"></service>
+        <service android:name=".Activity_ZheJiang.ZJYZBService"></service>
+        <service android:name=".Activity_YZBYUN.MC.MCService"></service>
         <receiver android:name=".Receiver.BootBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>

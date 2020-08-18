@@ -15,10 +15,14 @@ import com.bigkoo.alertview.OnItemClickListener;
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.sz_device.Activity_ZheJiang.ParsingTool;
 import com.sz_device.AppInit;
 import com.sz_device.Config.HNMBY_Config;
 import com.sz_device.Config.ShaoXing_Config;
 import com.sz_device.Config.WYY_Config;
+import com.sz_device.Config.YZBALARM_Config;
+import com.sz_device.Config.YZBMCAlarm_Config;
+import com.sz_device.Config.ZJYZB_Config;
 import com.sz_device.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.sz_device.R;
 import com.sz_device.Retrofit.InterfaceApi.ConnectApi;
@@ -36,6 +40,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -71,7 +76,9 @@ public class Alert_Server {
                 } else {
                     url = etName.getText().toString();
                 }
-                if(AppInit.getInstrumentConfig().getClass().getName().equals(WYY_Config.class.getName())){
+                if(AppInit.getInstrumentConfig().getClass().getName().equals(WYY_Config.class.getName())||
+                        AppInit.getInstrumentConfig().getClass().getName().equals(YZBALARM_Config.class.getName())||
+                        AppInit.getInstrumentConfig().getClass().getName().equals(YZBMCAlarm_Config.class.getName())){
                     new RetrofitGenerator().getWyyConnectApi(url).noData("testNet", config.getString("key"))
                             .subscribeOn(Schedulers.io())
                             .unsubscribeOn(Schedulers.io())
@@ -163,10 +170,11 @@ public class Alert_Server {
                                             config.put("ServerId", url);
                                             ToastUtils.showLong("连接服务器成功,请点击确定立即启用");
                                             callback.setNetworkBmp();
+                                            //iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
                                         } else {
                                             ToastUtils.showLong("连接服务器失败");
                                         }
-                                    }catch (Exception e){
+                                    } catch (Exception e) {
                                         e.printStackTrace();
                                     }
                                 }
@@ -181,9 +189,45 @@ public class Alert_Server {
 
                                 }
                             });
+                } else if(AppInit.getInstrumentConfig().getClass().getName().equals(ZJYZB_Config.class.getName())) {
+                    RetrofitGenerator.getZjyjbApi().withDataRr("testNet", config.getString("key"),null)
+                            .subscribeOn(Schedulers.io())
+                            .unsubscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<ResponseBody>() {
+                                @Override
+                                public void onSubscribe(@NonNull Disposable d) {
 
+                                }
 
-                } else {
+                                @Override
+                                public void onNext(ResponseBody responseBody) {
+                                    String s = ParsingTool.extractMainContent(responseBody);
+                                    try {
+                                        if (s.equals("true")) {
+                                            config.put("ServerId", url);
+                                            ToastUtils.showLong("连接服务器成功,请点击确定立即启用");
+                                            callback.setNetworkBmp();
+                                            //iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
+                                        } else {
+                                            ToastUtils.showLong("连接服务器失败");
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                @Override
+                                public void onError(@NonNull Throwable e) {
+                                    ToastUtils.showLong("服务器连接失败");
+                                }
+
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
+                }else {
                     new RetrofitGenerator().getConnectApi(url).noData1("cjy_updata","testNet", config.getString("key"))
                             .subscribeOn(Schedulers.io())
                             .unsubscribeOn(Schedulers.io())

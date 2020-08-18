@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.cvr.device.CVRApi;
 import com.log.Lg;
+import com.sz_device.AppInit;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,6 +17,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import android_serialport_api.SerialPort;
+
+import static com.sz_device.Config.BaseConfig.ID;
 
 /**
  * 当前类注释:
@@ -218,15 +221,17 @@ public class ReadCard2 implements ICardInfo {
         public void run() {
             super.run();
             try {
-                sendandread(dt_sam,readBuffer,()->{
-                    System.arraycopy(readBuffer,0,buf_,0,readBuffer.length);
-                    getSam_();
-                },100);
+                if(AppInit.getInstrumentConfig().CardFunction().equals(ID)){
+                    sendandread(dt_sam,readBuffer,()->{
+                        System.arraycopy(readBuffer,0,buf_,0,readBuffer.length);
+                        getSam_();
+                    },100);
+                }
             }catch (Exception e){
                 e.printStackTrace();
             }
 
-            while (thread_continuous) {
+                while (thread_continuous) {
                 if (mInputStream != null && mOutputStream != null) {
                     try {
                         sendandread(dt_antenna_close, readBuffer, () -> {

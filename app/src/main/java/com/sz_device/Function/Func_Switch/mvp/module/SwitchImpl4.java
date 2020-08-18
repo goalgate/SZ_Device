@@ -197,8 +197,8 @@ public class SwitchImpl4 implements ISwitching {
                         bufCount = 0;
                         testStr += testStrTemp;
                         if (testStr.contains("AAAAAA")) {
-                            testStr = testStr.substring(testStr.indexOf("AAAAAA"),
-                                    testStr.indexOf("AAAAAA") + 18);
+                            testStr = testStr.substring(testStr.lastIndexOf("AAAAAA"),
+                                    testStr.lastIndexOf("AAAAAA") + 18);
                             mhandler.sendEmptyMessage(0x123);
                         }
                         if (testStr.contains("BBBBBB")) {

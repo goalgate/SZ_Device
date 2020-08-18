@@ -80,7 +80,9 @@ public class Alert_Message {
         msg_ip.setText(NetworkUtils.getIPAddress(true));
         if(AppInit.getMyManager().getAndroidDisplay().startsWith("x3128")){
             msg_mac.setText(new NetInfo().getWifiMac());
-        }else{
+        }else if (AppInit.getMyManager().getAndroidDisplay().startsWith("astar")){
+            msg_mac.setText(new NetInfo().getWifiMac());
+        } else{
             msg_mac.setText(new NetInfo().getMac());
         }
         msg_software.setText(AppUtils.getAppVersionName());
@@ -97,7 +99,11 @@ public class Alert_Message {
         } else {
             msg_network.setText("连接网络失败，请检查网线连接状态");
         }
-        msg_iccard.setText("请放置卡片进行判断");
+        if (AppInit.getMyManager().getAndroidDisplay().startsWith("astar")){
+            msg_iccard.setText("该设备不具备读卡功能");
+        }else {
+            msg_iccard.setText("请放置卡片进行判断");
+        }
         if (Door.getInstance().getDoorState().getClass().getName().equals(State_Open.class.getName())) {
             msg_doorState.setText("仓库门处于开启状态");
         } else {

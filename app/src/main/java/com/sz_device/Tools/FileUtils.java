@@ -361,6 +361,37 @@ public class FileUtils {
 		return Bitmap.createBitmap(oriBmp, 0, 0, oriBmp.getWidth(),
 				oriBmp.getHeight(), matrix, true);
 	}
+
+	public static void writeFileSdcard(String fileName, String message) {
+		String file_pre = Environment.getExternalStorageDirectory().getAbsolutePath()+File.separator;
+		try {
+			FileOutputStream fout = new FileOutputStream(file_pre+fileName);
+			byte[] bytes = message.getBytes();
+			fout.write(bytes);
+			fout.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public static String readFileSdcard(String fileName) {
+		String file_pre = Environment.getExternalStorageDirectory().getAbsolutePath()+File.separator;
+
+		String res = "";
+		try {
+			FileInputStream fin = new FileInputStream(file_pre+fileName);
+			int length = fin.available();
+			byte[] buffer = new byte[length];
+			fin.read(buffer);
+			res = new String(buffer, "UTF-8");
+			fin.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
 	
 	
 }

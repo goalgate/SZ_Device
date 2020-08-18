@@ -49,6 +49,11 @@ public class HNMBY_Config extends BaseConfig {
     }
 
     @Override
+    public boolean TemHum() {
+        return true;
+    }
+
+    @Override
     public String getModel() {
         return "CBDI-DA-01";
     }

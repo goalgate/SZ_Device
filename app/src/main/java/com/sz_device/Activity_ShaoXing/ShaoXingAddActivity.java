@@ -1,4 +1,4 @@
-package com.sz_device;
+package com.sz_device.Activity_ShaoXing;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -21,12 +21,13 @@ import com.google.gson.reflect.TypeToken;
 import com.jakewharton.rxbinding2.view.RxView;
 import com.log.Lg;
 import com.sz_device.Alerts.Alarm;
-import com.sz_device.Bean.ReUploadBean;
+import com.sz_device.AppInit;
 import com.sz_device.EventBus.OpenDoorEvent;
 import com.sz_device.Function.Fun_FingerPrint.mvp.presenter.FingerPrintPresenter;
 import com.sz_device.Function.Fun_FingerPrint.mvp.view.IFingerPrintView;
 import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 import com.sz_device.Function.Func_ICCard.mvp.view.IIDCardView;
+import com.sz_device.R;
 import com.sz_device.Retrofit.RetrofitGenerator;
 import com.sz_device.Tools.FileUtils;
 import com.sz_device.Tools.MyObserver;
@@ -46,17 +47,15 @@ import java.util.concurrent.TimeUnit;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
-public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDCardView {
+public class ShaoXingAddActivity extends Activity implements IFingerPrintView, IIDCardView {
 
-    private String TAG = ZJYZBAddActivity.class.getSimpleName();
+    private String TAG = ShaoXingAddActivity.class.getSimpleName();
 
     SPUtils config = SPUtils.getInstance("config");
 
@@ -106,8 +105,8 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                Log.e("jsonString",jsonObject.toString());
-                RetrofitGenerator.getConnectApi().withDataRs("fingerLog", config.getString("key"), jsonObject.toString())
+                Log.e("jsonString", jsonObject.toString());
+                RetrofitGenerator.getShaoXingApi().withDataRs("fingerLog", config.getString("key"), jsonObject.toString())
                         .subscribeOn(Schedulers.io())
                         .unsubscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -130,24 +129,24 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
                                         ToastUtils.showLong("人员插入成功");
                                         cancel();
                                     } else {
-                                        Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm("数据插入有错");
+                                        Alarm.getInstance(ShaoXingAddActivity.this).messageAlarm("数据插入有错");
                                     }
-                                }catch (Exception e){
-                                    Lg.e(TAG,e.toString());
+                                } catch (Exception e) {
+                                    Lg.e(TAG, e.toString());
                                 }
                             }
                         });
             } else {
-                Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm("您的操作有误，请重试");
+                Alarm.getInstance(ShaoXingAddActivity.this).messageAlarm("您的操作有误，请重试");
             }
         } else {
-            Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm("您还有信息未登记，如需退出请按取消");
+            Alarm.getInstance(ShaoXingAddActivity.this).messageAlarm("您还有信息未登记，如需退出请按取消");
         }
     }
 
     @OnClick(R.id.btn_cancel)
     void cancel() {
-        new AlertView("请选择接下来的操作", null, null, new String[]{"重置并继续录入指纹", "退出至主桌面"}, null, ZJYZBAddActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+        new AlertView("请选择接下来的操作", null, null, new String[]{"重置并继续录入指纹", "退出至主桌面"}, null, ShaoXingAddActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
             @Override
             public void onItemClick(Object o, int position) {
                 if (position == 0) {
@@ -164,7 +163,7 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
                     fpp.fpRemoveTmpl(fp_id);
                     tv_finger.setText("请刷身份证以获得指纹编号");
                     img_finger.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.zw_icon));
-                    //fpp.fpRemoveAll();
+                    //fpp.fpRemoveAll();des
                 } else {
                     fpp.fpCancel(true);
                     fpp.fpRemoveTmpl(fp_id);
@@ -219,39 +218,40 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetOpenDoorEvent(OpenDoorEvent event) {
-        final JSONObject OpenDoorjson = new JSONObject();
-        try {
-            OpenDoorjson.put("datetime", TimeUtils.getNowString());
-            OpenDoorjson.put("state", "n");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        RetrofitGenerator.getConnectApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorjson.toString())
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(String s) {
-
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        mdaoSession.insert(new ReUploadBean(null, "openDoorRecord", OpenDoorjson.toString()));
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
+        return;
+//        final JSONObject OpenDoorjson = new JSONObject();
+//        try {
+//            OpenDoorjson.put("datetime", TimeUtils.getNowString());
+//            OpenDoorjson.put("state", "n");
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//        RetrofitGenerator.getShaoXingApi().withDataRs("openDoorRecord", config.getString("key"), OpenDoorjson.toString())
+//                .subscribeOn(Schedulers.io())
+//                .unsubscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new Observer<String>() {
+//                    @Override
+//                    public void onSubscribe(@NonNull Disposable d) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onNext(String s) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onError(@NonNull Throwable e) {
+//                        mdaoSession.insert(new ReUploadBean(null, "openDoorRecord", OpenDoorjson.toString()));
+//
+//                    }
+//
+//                    @Override
+//                    public void onComplete() {
+//
+//                    }
+//                });
 
     }
 
@@ -292,7 +292,7 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
     }
 
     void queryPerson(final ICardInfo cardInfo) {
-        RetrofitGenerator.getConnectApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId())
+        RetrofitGenerator.getShaoXingApi().queryPersonInfo("queryPersonInfo", config.getString("key"), cardInfo.cardId())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -303,33 +303,36 @@ public class ZJYZBAddActivity extends Activity implements IFingerPrintView, IIDC
                             Map<String, String> infoMap = new Gson().fromJson(responseBody.string(),
                                     new TypeToken<HashMap<String, String>>() {
                                     }.getType());
-                            if (infoMap.get("result").equals("true")) {
-                                if (infoMap.get("status").equals(String.valueOf(0))) {
-                                    //fp_id = infoMap.get("data");
-                                    fp_id = String.valueOf(fpp.fpGetEmptyID());
-                                    img_finger.setClickable(false);
-                                    fpp.fpEnroll(fp_id);
-                                    user = new User();
-                                    user.setCardId(cardInfo.cardId());
-                                    user.setName(infoMap.get("name"));
-                                    user.setFingerprintId(fp_id);
-                                    user.setCourIds(infoMap.get("courIds"));
-                                    user.setCourType(infoMap.get("courType"));
-                                    AppInit.getInstrumentConfig().stopReadCard();
-                                } else {
-                                    Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm("您的身份有误，如有疑问请联系客服处理");
-                                }
-                            } else if (infoMap.get("result").equals("false")) {
-                                Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");
-                            } else {
-                                Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm(infoMap.get("result"));
+                            if (infoMap.size() == 0) {
+                                Alarm.getInstance(ShaoXingAddActivity.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");
                             }
+//                            if (infoMap.get("result").equals("true")) {
+                            if (infoMap.get("status").equals(String.valueOf(0))) {
+                                //fp_id = infoMap.get("data");
+                                fp_id = String.valueOf(fpp.fpGetEmptyID());
+                                img_finger.setClickable(false);
+                                fpp.fpEnroll(fp_id);
+                                user = new User();
+                                user.setCardId(cardInfo.cardId());
+                                user.setName(infoMap.get("name"));
+                                user.setFingerprintId(fp_id);
+                                user.setCourIds(infoMap.get("courIds"));
+                                user.setCourType(infoMap.get("courType"));
+                                AppInit.getInstrumentConfig().stopReadCard();
+                            } else {
+                                Alarm.getInstance(ShaoXingAddActivity.this).messageAlarm("您的身份有误，如有疑问请联系客服处理");
+                            }
+//                            } else if (infoMap.get("result").equals("false")) {
+//                                Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm("系统未能查询到该人员信息，如有疑问请联系客服处理");
+//                            } else {
+//                                Alarm.getInstance(ZJYZBAddActivity.this).messageAlarm(infoMap.get("result"));
+//                            }
                         } catch (IOException e) {
-                            Lg.e(TAG,e.toString());
-                        } catch (NullPointerException e){
-                            Lg.e(TAG,e.toString());
-                        } catch (Exception e){
-                            Lg.e(TAG,e.toString());
+                            Lg.e(TAG, e.toString());
+                        } catch (NullPointerException e) {
+                            Lg.e(TAG, e.toString());
+                        } catch (Exception e) {
+                            Lg.e(TAG, e.toString());
                         }
                     }
                 });

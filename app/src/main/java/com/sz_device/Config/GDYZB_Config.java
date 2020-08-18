@@ -2,11 +2,14 @@ package com.sz_device.Config;
 
 import com.sz_device.Function.Func_ICCard.mvp.presenter.IDCardPresenter;
 
-public class GDYZB_Config extends BaseConfig  {
-
+public class GDYZB_Config extends BaseConfig {
+    @Override
     public String getServerId() {
         return "http://192.168.11.21:8231/";
     }
+
+
+
     @Override
     public String getProject() {
         return "GDYZB";
@@ -45,6 +48,11 @@ public class GDYZB_Config extends BaseConfig  {
     @Override
     public boolean face() {
         return false;
+    }
+
+    @Override
+    public boolean TemHum() {
+        return true;
     }
 
     @Override

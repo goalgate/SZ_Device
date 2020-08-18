@@ -12,6 +12,8 @@ import android.widget.PopupWindow;
 
 import com.sz_device.AppInit;
 import com.sz_device.Config.HNMBY_Config;
+import com.sz_device.Config.YZBALARM_Config;
+import com.sz_device.Config.YZBMCAlarm_Config;
 import com.sz_device.R;
 
 
@@ -20,7 +22,7 @@ import com.sz_device.R;
  */
 
 
-public class NormalWindow extends PopupWindow implements View.OnClickListener{
+public class NormalWindow extends PopupWindow implements View.OnClickListener {
 
     private View mContentView;
     private Activity mActivity;
@@ -36,7 +38,9 @@ public class NormalWindow extends PopupWindow implements View.OnClickListener{
         mContentView = LayoutInflater.from(activity).inflate(R.layout.window_normal, null);
         setContentView(mContentView);
         add = (Button) mContentView.findViewById(R.id.btn_add);
-        if (AppInit.getInstrumentConfig().getClass().getName().startsWith(HNMBY_Config.class.getName())){
+        if (AppInit.getInstrumentConfig().getClass().getName().startsWith(HNMBY_Config.class.getName())
+                || AppInit.getInstrumentConfig().getClass().getName().equals(YZBALARM_Config.class.getName())
+                || AppInit.getInstrumentConfig().getClass().getName().equals(YZBMCAlarm_Config.class.getName())) {
             add.setText("服务器设置");
         }
         staticIP = (Button) mContentView.findViewById(R.id.btn_staticIP);
@@ -46,7 +50,7 @@ public class NormalWindow extends PopupWindow implements View.OnClickListener{
         setOutsideTouchable(true);
         setBackgroundDrawable(new ColorDrawable(Color.parseColor("#00000000")));
         setAnimationStyle(R.style.Person_type_Popup);
-        setOnDismissListener(new OnDismissListener(){
+        setOnDismissListener(new OnDismissListener() {
             @Override
             public void onDismiss() {
                 lighton();
@@ -83,12 +87,12 @@ public class NormalWindow extends PopupWindow implements View.OnClickListener{
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.btn_add :
-                listener.onOptionType(add,1);
+        switch (v.getId()) {
+            case R.id.btn_add:
+                listener.onOptionType(add, 1);
                 break;
-            case R.id.btn_staticIP :
-                listener.onOptionType(staticIP,2);
+            case R.id.btn_staticIP:
+                listener.onOptionType(staticIP, 2);
                 break;
 
         }
@@ -98,7 +102,7 @@ public class NormalWindow extends PopupWindow implements View.OnClickListener{
         void onOptionType(Button view, int type);
     }
 
-    public void setOptionTypeListener(OptionTypeListener listener){
+    public void setOptionTypeListener(OptionTypeListener listener) {
         this.listener = listener;
     }
 

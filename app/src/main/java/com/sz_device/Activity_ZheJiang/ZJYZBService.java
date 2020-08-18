@@ -1,4 +1,4 @@
-package com.sz_device.Service;
+package com.sz_device.Activity_ZheJiang;
 
 import android.app.Service;
 import android.content.Intent;
@@ -6,6 +6,7 @@ import android.os.IBinder;
 import android.util.Log;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
+import com.google.gson.JsonSyntaxException;
 import com.log.Lg;
 import com.sz_device.AppInit;
 import com.sz_device.Bean.ReUploadBean;
@@ -29,21 +30,26 @@ import com.sz_device.State.LockState.State_Lockup;
 import com.sz_device.State.LockState.State_Unlock;
 import com.sz_device.greendao.DaoSession;
 import com.sz_device.greendao.ReUploadBeanDao;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -136,18 +142,18 @@ public class ZJYZBService extends Service implements ISwitchView {
         final ReUploadBeanDao reUploadBeanDao = mdaoSession.getReUploadBeanDao();
         List<ReUploadBean> list = reUploadBeanDao.queryBuilder().list();
         for (final ReUploadBean bean : list) {
-            RetrofitGenerator.getConnectApi().withDataRs(bean.getMethod(), config.getString("key"), bean.getContent())
+            RetrofitGenerator.getZjyjbApi().withDataRr(bean.getMethod(), config.getString("key"), bean.getContent())
                     .subscribeOn(Schedulers.single())
                     .unsubscribeOn(Schedulers.single())
                     .observeOn(Schedulers.single())
-                    .subscribe(new Observer<String>() {
+                    .subscribe(new Observer<ResponseBody>() {
                         @Override
                         public void onSubscribe(@NonNull Disposable d) {
 
                         }
 
                         @Override
-                        public void onNext(@NonNull String s) {
+                        public void onNext(@NonNull ResponseBody responseBody) {
                             Log.e("信息提示", bean.getMethod());
                             reUploadBeanDao.delete(bean);
 
@@ -215,7 +221,7 @@ public class ZJYZBService extends Service implements ISwitchView {
     @Override
     public void onSwitchingText(String value) {
         if ((Last_Value == null || Last_Value.equals(""))) {
-            if (value.startsWith("AAAAAA")) {
+            if (value.equals("AAAAAA000000000000") || value.equals("AAAAAA000001000000")) {
                 Last_Value = value;
                 if (value.equals("AAAAAA000000000000")) {
                     door.setDoorState(door_open);
@@ -224,7 +230,7 @@ public class ZJYZBService extends Service implements ISwitchView {
                 }
             }
         } else {
-            if (value.startsWith("AAAAAA")) {
+            if (value.equals("AAAAAA000000000000") || value.equals("AAAAAA000001000000")) {
                 if (!value.equals(Last_Value)) {
                     Last_Value = value;
                     if (Last_Value.equals("AAAAAA000000000000")) {
@@ -322,18 +328,18 @@ public class ZJYZBService extends Service implements ISwitchView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getConnectApi().withDataRs("closeDoorRecord", config.getString("key"), CloseDoorRecordJson.toString())
+        RetrofitGenerator.getZjyjbApi().withDataRr("closeDoorRecord", config.getString("key"), CloseDoorRecordJson.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
+                .subscribe(new Observer<ResponseBody>() {
                     @Override
                     public void onSubscribe(@NonNull Disposable d) {
 
                     }
 
                     @Override
-                    public void onNext(@NonNull String s) {
+                    public void onNext(@NonNull ResponseBody responseBody) {
 
                     }
 
@@ -361,16 +367,16 @@ public class ZJYZBService extends Service implements ISwitchView {
             e.printStackTrace();
         }
 
-        RetrofitGenerator.getConnectApi().withDataRs("alarmRecord", config.getString("key"), alarmRecordJson.toString())
+        RetrofitGenerator.getZjyjbApi().withDataRr("alarmRecord", config.getString("key"), alarmRecordJson.toString())
                 .subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<String>() {
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ResponseBody>() {
             @Override
             public void onSubscribe(@NonNull Disposable d) {
 
             }
 
             @Override
-            public void onNext(@NonNull String s) {
+            public void onNext(@NonNull ResponseBody responseBody) {
 
             }
 
@@ -401,18 +407,18 @@ public class ZJYZBService extends Service implements ISwitchView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getConnectApi().withDataRs("stateRecord", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getZjyjbApi().withDataRr("stateRecord", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
+                .subscribe(new Observer<ResponseBody>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
                     }
 
                     @Override
-                    public void onNext(String s) {
+                    public void onNext(ResponseBody responseBody) {
 
                     }
 
@@ -429,18 +435,19 @@ public class ZJYZBService extends Service implements ISwitchView {
     }
 
     private void testNet() {
-        RetrofitGenerator.getConnectApi().noData("testNet", config.getString("key"))
+        RetrofitGenerator.getZjyjbApi().withDataRr("testNet", config.getString("key"),null)
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
+                .subscribe(new Observer<ResponseBody>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
                     }
 
                     @Override
-                    public void onNext(String s) {
+                    public void onNext(ResponseBody responseBody) {
+                        String s = ParsingTool.extractMainContent(responseBody);
                         if (s.equals("true")) {
                             EventBus.getDefault().post(new NetworkEvent(true));
                         } else {
@@ -462,37 +469,12 @@ public class ZJYZBService extends Service implements ISwitchView {
     }
 
     private void reboot() {
-//        long daySpan = 24 * 60 * 60 * 1000;
-//// 规定的每天时间，某时刻运行
-//        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '03:00:00'");
-//        // 首次运行时间
-//        try {
-//            Date startTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
-//            if (System.currentTimeMillis() > startTime.getTime()){
-//                startTime = new Date(startTime.getTime() + daySpan);
-//            }else if(startTime.getHours() == new Date().getHours()){
-//                startTime = new Date(startTime.getTime() + daySpan);
-//            }
-//            final Timer t = new Timer();
-//            TimerTask task = new TimerTask() {
-//                @Override
-//                public void run() {
-//                    // 要执行的代码
-//                    Lg.d("message", "equipment");
-//                    FingerPrintPresenter.getInstance().fpCancel(true);
-//                    equipment_sync(config.getString("daid"));
-//
-//                }
-//            };
-//            t.scheduleAtFixedRate(task, startTime, daySpan);
-//        } catch (ParseException e) {
-//            e.printStackTrace();
-//        }
-
         long daySpan = 24 * 60 * 60 * 1000 * 1;
         // 规定的每天时间，某时刻运行
         int randomTime = new Random().nextInt(50) + 10;
         String pattern = "yyyy-MM-dd '03:" + randomTime + ":00'";
+//        String pattern = "yyyy-MM-dd '10:11:00'";
+
         final SimpleDateFormat sdf = new SimpleDateFormat(pattern);
         Log.e("rebootTime", pattern);
         // 首次运行时间
@@ -528,7 +510,7 @@ public class ZJYZBService extends Service implements ISwitchView {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        RetrofitGenerator.getConnectApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
+        RetrofitGenerator.getZjyjbApi().withDataRr("searchFinger", config.getString("key"), jsonObject.toString())
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -540,67 +522,63 @@ public class ZJYZBService extends Service implements ISwitchView {
 
                     @Override
                     public void onNext(ResponseBody responseBody) {
-//                        try {
-//                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
-//                            if (jsonObject.getString("result").equals("true")) {
-//                                JSONArray jsonArray = jsonObject.getJSONArray("data");
-//                                if (null != jsonArray && jsonArray.length() != 0) {
-//                                    for (int i = 0; i < jsonArray.length(); i++) {
-//                                        JSONObject item = jsonArray.getJSONObject(i);
-//                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
-//                                        FingerPrintPresenter.getInstance().fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
-//                                        user_sp.put("courIds", item.getString("personIds"));
-//                                        user_sp.put("name", item.getString("name"));
-//                                        user_sp.put("cardId", item.getString("idcard"));
-//                                        user_sp.put("courType", item.getString("courType"));
-//                                    }
-//                                }
-//                            }
-//
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
                         try {
-                            JSONObject jsonObject = new JSONObject(responseBody.string().toString());
-                            if (("true").equals(jsonObject.getString("result"))) {
-                                final JSONArray jsonArray = jsonObject.getJSONArray("data");
-                                if (null != jsonArray && jsonArray.length() != 0) {
-                                    FingerPrintPresenter.getInstance().fpRemoveAll();
-                                    Observable.timer(1, TimeUnit.SECONDS)
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .subscribe(new Consumer<Long>() {
-                                                @Override
-                                                public void accept(Long aLong) throws Exception {
-                                                    for (int i = 0; i < jsonArray.length(); i++) {
-                                                        JSONObject item = jsonArray.getJSONObject(i);
-                                                        SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
-                                                        FingerPrintPresenter.getInstance().fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
-                                                        user_sp.put("courIds", item.getString("personIds"));
-                                                        user_sp.put("name", item.getString("name"));
-                                                        user_sp.put("cardId", item.getString("idcard"));
-                                                        user_sp.put("courType", item.getString("courType"));
+                            String s = ParsingTool.extractMainContent(responseBody);
+                            JSONArray jsonArray = new JSONArray(s);
+                            if (null != jsonArray && jsonArray.length() != 0) {
+                                FingerPrintPresenter.getInstance().fpRemoveAll();
+                                for (int i = 0; i < jsonArray.length(); i++) {
+                                    JSONObject item = jsonArray.getJSONObject(i);
+                                    SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
+                                    user_sp.put("courIds", item.getString("courIds"));
+                                    user_sp.put("name", item.getString("name"));
+                                    user_sp.put("cardId", item.getString("cardId"));
+                                    user_sp.put("courType", item.getString("courType"));
+                                    FingerPrintPresenter.getInstance().fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
 
-                                                        SPUtils user_id = SPUtils.getInstance(item.getString("idcard"));
-                                                        user_id.put("courIds", item.getString("personIds"));
-                                                        user_id.put("name", item.getString("name"));
-                                                        user_id.put("fingerprintId", item.getString("pfpIds"));
-                                                        user_id.put("courType", item.getString("courType"));
-                                                    }
-                                                    AppInit.getMyManager().reboot();
-                                                }
-                                            });
-                                }else{
-                                    AppInit.getMyManager().reboot();
+                                    SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+                                    user_id.put("courIds", item.getString("courIds"));
+                                    user_id.put("name", item.getString("name"));
+                                    user_id.put("fingerprintId", item.getString("pfpIds"));
+                                    user_id.put("courType", item.getString("courType"));
                                 }
-                            }else {
-                                AppInit.getMyManager().reboot();
+//                                Observable.timer(1, TimeUnit.SECONDS)
+//                                        .observeOn(AndroidSchedulers.mainThread())
+//                                        .subscribe(new Consumer<Long>() {
+//                                            @Override
+//                                            public void accept(Long aLong) throws Exception {
+////                                                for (int i = 0; i < jsonArray.length(); i++) {
+////                                                    JSONObject item = jsonArray.getJSONObject(i);
+////                                                    SPUtils user_sp = SPUtils.getInstance(item.getString("pfpIds"));
+////                                                    FingerPrintPresenter.getInstance().fpDownTemplate(item.getString("pfpIds"), item.getString("fingerTemp"));
+////                                                    user_sp.put("courIds", item.getString("courIds"));
+////                                                    user_sp.put("name", item.getString("name"));
+////                                                    user_sp.put("cardId", item.getString("cardId"));
+////                                                    user_sp.put("courType", item.getString("courType"));
+////
+////                                                    SPUtils user_id = SPUtils.getInstance(item.getString("cardId"));
+////                                                    user_id.put("courIds", item.getString("courIds"));
+////                                                    user_id.put("name", item.getString("name"));
+////                                                    user_id.put("fingerprintId", item.getString("pfpIds"));
+////                                                    user_id.put("courType", item.getString("courType"));
+////                                                }
+//                                                AppInit.getMyManager().reboot();
+//
+//                                            }
+//                                        });
+                            }else{
+//                                AppInit.getMyManager().reboot();
                             }
+
                         } catch (JSONException e) {
                             e.printStackTrace();
-                        } catch (IOException e) {
+                        }catch (JsonSyntaxException e) {
                             e.printStackTrace();
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }finally {
+                            AppInit.getMyManager().reboot();
+
                         }
                     }
 

@@ -93,12 +93,14 @@ public class Alarm {
             if (Lock.getInstance().getLockState().getClass().getName().equals(State_Unlock.class.getName())) {
                 alarmText.setText("门磁已打开,如需撤防请先闭合门磁");
                 callback.onTextBack("门磁已打开,如需撤防请先闭合门磁");
+                alert.show();
+
             } else {
-                alarmText.setText("仓库已设防,但门磁未闭合,请检查门磁状态");
+//                alarmText.setText("仓库已设防,但门磁未闭合,请检查门磁状态");
                 callback.onTextBack("仓库已设防,但门磁未闭合,请检查门磁状态");
+                callback.onSucc();
             }
             SwitchPresenter.getInstance().buzz(SwitchImpl.Hex.H6);
-            alert.show();
         } else {
             callback.onSucc();
         }
